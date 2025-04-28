@@ -3,6 +3,11 @@
 - Define and test end to end access request and netsec automation solution
 - Understand different methods of vending aws resources with dependencies based on RACI.
 
+# Goals
+- This project automates end-to-end network security access control across AWS security groups and Palo Alto firewalls.
+- It enables developers to request network access declaratively through GitHub Issues, while network security policies are dynamically generated, validated, and enforced across multi-account AWS infrastructure.
+- Access is only granted if the requesting accounts meet security posture requirements, traffic patterns are classified correctly, and all necessary security control points are updated.
+
 # Repo Structure
     terraform-aws-netsec-automation/
     ├── img/
@@ -31,57 +36,6 @@
 - AWS IAM permissions
 - money
 
-# Context
-- ClientAccount1:
-    - VPC - 192.168.0.0/22
-        | subnet-name | cidr | description | 
-        | --- | --- | --- |
-        | general-compute | 192.168.1.0/24 | ec2, lambdas, rds, eks-cluster-endpoint | 
-        | eks-nodes | 192.168.2.0/25 | eks worker nodes only | 
-        | aws-vpc-endpoints | 100.66.0.0/25 | aws services via privatelink endpoints |
-        | tgw | 100.67.0.0/25 | transit gateway eni's only |
-        | public-nat | 100.65.0.0/28 | nat-gateway | 
-        | egress-gwlb-vpce | 100.65.16.0/28 | egress-gwlb-vpce | 
-        | igw | n/a | igw edge association |
-    - Route Tables
-        | route-table | subnets | routes | 
-        | --- | --- | --- |
-        | tgw-rt | tgw | n/a |
-        | core-rt | general-compute, eks-nodes, aws-vpc-endpoints | 0.0.0.0/0 -> public-nat-gtw-id</br>10.0.0.0/8->tgw-id</br>192.168.0.0/16->tgw-id | 
-        | nat-gwy-rt | public-nat | 0.0.0.0/0->egress-gwlb-vpce-id | 
-        | egress-gwlb-rt | egress-gwlb-vpce | 0.0.0.0/0->igw |
-        | igw | n/a | igw edge association | 100.64.0.0/28 -> egress-gwlb-vpce-id |
-- Inspection Account:
-    - VPC - 10.0.0.0/22
-        | subnet-name | cidr | description | 
-        | --- | --- | --- |
-        | gwlb-dataplane | 100.64.0.0/25 | palo-dataplane-enis, gwlb-dataplane-enis, egress-gwlb-vpce |
-        | public-subnets | 100.65.0.0/27 | palo-egress-enis, palo-egress-mgmt-eni |
-        | infra-mgmt | 10.0.0.0/24 | palo-mgmt-eni |
-        | aws-vpc-endpoints | 100.66.0.0/25 | aws services via privatelink endpoints |
-        | tgw | 100.67.0.0/25 | transit gateway eni's only |
-    - Route Tables
-        | route-table | subnets | routes | 
-        | --- | --- | --- |
-        | tgw-rt | tgw | n/a |
-        | core-rt | gwlb-dataplane, infra-mgmt, aws-vpc-endpoints | 0.0.0.0/0->egress-gwlb-vpce-id</br>10.0.0.0/8->tgw-id</br>192.168.0.0/16->tgw-id |
-        | public-rt | public-subnets | 0.0.0.0/0->igw |
-- Network Account: 
-    - TGW
-- Peering Account: 
-    - VPC - 10.128.0.0/22
-        | subnet-name | cidr | description | 
-        | --- | --- | --- |
-        | tgw | 100.67.0.0/25 | transit gateway eni's only |
-        | thirdparty-gwlb-vpce | 100.64.0.0/25 | thirdparty-gwlb-vpce |
-        | 3rdparty-vpce | 10.128.0.0/24 | 3rdparty-pvtlink-vpce |
-        | producer-frontend | 10.129.0.0/24 | load-balancers and gateways exposing internal services to thirdpartys |
-    - Route Tables
-        | route-table | subnets | routes | 
-        | --- | --- | --- |
-        | tgw-rt | tgw | 10.128.0.0/23->thirdparty-gwlb-vpce-id |
-        | 3rdparty-gwlb-rt | thirdparty-gwlb-vpce | 0.0.0.0->tgw-id |
-        | 3rdparty-peering-rt | producer-frontend, 3rdparty-vpce | 0.0.0.0/0->thirdparty-gwlb-vpce-id |
 
 ## Personas
 - **Netsec Dev** 
@@ -227,19 +181,7 @@
         - **Option3**: Leverage TF Modules managed by Netsec team and called by Dev team. 
             - Pros: Scales very well. 
             - Cons: Not granular enough and managing TF applys in many customer workspaces sucks. 
-        - **Option4**: Placeholder security groups trigger asynchronous security delivery if authorized. 
-            - SG is created through module which triggers call to have workspace orchestrate security-policy. 
-            - Pros: 
-                - More specific access per account/region/use-case vs. shared module for all. 
-                - Fits in a devops model
-                - Should work within existing pipelines. 
-            - Cons: 
-                - Asynchronous complexity
-                - Delay after creation may not work for all use-cases
-                - Placeholder security-group should be deny-all but may require default rules to support certain use-cases. 
-                - Failures need to be investigated and responded to.
-- **Problem2**: Dependencies across asynchronous resource creation. 
-    - Resources may be created manually or in separate pipelines (platform,app) and increases complexity orchestrating security policy idenpendently and idempotently. 
+    - Resources may be created manually or in separate pipelines (platform,app) and increases complexity orchestrating security policy independently and idempotently. 
     - Pre-built infrastructure accounts
         - Network
         - Inspection
@@ -255,6 +197,11 @@
         - Security updates must happen at build time and when resources are created. 
         - Drift between all controls from source to destination may break connectivity. 
         - Scaling is a challenge. 
+        - AppID and url category is may not be known or provided by the requestor. 
+            - Netsec may require these to be included for a given request. 
+            - Create way to insert appid and/or url category during the PR phase of the request. 
+                - dev submits request without url category or appid. 
+                - netsec arch/engineer manually adds app-id/url-category or approves the request without them provided an exception is stated. 
     - Solutions: 
         - Track Desired State per Resource:
             - e.g., "Resource A needs flow to Resource B through TGW/FW/Privatelink — current status = pending/missing at destination."
@@ -265,28 +212,208 @@
         - Asset Inventory Sync:
            - Maintain a lightweight inventory that maps resources, their metadata (tags, IPs, SG IDs), and policy states.
 
+| Account Category | Account Characteristics |
+|---|---|
+|ThirdParty Account/VPC |- Platform-built (standardized)|
+| |- Few accounts|
+| |- Built ahead of time|
+| |- Easier to automate security controls early|
+|Network/Inspection Core Accounts |- Platform-built|
+| |- Core infra (TGW, GWLB, Palo Alto, Privatelinks)|
+| |- Pre-existing or being replatformed|
+| |- Controlled change windows|
+|App-Driven Internal Accounts |- Dynamic |
+| |- Built at different times (legacy, new, iterative expansion) |
+| |- Different levels of maturity (IAM hygiene, tagging, VPC design) |
+| |- Different teams owning VPCs and deployments |
+| |- Devs may not care about network control points (only app function) |
+|Legacy vs New Iterations |- Legacy accounts may lack tagging, metadata, usable structure |
+| |- First-gen accounts may follow inconsistent early standards |
+| |- Newer accounts may adopt your new platform-driven templates (if you succeed) |
+
+
+|Area | Problem |
+|---|---|
+| Timing | Can't control when accounts/resources are built. |
+| Ownership | Different teams own network vs app vs platform pipelines. |
+| Trust | Platform and App teams are not always trustworthy about network access controls. |
+| Consistency | Legacy accounts have inconsistent structure (bad tags, bad naming, bad VPC segmentation). |
+| Visibility | Hard to know when new VPCs, ENIs, or PrivateLinks appear dynamically. |
+| Security Drift | If Devs self-manage network/security, your central platform can drift from reality. |
+| Interruption Risk | Inserting automation mid-stream risks breaking existing app flows if not done carefully. |
+| Scaling | If automation requires manual review every time, you can't scale across hundreds of accounts. |
+
+# Account Metadata Collection
+- Collect this metadata and store it for policy decisions. 
+    | Data | Why it's needed |
+    |---|---|
+    | AccountID | Distinguish accounts (Source vs Destination) |
+    | Region | Enforce regionality rules (e.g., intra-region vs cross-region) |
+    | VPC ID | Distinguish if same/different VPC; used for intra-vpc vs inter-vpc validation |
+    | VPC Cidr | Validate subnets and deny requests to full cidr if declared |
+    | Subnet ID | Helps validate correct zoning (public, private, isolated) |
+    | ENI (Elastic Network Interface) | Directly map deployed resources to security groups and IPs |
+    | Security Group ID | Validate SG rules, memberships, gaps, potential conflicts |
+    | Tags | Absolutely critical for ownership, environment (prod/dev), application identity, sensitivity classification |
+    | Route Tables (optional) | Helpful for understanding network paths and enforcement boundaries (later) |
+    | Privatelink Endpoints (optional) | Identify external/internal exposure points (later) |
+
+
+
+# Account Posturing
+![account posturing](img/aws-netsec-account-posture-validation.png)
+- Enabling access for resources in accounts with security misconfigurations may create unacceptable risk. 
+- At time of access requests, account may identified security vulnerabilites. 
+- Create a validation gate that denies requests to accounts with unforgivable security misconfigurations. 
+- Run a validator process that confirms configuration state and update report. 
+- When access request is submitted, validate status of account in report prior to continuing to the next step. 
+- Account status types:
+    - Critical = Auto-Deny
+    - Major = Require Manual Approval or Remediation
+    - Minor = Allow with Warning, monitor
+
+
+# Connectivity Pattern Classifier
+- Thirdparty
+- Intra-VPC
+- Inter-VPC
+- Cross-Environment
+- Campus
+- Cross-Cloud
+- Cross-DC
+- Private DC
+
+
+# Valid Connectivity Patterns
+| source | destination | security-control | requirement | 
+| --- | --- | --- | --- | 
+| eks-app-pods | aws-service-privatelink | security-group, vpc-endpoint policy |  | 
+
 # Sample Requests
+
+
+## Context
+- ClientAccount1:
+    - VPC - 192.168.0.0/22
+        | subnet-name | cidr | description | 
+        | --- | --- | --- |
+        | general-compute | 192.168.1.0/24 | ec2, lambdas, rds, eks-cluster-endpoint | 
+        | eks-nodes | 192.168.2.0/25 | eks worker nodes only | 
+        | aws-vpc-endpoints | 100.66.0.0/25 | aws services via privatelink endpoints |
+        | tgw | 100.67.0.0/25 | transit gateway eni's only |
+        | public-nat | 100.65.0.0/28 | nat-gateway | 
+        | egress-gwlb-vpce | 100.65.16.0/28 | egress-gwlb-vpce | 
+        | igw | n/a | igw edge association |
+    - Route Tables
+        | route-table | subnets | routes | 
+        | --- | --- | --- |
+        | tgw-rt | tgw | n/a |
+        | core-rt | general-compute, eks-nodes, aws-vpc-endpoints | 0.0.0.0/0 -> public-nat-gtw-id</br>10.0.0.0/8->tgw-id</br>192.168.0.0/16->tgw-id | 
+        | nat-gwy-rt | public-nat | 0.0.0.0/0->egress-gwlb-vpce-id | 
+        | egress-gwlb-rt | egress-gwlb-vpce | 0.0.0.0/0->igw |
+        | igw | n/a | igw edge association | 100.64.0.0/28 -> egress-gwlb-vpce-id |
+- Inspection Account:
+    - VPC - 10.0.0.0/22
+        | subnet-name | cidr | description | 
+        | --- | --- | --- |
+        | gwlb-dataplane | 100.64.0.0/25 | palo-dataplane-enis, gwlb-dataplane-enis, egress-gwlb-vpce |
+        | public-subnets | 100.65.0.0/27 | palo-egress-enis, palo-egress-mgmt-eni |
+        | infra-mgmt | 10.0.0.0/24 | palo-mgmt-eni |
+        | aws-vpc-endpoints | 100.66.0.0/25 | aws services via privatelink endpoints |
+        | tgw | 100.67.0.0/25 | transit gateway eni's only |
+    - Route Tables
+        | route-table | subnets | routes | 
+        | --- | --- | --- |
+        | tgw-rt | tgw | n/a |
+        | core-rt | gwlb-dataplane, infra-mgmt, aws-vpc-endpoints | 0.0.0.0/0->egress-gwlb-vpce-id</br>10.0.0.0/8->tgw-id</br>192.168.0.0/16->tgw-id |
+        | public-rt | public-subnets | 0.0.0.0/0->igw |
+- Network Account: 
+    - TGW
+- Peering Account: 
+    - VPC - 10.128.0.0/22
+        | subnet-name | cidr | description | 
+        | --- | --- | --- |
+        | tgw | 100.67.0.0/25 | transit gateway eni's only |
+        | thirdparty-gwlb-vpce | 100.64.0.0/25 | thirdparty-gwlb-vpce |
+        | 3rdparty-vpce | 10.128.0.0/24 | 3rdparty-pvtlink-vpce |
+        | producer-frontend | 10.129.0.0/24 | load-balancers and gateways exposing internal services to thirdpartys |
+    - Route Tables
+        | route-table | subnets | routes | 
+        | --- | --- | --- |
+        | tgw-rt | tgw | 10.128.0.0/23->thirdparty-gwlb-vpce-id |
+        | 3rdparty-gwlb-rt | thirdparty-gwlb-vpce | 0.0.0.0->tgw-id |
+        | 3rdparty-peering-rt | producer-frontend, 3rdparty-vpce | 0.0.0.0/0->thirdparty-gwlb-vpce-id |
+    ```
+    New Access Request ->
+    |
+    v
+    SourceAccount == DestinationAccount?
+    Yes --> Intra-VPC or Inter-VPC?
+        - Same VPC -> Intra-VPC
+        - Different VPC -> Inter-VPC
+    No --> Is DestinationAccount a Thirdparty Account?
+        - Yes -> Thirdparty Traffic (requires Firewall, SG updates)
+        - No -> Inter-Account (requires SG updates, maybe TGW)
+
+    Then: Based on classification, apply control plane updates.
+    ```
+# Request ingestion
+1. Parse input
+2. Validate metadata
+3. Classify access and decide if firewall configuration is required. 
+4. Implement rules automatically or based on manual approval if required. 
+
+# Check AWS Config per request
+1. Extract SourceAccount, DestinationAccount from Issue
+2. Query AWS Config:
+   a. Get Source SG metadata
+   b. Get Destination SG metadata
+   c. (Optionally) Get ENIs attached
+   d. (Optionally) Get Subnets if needed
+3. Validate Resource State:
+   a. Exists? (If not, deny request)
+   b. Tagged correctly? (If not, deny or warn)
+   c. Belongs to correct account/env? (If not, deny)
+4. Enrich Access Request Context
+5. Classify Traffic Type (Thirdparty? Intra-VPC? Inter-VPC?)
+6. Generate Terraform Plan
+7. Apply or Deny based on Policy
 
 ## Scenario1:
 - Client, Network, Inspection and peering accounts and infrastructure are already pre-built. 
 - Assumes developers know their requirements including app-id and url's. 
 - Assumes source/destination security-groups are already built but ingress/egress rules are empty. 
 - Assumes PaloAlto has no policy written as well. 
-- Two requestors are now using github issues to request new firewall access.
+- Requestors are now using github issues to request new firewall access.
 - **Request1**: 
     - Business justification: Need to connect EC2 to the thirdparty1-pvtlink-vpce for business function Y.
+    - SourceAccount: prj-1-account
+    - SourceSGID: sg-id-12345
     - Source: 192.168.1.69/32
+    - DestinationAccount: thirdparty-peering
+    - DestinationSGID: sg-id-4567
     - Destination: 10.128.0.69/32
     - Proto/Port: tcp/443
     - URL: app.thirdparty1.com
     - appID: SSL/TLS
 - **Request2**: 
+    - Business justification: Need to connect aws service vpc-endpoints for control plane connectivity. 
+    - SourceAccount: prj-1-account
+    - SourceSGID: sg-id-12345
+    - Source: 192.168.1.69/32
+    - DestinationAccount: prj-1-account
+    - Destination: 100.66.0.2/32
+    - DestinationSGID: sg-id-12345
+    - Proto/Port: tcp/443
+    - URL: ec2.amazonaws.com
+    - appID: SSL/TLS
+- **Request3**: 
     - Business justification: EKS nodes need connectivity to the thirdparty2-pvtlink-vpce for business function Y.
     - Source: 192.168.2.69/32
     - Destination: 10.128.0.89/32
     - Proto/Port: tcp/27017
     - URL: mongodb.thirdparty2.com
-    - appID: SSL/TLS
+    - appID: mongodb
 - Github Issues takes input and formats the input for:
     - Source AWS Security-group Egress rule
         - Metadata used for policy:
