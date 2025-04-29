@@ -39,7 +39,7 @@ jobs:
 
       - name: Inject HOME_IP into policy YAML
         run: |
-          sed -i "s|\\\$HOME_IP|${{ secrets.HOME_IP }}|g" infrastructure/policies/palo_access.yaml
+          sed -i "s|\\\$HOME_IP|${{ secrets.HOME_IP }}|g" policies/palo_access.yaml
           
       - name: Terraform Init
         run: |
