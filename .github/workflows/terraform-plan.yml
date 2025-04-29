@@ -26,12 +26,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: hashicorp/setup-terraform@v3
-
-      - name: Setup AWS CLI
-        run: |
-          sudo apt-get update && sudo apt-get install -y awscli
+      
+      - uses: ghcr.io/drewpypro/kube-aws-istio:latest
 
       - name: Verify DigitalOcean Spaces access with AWS CLI
         run: |
