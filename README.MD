@@ -363,6 +363,11 @@
 3. Classify access and decide if firewall configuration is required. 
 4. Implement rules automatically or based on manual approval if required. 
 
+# Request Yaml
+```yaml
+
+
+```
 
 # Validation
 

@@ -3,7 +3,6 @@ resource "aws_instance" "palo_firewall" {
   instance_type               = "m5.2xlarge"
   subnet_id                   = aws_subnet.firewall_subnet.id
 
-  associate_public_ip_address = true
 
   network_interface {
     device_index         = 0
@@ -33,3 +32,12 @@ resource "aws_network_interface" "palo_dataplane" {
 }
 
 
+resource "aws_eip" "palo_mgmt_eip" {
+  instance = aws_instance.palo_firewall.id
+  domain = "vpc"
+}
+
+resource "aws_eip_association" "palo_mgmt_assoc" {
+  network_interface_id = aws_network_interface.palo_mgmt.id
+  allocation_id        = aws_eip.palo_mgmt_eip.id
+}

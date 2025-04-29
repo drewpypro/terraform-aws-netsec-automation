@@ -17,7 +17,7 @@ resource "aws_security_group" "thirdparty_vpce_sg" {
 }
 
 resource "aws_security_group" "paloalto_vm_sg" {
-  name        = "thirdparty-vpce-sg"
+  name        = "paloalto-vm-sg"
   description = "Palo Alto VM"
   vpc_id      = aws_vpc.test_vpc.id
 }
