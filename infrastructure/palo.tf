@@ -55,3 +55,23 @@ resource "aws_eip_association" "palo_mgmt_assoc" {
   network_interface_id = aws_network_interface.palo_mgmt.id
   allocation_id        = aws_eip.palo_mgmt_eip.id
 }
+
+resource "panos_security_rule_group" "example_ruleset" {
+  position_keyword = "bottom"
+  rule {
+    name                  = "example rule 1"
+    source_zones          = ["any"]
+    source_addresses      = ["1.1.1.1/32"]
+    source_users          = ["any"]
+    destination_zones     = ["any"]
+    destination_addresses = ["2.2.2.2/32"]
+    applications          = ["any"]
+    services              = ["any"]
+    categories            = ["any"]
+    action                = "allow"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
