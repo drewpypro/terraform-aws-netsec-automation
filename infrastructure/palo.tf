@@ -14,6 +14,8 @@ resource "aws_instance" "palo_firewall" {
 
   user_data = "op-command-modes=mgmt-interface-swap"
 
+  key_name = "terraform-netsec-automation-testing"
+
   tags = {
     Name = "palo-firewall"
   }
