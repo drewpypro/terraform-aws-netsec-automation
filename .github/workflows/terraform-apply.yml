@@ -50,8 +50,7 @@ jobs:
             --group-id "sg-0b5d6e2811145808d" \
             --protocol tcp \
             --port "443" \
-            --cidr "${IP}/32"
-            --description "automated from git workflow" > /dev/null
+            --cidr "${IP}/32" > /dev/null
           
       - name: Terraform Init
         run: |
