@@ -19,6 +19,8 @@ env:
 jobs:
   terraform-plan:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/drewpypro/kube-aws-istio:latest
     defaults:
       run:
         working-directory: infrastructure
@@ -40,7 +42,7 @@ jobs:
       - name: terraform plan
         run: |
           terraform plan -out=tfplan
-          
+
       - name: terraform apply
         run: |
           terraform apply -input=false tfplan

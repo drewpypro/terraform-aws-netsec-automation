@@ -16,6 +16,8 @@ env:
 jobs:
   terraform-plan:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/drewpypro/kube-aws-istio:latest
     defaults:
       run:
         working-directory: infrastructure
