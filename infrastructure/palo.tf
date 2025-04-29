@@ -1,8 +1,6 @@
 resource "aws_instance" "palo_firewall" {
   ami                         = "ami-0ff9efe5244200c6e"
   instance_type               = "m5.2xlarge"
-  subnet_id                   = aws_subnet.firewall_subnet.id
-
 
   network_interface {
     device_index         = 0
