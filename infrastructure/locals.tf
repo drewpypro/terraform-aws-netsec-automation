@@ -48,4 +48,5 @@ locals {
     if (
       try(req.destination.ips[0], null) == "100.64.0.198/32"
     )
+  ]
 }
