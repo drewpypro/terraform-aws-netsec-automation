@@ -91,6 +91,6 @@ resource "panos_security_policy" "from_yaml" {
     services                = ["application-default"]
     categories              = ["any"]
     action                  = "allow"
-    description             = each.value.justification
+    description             = each.value.description
   }
 }
