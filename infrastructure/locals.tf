@@ -32,4 +32,20 @@ locals {
   ])
 
   rules = concat(local.ingress_rules, local.egress_rules)
+
+  thirdparty_cidrs = ["100.64.0.0/23"]
+
+  palo_rules = [
+    for i, req in local.raw.requests : {
+      name              = "${local.raw.request_id}-panos-${i}"
+      source_ip         = req.source.ips[0]
+      destination_ip    = req.destination.ips[0]
+      protocol          = req.protocol
+      port              = req.port
+      appid             = req.appid
+      justification     = trimspace(req.business_justification)
+    }
+    if can(req.destination.ips[0]) && req.destination.ips[0] != null &&
+       anytrue([for cidr in local.thirdparty_cidrs : cidrcontains(cidr, req.destination.ips[0])])
+  ]
 }
