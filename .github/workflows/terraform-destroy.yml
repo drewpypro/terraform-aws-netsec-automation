@@ -41,7 +41,6 @@ jobs:
           sed -i "s|\\\$HOME_IP|${{ secrets.HOME_IP }}|g" policies/palo_access.yaml
           IP=$(curl -s ifconfig.me)
           echo "Runner public IP: $IP"
-          sed -i "s|\\\$GIT_IP|$IP/32|g" policies/palo_access.yaml
           aws ec2 authorize-security-group-ingress \
             --region us-west-2 \
             --group-id "sg-0b5d6e2811145808d" \
