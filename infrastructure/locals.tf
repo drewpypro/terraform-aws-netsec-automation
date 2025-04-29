@@ -3,10 +3,9 @@ locals {
 
   sg_rules = flatten([
     for req in local.raw.requests : concat(
-      # Egress Rules
       [
         for sg_id in coalesce(req.source.security_group_ids, []) : {
-          name                      = "${local.raw.request_id}-egress-${sg_id}-${req.protocol}-${req.port}"
+          name = "${local.raw.request_id}-egress-${sg_id}-${req.protocol}-${req.port}-${try(req.destination.security_group_ids[0], replace(req.destination.ips[0], "/", "_"))}"
           direction                 = "egress"
           security_group_id         = sg_id
           ip_protocol               = req.protocol == "any" ? "-1" : req.protocol
@@ -17,10 +16,9 @@ locals {
           description               = trimspace(req.business_justification)
         }
       ],
-      # Ingress Rules
       [
         for sg_id in coalesce(req.destination.security_group_ids, []) : {
-          name                      = "${local.raw.request_id}-ingress-${sg_id}-${req.protocol}-${req.port}"
+          name = "${local.raw.request_id}-ingress-${sg_id}-${req.protocol}-${req.port}-${try(req.source.security_group_ids[0], replace(req.source.ips[0], "/", "_"))}"
           direction                 = "ingress"
           security_group_id         = sg_id
           ip_protocol               = req.protocol == "any" ? "-1" : req.protocol
@@ -36,7 +34,7 @@ locals {
 
   palo_rules = [
     for req in local.raw.requests : {
-      name            = "${local.raw.request_id}-palo-${req.protocol}-${req.port}"
+      name            = "${local.raw.request_id}-palo-${req.protocol}-${req.port}-${replace(try(req.source.ips[0], "any"), "/", "_")}-${replace(try(req.destination.ips[0], "any"), "/", "_")}"
       source_ip       = try(req.source.ips[0], "any")
       destination_ip  = try(req.destination.ips[0], "any")
       appid           = req.appid
