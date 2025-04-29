@@ -29,6 +29,16 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v3
 
+      - name: Setup AWS CLI
+        run: |
+          sudo apt-get update && sudo apt-get install -y awscli
+
+      - name: Verify DigitalOcean Spaces access with AWS CLI
+        run: |
+          aws --endpoint-url https://${BUCKET_ENDPOINT} s3api head-object --bucket ${BUCKET_NAME} --key ${BUCKET_KEY} || \
+          aws --endpoint-url https://${BUCKET_ENDPOINT} s3api list-objects --bucket ${BUCKET_NAME} || \
+          (echo "❌ Bucket validation failed. Check credentials or bucket path." && exit 1)
+
       - name: terraform init
         run: |
           terraform init \
