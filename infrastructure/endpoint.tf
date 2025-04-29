@@ -12,6 +12,10 @@ resource "aws_vpc_endpoint" "ec2_service_vpce" {
 
   security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
 
+  tags = {
+    Name = "ec2-service-vpce"
+  }
+
 }
 
 resource "aws_vpc_endpoint" "thirdparty_vpce" {
@@ -27,4 +31,8 @@ resource "aws_vpc_endpoint" "thirdparty_vpce" {
   subnet_ids = [aws_subnet.thirdparty_subnet.id]
 
   security_group_ids = [aws_security_group.thirdparty_vpce_sg.id]
+
+  tags = {
+    Name = "thirdparty-vpce"
+  }
 }
