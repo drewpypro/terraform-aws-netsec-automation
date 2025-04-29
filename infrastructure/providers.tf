@@ -15,3 +15,11 @@ terraform {
     region                      = "us-east-1"
   }
 }
+
+provider "panos" {
+  hostname = "54.214.37.204"
+  username = var.palo_username
+  password = var.palo_password
+  timeout  = 60
+  insecure = true
+}
