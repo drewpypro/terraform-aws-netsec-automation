@@ -37,6 +37,8 @@ resource "aws_subnet" "thirdparty_subnet" {
   vpc_id                  = aws_vpc.test_vpc.id
   cidr_block              = "100.64.0.0/24"
   availability_zone       = "us-west-2a"
+
+  depends_on = [aws_vpc_ipv4_cidr_block_association.secondary]
 }
 
 resource "aws_internet_gateway" "igw" {
@@ -63,6 +65,9 @@ resource "aws_route_table" "general_rt" {
   tags = {
     Name = "general-rt"
   }
+
+  depends_on = [aws_instance.palo_firewall]
+
 }
 
 resource "aws_route_table_association" "ec2_rt_assoc" {

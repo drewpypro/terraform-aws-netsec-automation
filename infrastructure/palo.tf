@@ -1,5 +1,5 @@
 resource "aws_instance" "palo_firewall" {
-  ami                         = "ami-0ff9efe5244200c6e"
+  ami                         = "ami-012b6cc03ca2f0bcc"
   instance_type               = "m5.2xlarge"
 
   network_interface {
