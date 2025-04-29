@@ -30,3 +30,15 @@ data "panos_system_info" "ngfw_info" { }
 output "the_info" {
     value = data.panos_system_info.ngfw_info
 }
+
+resource "null_resource" "commit_palo_ssh" {
+  provisioner "local-exec" {
+    command = "sshpass -p '${var.palo_password}' ssh -o StrictHostKeyChecking=no ${var.palo_username}@${var.palo_host} 'configure; commit'"
+  }
+
+  triggers = {
+    always_run = timestamp()
+  }
+
+  depends_on = [panos_security_policy.from_yaml]
+}

@@ -1,7 +1,8 @@
-# variable "palo_host" {
-#   description = "Elastic IP or DNS of the Palo instance"
-#   type        = string
-# }
+variable "palo_host" {
+  description = "Elastic IP or DNS of the Palo instance"
+  type        = string
+  default     = "54.214.37.204/32"
+}
 
 variable "palo_username" {
   description = "Palo admin username"
