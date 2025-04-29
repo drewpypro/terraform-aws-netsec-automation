@@ -35,20 +35,16 @@ locals {
 
   thirdparty_cidrs = ["100.64.0.0/23"]
 
-  palo_rules = [
+    palo_rules = [
     for i, req in local.raw.requests : {
-      name              = "${local.raw.request_id}-${req.protocol}-${req.port}"
-      source_ip         = req.source.ips[0]
-      destination_ip    = req.destination.ips[0]
-      protocol          = req.protocol
-      port              = req.port
-      appid             = req.appid
-      justification     = trimspace(req.business_justification)
+        name              = "${local.raw.request_id}-${req.protocol}-${req.port}"
+        source_ip         = req.source.ips[0]
+        destination_ip    = req.destination.ips[0]
+        protocol          = req.protocol
+        port              = req.port
+        appid             = req.appid
+        justification     = trimspace(req.business_justification)
     }
-    if(
-    can(req.destination.ips) && 
-    req.destination.ips != null && 
-    try(contains(req.destination.ips, "100.64.0.198/32"), false)
-    )
-  ]
+    if try(req.enable_palo_inspection, false)
+    ]
 }
