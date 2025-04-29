@@ -39,7 +39,7 @@ jobs:
           sed -i "s|\\\$HOME_IP|${{ secrets.HOME_IP }}|g" policies/palo_access.yaml
           IP=$(curl -s ifconfig.me)
           echo "Runner public IP: $IP"
-          sed -i "s|\\\$GIT_IP|$IP|g" policies/palo_access.yaml
+          sed -i "s|\\\$GIT_IP|$IP/32|g" policies/palo_access.yaml
           
       - name: Terraform Init
         run: |
