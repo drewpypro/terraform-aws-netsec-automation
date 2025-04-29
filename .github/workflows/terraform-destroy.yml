@@ -14,7 +14,7 @@ env:
   BUCKET_SECRET_ACCESS_KEY: ${{ secrets.BUCKET_SECRET_ACCESS_KEY }}
 
 jobs:
-  terraform-plan:
+  terraform-destroy:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/drewpypro/kube-aws-istio:latest
@@ -23,11 +23,18 @@ jobs:
         working-directory: infrastructure
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - uses: hashicorp/setup-terraform@v3
+      - name: Verify Backend
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BUCKET_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BUCKET_SECRET_ACCESS_KEY }}
+        run: |
+          aws --endpoint-url ${BUCKET_ENDPOINT} s3api head-object --bucket ${BUCKET_NAME} --key test/poop.txt || \
+          (echo "❌ Backend validation failed. Check credentials or filepath." && exit 1)
 
-      - name: terraform init
+      - name: Terraform Init
         run: |
           terraform init \
             -backend-config="bucket=$BUCKET_NAME" \
@@ -36,6 +43,6 @@ jobs:
             -backend-config="access_key=$BUCKET_ACCESS_KEY_ID" \
             -backend-config="secret_key=$BUCKET_SECRET_ACCESS_KEY"
 
-      - name: terraform destroy
+      - name: Terraform Destroy
         run: |
           terraform destroy -auto-approve
