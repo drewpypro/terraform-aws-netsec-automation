@@ -30,6 +30,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Verify Backend
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BUCKET_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BUCKET_SECRET_ACCESS_KEY }}
         run: |
           aws --endpoint-url ${BUCKET_ENDPOINT} s3api head-object --bucket ${BUCKET_NAME} --key test/poop.txt || \
           (echo "❌ Backend validation failed. Check credentials or filepath." && exit 1)
