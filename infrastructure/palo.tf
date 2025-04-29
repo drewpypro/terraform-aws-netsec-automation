@@ -82,10 +82,10 @@ resource "panos_security_policy" "from_yaml" {
 
   rule {
     name                    = each.value.name
-    source_zones            = ["trust"]
+    source_zones            = ["any"]
     source_addresses        = [each.value.source_ip]
-    source_users            = []
-    destination_zones       = ["untrust"]
+    source_users            = ["any"]
+    destination_zones       = ["any"]
     destination_addresses   = [each.value.destination_ip]
     applications            = [each.value.appid]
     services                = ["application-default"]
