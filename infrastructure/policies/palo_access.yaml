@@ -19,7 +19,7 @@ requests:
       vpc_id: $TEST_VPC
       region: "us-west-2"
       security_group_ids:
-      - sg-07d2dd5a8acd63263
+      - sg-0b5d6e2811145808d
       ips: 
     protocol: tcp
     port: 443
@@ -39,7 +39,7 @@ requests:
       vpc_id: $TEST_VPC
       region: "us-west-2"
       security_group_ids:
-      - sg-07d2dd5a8acd63263
+      - sg-0b5d6e2811145808d
       ips: 
     protocol: tcp
     port: 22
@@ -59,7 +59,7 @@ requests:
       vpc_id: $TEST_VPC
       region: "us-west-2"
       security_group_ids:
-      - sg-07d2dd5a8acd63263
+      - sg-0b5d6e2811145808d
       ips: 
     protocol: any
     port: any
@@ -73,7 +73,7 @@ requests:
       vpc_id: $TEST_VPC
       region: "us-west-2"
       security_group_ids:
-      - sg-07d2dd5a8acd63263
+      - sg-0b5d6e2811145808d
       ips: 
     destination:
       account_id: 
