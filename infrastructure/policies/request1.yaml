@@ -9,19 +9,18 @@
 #   - business_justification: >
 #       EC2 instance needs HTTPS access to thirdparty endpoint.
 #     source:
-#       account_id: "111122223333"
-#       vpc_id: "vpc-aaaa1111"
-#       region: "us-west-2"
+#       account_id: 
+#       vpc_id: 
+#       region: 
 #       security_group_ids:
-#         - "sg-12345"
-#       ips: ["192.168.1.18/32"]
-#     destination:
-#       account_id: "111122223333"
-#       vpc_id: "vpc-aaaa1111"
-#       region: "us-west-2"
-#       security_group_ids:
-#         - "sg-07d2dd5a8acd63263"
+#         - "sg-0b7029dc87dbcb848"
 #       ips:
+#     destination:
+#       account_id: 
+#       vpc_id: 
+#       region: 
+#       security_group_ids:
+#       ips: ["100.64.0.198/32"]
 #     protocol: tcp
 #     port: 443
 #     appid: ssl
@@ -30,19 +29,18 @@
 #   - business_justification: >
 #       EC2 needs to connect to aws service vpc-endpoints via PrivateLink.
 #     source:
-#       account_id: "111122223333"
-#       vpc_id: "vpc-aaaa1111"
-#       region: "us-west-2"
+#       account_id: 
+#       vpc_id: 
+#       region: 
 #       security_group_ids:
-#         - "sg-12345"
-#       ips: ["192.168.1.18/32"]
+#         - "sg-0b7029dc87dbcb848"
 #     destination:
-#       account_id: "111122223333"
-#       vpc_id: "vpc-aaaa1111"
-#       region: "us-west-2"
+#       account_id:
+#       vpc_id: 
+#       region:
 #       security_group_ids:
-#         - "sg-55555"
-#       ips: ["192.168.2.31/32"]
+#         - "sg-0dfca87f31291ec64"
+#       ips:
 #     protocol: tcp
 #     port: 443
 #     appid: ssl
