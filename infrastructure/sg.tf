@@ -40,62 +40,34 @@ resource "aws_security_group" "paloalto_vm_sg" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "ingress_referenced" {
+resource "aws_vpc_security_group_ingress_rule" "from_yaml" {
   for_each = {
-    for rule in local.rules :
-    "${rule.name}-${rule.from_port}-${rule.to_port}-${rule.ip_protocol}-${rule.referenced_security_group_id}-ingress"
-    => rule if rule.referenced_security_group_id != "null" && rule.cidr_ipv4 == "null" && rule.direction == "ingress"
+    for rule in local.sg_rules : rule.name => rule if rule.direction == "ingress"
   }
 
-  security_group_id            = aws_security_group.sgs[each.value.sg_id].id
-  from_port                    = each.value.ip_protocol == "-1" ? null : each.value.from_port
-  to_port                      = each.value.ip_protocol == "-1" ? null : each.value.to_port
-  ip_protocol                  = each.value.ip_protocol
-  referenced_security_group_id = aws_security_group.sgs[each.value.referenced_security_group_id].id
-  description                  = each.value.business_justification
-}
-
-resource "aws_vpc_security_group_ingress_rule" "ingress_cidr" {
-  for_each = {
-    for rule in local.rules :
-    "${rule.name}-${rule.from_port}-${rule.to_port}-${rule.ip_protocol}-${rule.cidr_ipv4}-ingress"
-    => rule if rule.cidr_ipv4 != "null" && rule.direction == "ingress"
-  }
-
-  security_group_id = aws_security_group.sgs[each.value.sg_id].id
-  from_port         = each.value.ip_protocol == "-1" ? null : each.value.from_port
-  to_port           = each.value.ip_protocol == "-1" ? null : each.value.to_port
+  security_group_id = each.value.security_group_id
   ip_protocol       = each.value.ip_protocol
-  cidr_ipv4         = each.value.cidr_ipv4
-  description       = each.value.business_justification
+  from_port         = each.value.from_port
+  to_port           = each.value.to_port
+
+  cidr_ipv4                    = each.value.referenced_security_group == null ? each.value.cidr_ipv4 : null
+  referenced_security_group_id = each.value.referenced_security_group != null ? each.value.referenced_security_group : null
+
+  description = each.value.description
 }
 
-resource "aws_vpc_security_group_egress_rule" "egress_referenced" {
+resource "aws_vpc_security_group_egress_rule" "from_yaml" {
   for_each = {
-    for rule in local.rules :
-    "${rule.name}-${rule.from_port}-${rule.to_port}-${rule.ip_protocol}-${rule.referenced_security_group_id}-egress"
-    => rule if rule.referenced_security_group_id != "null" && rule.cidr_ipv4 == "null" && rule.direction == "egress"
+    for rule in local.sg_rules : rule.name => rule if rule.direction == "egress"
   }
 
-  security_group_id            = aws_security_group.sgs[each.value.sg_id].id
-  from_port                    = each.value.ip_protocol == "-1" ? null : each.value.from_port
-  to_port                      = each.value.ip_protocol == "-1" ? null : each.value.to_port
-  ip_protocol                  = each.value.ip_protocol
-  referenced_security_group_id = aws_security_group.sgs[each.value.referenced_security_group_id].id
-  description                  = each.value.business_justification
-}
-
-resource "aws_vpc_security_group_egress_rule" "egress_cidr" {
-  for_each = {
-    for rule in local.rules :
-    "${rule.name}-${rule.from_port}-${rule.to_port}-${rule.ip_protocol}-${rule.cidr_ipv4}-egress"
-    => rule if rule.cidr_ipv4 != "null" && rule.direction == "egress"
-  }
-
-  security_group_id = aws_security_group.sgs[each.value.sg_id].id
-  from_port         = each.value.ip_protocol == "-1" ? null : each.value.from_port
-  to_port           = each.value.ip_protocol == "-1" ? null : each.value.to_port
+  security_group_id = each.value.security_group_id
   ip_protocol       = each.value.ip_protocol
-  cidr_ipv4         = each.value.cidr_ipv4
-  description       = each.value.business_justification
+  from_port         = each.value.from_port
+  to_port           = each.value.to_port
+
+  cidr_ipv4                    = each.value.referenced_security_group == null ? each.value.cidr_ipv4 : null
+  referenced_security_group_id = each.value.referenced_security_group != null ? each.value.referenced_security_group : null
+
+  description = each.value.description
 }

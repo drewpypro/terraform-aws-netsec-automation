@@ -29,3 +29,11 @@ requests:
     appid: ssl (optional)
     url:  (optional)
 ```
+
+# Logic
+- if sg-id is supplied write rules to that sg-id 
+- if sg-id is supplied for source, but only ip supplied for dest, create an egress cidr_ipv4 rule
+- if sg-id is supplied for destination, but only IP supplied for src, create an ingress cidr_ipv4 rule
+- if sg-id is supplied for source and destination, create an ingress and egress rule on each respective sg-id
+- if enable_palo_inspection is true; generate palo alto policy using IPs only. 
+
