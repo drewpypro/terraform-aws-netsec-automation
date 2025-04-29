@@ -20,7 +20,7 @@ requests:
       region: "us-west-2"
       security_group_ids:
       - sg-0b5d6e2811145808d
-      ips: 
+      ips: []
     protocol: tcp
     port: 443
     appid: ssl
@@ -40,7 +40,7 @@ requests:
       region: "us-west-2"
       security_group_ids:
       - sg-0b5d6e2811145808d
-      ips: 
+      ips: []
     protocol: tcp
     port: 22
     appid: ssl
@@ -60,7 +60,7 @@ requests:
       region: "us-west-2"
       security_group_ids:
       - sg-0b5d6e2811145808d
-      ips: 
+      ips: []
     protocol: any
     port: any
     appid: ssl
@@ -74,7 +74,7 @@ requests:
       region: "us-west-2"
       security_group_ids:
       - sg-0b5d6e2811145808d
-      ips: 
+      ips: []
     destination:
       account_id: 
       vpc_id: 
@@ -116,13 +116,14 @@ requests:
       region: 
       security_group_ids:
         - "sg-0b7029dc87dbcb848"
+      ips: []
     destination:
       account_id:
       vpc_id: 
       region:
       security_group_ids:
         - "sg-0dfca87f31291ec64"
-      ips:
+      ips: []
     protocol: tcp
     port: 443
     appid: ssl
