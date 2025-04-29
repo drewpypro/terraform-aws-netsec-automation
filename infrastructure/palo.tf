@@ -39,8 +39,12 @@ resource "aws_network_interface" "palo_dataplane" {
 
 
 resource "aws_eip" "palo_mgmt_eip" {
-  instance = aws_instance.palo_firewall.id
   domain = "vpc"
+  
+  tags = {
+    Name = "palo-mgmt-eip"
+  }
+
 }
 
 resource "aws_eip_association" "palo_mgmt_assoc" {

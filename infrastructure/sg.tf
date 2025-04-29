@@ -40,7 +40,6 @@ resource "aws_security_group" "paloalto_vm_sg" {
   }
 }
 
-
 resource "aws_vpc_security_group_ingress_rule" "from_yaml" {
   for_each = {
     for rule in local.rules : rule.name => rule
@@ -52,7 +51,7 @@ resource "aws_vpc_security_group_ingress_rule" "from_yaml" {
   from_port         = each.value.ip_protocol == "-1" ? null : each.value.from_port
   to_port           = each.value.ip_protocol == "-1" ? null : each.value.to_port
   cidr_ipv4         = each.value.cidr_ipv4
-  description       = each.value.business_justification
+  description       = each.value.justification
 }
 
 resource "aws_vpc_security_group_egress_rule" "from_yaml" {
@@ -66,5 +65,5 @@ resource "aws_vpc_security_group_egress_rule" "from_yaml" {
   from_port         = each.value.ip_protocol == "-1" ? null : each.value.from_port
   to_port           = each.value.ip_protocol == "-1" ? null : each.value.to_port
   cidr_ipv4         = each.value.cidr_ipv4
-  description       = each.value.business_justification
+  description       = each.value.justification
 }
