@@ -40,30 +40,62 @@ resource "aws_security_group" "paloalto_vm_sg" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "from_yaml" {
+resource "aws_vpc_security_group_ingress_rule" "ingress_referenced" {
   for_each = {
-    for rule in local.rules : rule.name => rule
-    if rule.direction == "ingress" && rule.cidr_ipv4 != null
+    for rule in local.rules :
+    "${rule.name}-${rule.from_port}-${rule.to_port}-${rule.ip_protocol}-${rule.referenced_security_group_id}-ingress"
+    => rule if rule.referenced_security_group_id != "null" && rule.cidr_ipv4 == "null" && rule.direction == "ingress"
   }
 
-  security_group_id = each.value.sg_id
-  ip_protocol       = each.value.ip_protocol
-  from_port         = each.value.ip_protocol == "-1" ? null : each.value.from_port
-  to_port           = each.value.ip_protocol == "-1" ? null : each.value.to_port
-  cidr_ipv4         = each.value.cidr_ipv4
-  description       = each.value.justification
+  security_group_id            = aws_security_group.sgs[each.value.sg_id].id
+  from_port                    = each.value.ip_protocol == "-1" ? null : each.value.from_port
+  to_port                      = each.value.ip_protocol == "-1" ? null : each.value.to_port
+  ip_protocol                  = each.value.ip_protocol
+  referenced_security_group_id = aws_security_group.sgs[each.value.referenced_security_group_id].id
+  description                  = each.value.business_justification
 }
 
-resource "aws_vpc_security_group_egress_rule" "from_yaml" {
+resource "aws_vpc_security_group_ingress_rule" "ingress_cidr" {
   for_each = {
-    for rule in local.rules : rule.name => rule
-    if rule.direction == "egress" && rule.cidr_ipv4 != null
+    for rule in local.rules :
+    "${rule.name}-${rule.from_port}-${rule.to_port}-${rule.ip_protocol}-${rule.cidr_ipv4}-ingress"
+    => rule if rule.cidr_ipv4 != "null" && rule.direction == "ingress"
   }
 
-  security_group_id = each.value.sg_id
-  ip_protocol       = each.value.ip_protocol
+  security_group_id = aws_security_group.sgs[each.value.sg_id].id
   from_port         = each.value.ip_protocol == "-1" ? null : each.value.from_port
   to_port           = each.value.ip_protocol == "-1" ? null : each.value.to_port
+  ip_protocol       = each.value.ip_protocol
   cidr_ipv4         = each.value.cidr_ipv4
-  description       = each.value.justification
+  description       = each.value.business_justification
+}
+
+resource "aws_vpc_security_group_egress_rule" "egress_referenced" {
+  for_each = {
+    for rule in local.rules :
+    "${rule.name}-${rule.from_port}-${rule.to_port}-${rule.ip_protocol}-${rule.referenced_security_group_id}-egress"
+    => rule if rule.referenced_security_group_id != "null" && rule.cidr_ipv4 == "null" && rule.direction == "egress"
+  }
+
+  security_group_id            = aws_security_group.sgs[each.value.sg_id].id
+  from_port                    = each.value.ip_protocol == "-1" ? null : each.value.from_port
+  to_port                      = each.value.ip_protocol == "-1" ? null : each.value.to_port
+  ip_protocol                  = each.value.ip_protocol
+  referenced_security_group_id = aws_security_group.sgs[each.value.referenced_security_group_id].id
+  description                  = each.value.business_justification
+}
+
+resource "aws_vpc_security_group_egress_rule" "egress_cidr" {
+  for_each = {
+    for rule in local.rules :
+    "${rule.name}-${rule.from_port}-${rule.to_port}-${rule.ip_protocol}-${rule.cidr_ipv4}-egress"
+    => rule if rule.cidr_ipv4 != "null" && rule.direction == "egress"
+  }
+
+  security_group_id = aws_security_group.sgs[each.value.sg_id].id
+  from_port         = each.value.ip_protocol == "-1" ? null : each.value.from_port
+  to_port           = each.value.ip_protocol == "-1" ? null : each.value.to_port
+  ip_protocol       = each.value.ip_protocol
+  cidr_ipv4         = each.value.cidr_ipv4
+  description       = each.value.business_justification
 }
