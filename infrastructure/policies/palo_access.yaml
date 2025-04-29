@@ -27,6 +27,26 @@ requests:
     url:  
 
   - business_justification: >
+      Allow Git Runners TF provider access to pan-os. 
+    source:
+      account_id: 
+      vpc_id: 
+      region: 
+      security_group_ids:
+      ips: [$GIT_IP]
+    destination:
+      account_id: $TEST_ACCOUNT
+      vpc_id: $TEST_VPC
+      region: "us-west-2"
+      security_group_ids:
+      - sg-0b5d6e2811145808d
+      ips: 
+    protocol: tcp
+    port: 443
+    appid: ssl
+    url:
+
+  - business_justification: >
       Allow SSH access from home. 
     source:
       account_id: 

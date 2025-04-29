@@ -37,9 +37,12 @@ jobs:
           aws --endpoint-url ${BUCKET_ENDPOINT} s3api head-object --bucket ${BUCKET_NAME} --key test/poop.txt || \
           (echo "❌ Backend validation failed. Check credentials or filepath." && exit 1)
 
-      - name: Inject HOME_IP into policy YAML
+      - name: Inject IPs into policy YAML
         run: |
           sed -i "s|\\\$HOME_IP|${{ secrets.HOME_IP }}|g" policies/palo_access.yaml
+          IP=$(curl -s ifconfig.me)
+          echo "Runner public IP: $IP"
+          sed -i "s|\\\$GIT_IP|$IP|g" policies/palo_access.yaml
           
       - name: Terraform Init
         run: |
