@@ -21,7 +21,7 @@ requests:
       region: "us-west-2"
       security_group_ids:
         - "sg-23456"
-      ips: ["10.69.0.32/32"]
+      ips: ["100.64.0.32/32"]
     protocol: tcp
     port: 443
     appid: ssl
