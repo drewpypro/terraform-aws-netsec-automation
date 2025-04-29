@@ -31,8 +31,7 @@ jobs:
 
       - name: Verify Backend
         run: |
-          aws --endpoint-url ${BUCKET_ENDPOINT} s3api head-object --bucket ${BUCKET_NAME} --key ${BUCKET_KEY} || \
-          aws --endpoint-url ${BUCKET_ENDPOINT} s3api list-objects --bucket ${BUCKET_NAME} || \
+          aws --endpoint-url ${BUCKET_ENDPOINT} s3api head-object --bucket ${BUCKET_NAME} --key test/poop.txt || \
           (echo "❌ Backend validation failed. Check credentials or filepath." && exit 1)
 
       - name: Terraform Init
