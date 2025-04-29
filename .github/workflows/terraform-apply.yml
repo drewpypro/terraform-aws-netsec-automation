@@ -71,6 +71,8 @@ jobs:
       - name: Cleanup SG rule
         if: always()
         run: |
+          IP=$(curl -s ifconfig.me)
+          echo "Runner public IP: $IP"
           if [[ -n "$IP" ]]; then
             echo "Revoking IP: $IP"
             aws ec2 revoke-security-group-ingress \
