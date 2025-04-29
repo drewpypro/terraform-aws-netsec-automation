@@ -3,7 +3,7 @@ locals {
 
   ingress_rules = flatten([
     for req in local.raw.requests : [
-      for dest_sg in try(req.destination.security_group_ids, []) : {
+      for dest_sg in can(req.destination.security_group_ids) && req.destination.security_group_ids != null ? req.destination.security_group_ids : [] : {
         name        = "${local.raw.request_id}-ingress-${dest_sg}-${req.protocol}-${req.port}"
         direction   = "ingress"
         sg_id       = dest_sg
@@ -19,7 +19,7 @@ locals {
 
   egress_rules = flatten([
     for req in local.raw.requests : [
-      for src_sg in try(req.source.security_group_ids, []) : {
+      for src_sg in can(req.source.security_group_ids) && req.source.security_group_ids != null ? req.source.security_group_ids : [] : {
         name        = "${local.raw.request_id}-egress-${src_sg}-${req.protocol}-${req.port}"
         direction   = "egress"
         sg_id       = src_sg
