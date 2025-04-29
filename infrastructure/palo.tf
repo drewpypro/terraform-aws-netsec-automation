@@ -12,6 +12,8 @@ resource "aws_instance" "palo_firewall" {
     network_interface_id = aws_network_interface.palo_mgmt.id
   }
 
+  user_data = "op-command-modes=mgmt-interface-swap"
+
   tags = {
     Name = "palo-firewall"
   }
