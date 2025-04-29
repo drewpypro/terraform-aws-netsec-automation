@@ -363,7 +363,10 @@
 3. Classify access and decide if firewall configuration is required. 
 4. Implement rules automatically or based on manual approval if required. 
 
-# Check AWS Config per request
+
+# Validation
+
+## Check AWS Config per request
 1. Extract SourceAccount, DestinationAccount from Issue
 2. Query AWS Config:
    a. Get Source SG metadata
