@@ -5,6 +5,8 @@ resource "aws_instance" "ec2_app" {
   private_ip    = "192.168.1.18"
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
 
+  key_name = "terraform-netsec-automation-testing"
+
   tags = {
     Name = "App-EC2"
   }
