@@ -21,6 +21,6 @@ terraform {
 
 provider "panos" {
   hostname = "54.214.37.204"
-  username = var.PALO_USERNAME
-  password = var.PALO_PASSWORD
+  username = var.palo_username
+  password = var.palo_password
 }
