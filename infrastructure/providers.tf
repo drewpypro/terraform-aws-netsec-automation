@@ -33,7 +33,7 @@ output "the_info" {
 
 resource "null_resource" "commit_palo_ssh" {
   provisioner "local-exec" {
-    command = "sshpass -p '${var.palo_password}' ssh -o StrictHostKeyChecking=no ${var.palo_username}@${var.palo_host} 'configure; commit'"
+    command = "sshpass -p '${var.palo_password}' ssh -o StrictHostKeyChecking=no ${var.palo_username}@54.214.37.204 'configure; commit'"
   }
 
   triggers = {
