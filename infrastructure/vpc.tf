@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_vpc" "test_vpc" {
-  cidr_block = "192.168.0.0/16"
+  cidr_block = "192.168.0.0/22"
 
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -12,7 +12,7 @@ resource "aws_vpc" "test_vpc" {
 
 resource "aws_vpc_ipv4_cidr_block_association" "secondary" {
   vpc_id     = aws_vpc.test_vpc.id
-  cidr_block = "10.0.0.0/16"
+  cidr_block = "10.69.0.0/23"
 }
 
 resource "aws_subnet" "ec2_subnet" {
@@ -35,7 +35,7 @@ resource "aws_subnet" "firewall_subnet" {
 
 resource "aws_subnet" "thirdparty_subnet" {
   vpc_id                  = aws_vpc.test_vpc.id
-  cidr_block              = "10.0.0.0/24"
+  cidr_block              = "10.69.0.0/24"
   availability_zone       = "us-west-2a"
 }
 
