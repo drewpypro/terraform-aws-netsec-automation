@@ -1,0 +1,49 @@
+request_id: req-20240428-xyz
+submitted_by: dev-team@example.com
+submitted_at: 2024-04-28T14:00:00Z
+
+overall_business_justification: >
+  Our app needs connectivity internally and externally for normal operations.
+
+requests:
+  - business_justification: >
+      EC2 instance needs HTTPS access to thirdparty endpoint.
+    source:
+      account_id: "111122223333"
+      vpc_id: "vpc-aaaa1111"
+      region: "us-west-2"
+      security_group_ids:
+        - "sg-12345"
+      ips: ["192.168.1.18/32"]
+    destination:
+      account_id: "111122223333"
+      vpc_id: "vpc-aaaa1111"
+      region: "us-west-2"
+      security_group_ids:
+        - "sg-23456"
+      ips: ["10.0.0.32/32"]
+    protocol: tcp
+    port: 443
+    appid: ssl
+    url_category: api.datadoghq.com
+
+  - business_justification: >
+      EC2 needs to connect to aws service vpc-endpoints via PrivateLink.
+    source:
+      account_id: "111122223333"
+      vpc_id: "vpc-aaaa1111"
+      region: "us-west-2"
+      security_group_ids:
+        - "sg-12345"
+      ips: ["192.168.1.18/32"]
+    destination:
+      account_id: "111122223333"
+      vpc_id: "vpc-aaaa1111"
+      region: "us-west-2"
+      security_group_ids:
+        - "sg-55555"
+      ips: ["192.168.2.31/32"]
+    protocol: tcp
+    port: 443
+    appid: ssl
+    host: ec2.us-west-2.amazonaws.com
