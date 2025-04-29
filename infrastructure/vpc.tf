@@ -56,7 +56,7 @@ resource "aws_route_table" "general_rt" {
   }
 
   route {
-    cidr_block = "10.0.0.0/24"
+    cidr_block = "10.69.0.0/24"
     network_interface_id = aws_network_interface.palo_dataplane.id
   }
 
