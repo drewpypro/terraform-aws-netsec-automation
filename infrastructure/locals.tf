@@ -45,8 +45,7 @@ locals {
       appid             = req.appid
       justification     = trimspace(req.business_justification)
     }
-    if can(req.destination.ips) && req.destination.ips != null &&
-       length(req.destination.ips) > 0 &&
-       req.destination.ips[0] == "100.64.0.198/32"
-  ]
+    if (
+      try(req.destination.ips[0], null) == "100.64.0.198/32"
+    )
 }
