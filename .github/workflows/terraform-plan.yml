@@ -45,6 +45,11 @@ jobs:
           IP=$(curl -s ifconfig.me)
           echo "Runner public IP: $IP"
           sed -i "s|\\\$GIT_IP|$IP/32|g" policies/palo_access.yaml
+          aws ec2 authorize-security-group-ingress \
+            --group-id "sg-0b5d6e2811145808d" \
+            --protocol tcp \
+            --port "443" \
+            --cidr "${IP}/32"
           
       - name: Terraform Init
         run: |
