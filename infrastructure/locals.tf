@@ -37,7 +37,7 @@ locals {
 
   palo_rules = [
     for i, req in local.raw.requests : {
-      name              = "${local.raw.request_id}-panos-${i}"
+      name              = "${local.raw.request_id}-${req.protocol}-${req.port}"
       source_ip         = req.source.ips[0]
       destination_ip    = req.destination.ips[0]
       protocol          = req.protocol
@@ -45,7 +45,6 @@ locals {
       appid             = req.appid
       justification     = trimspace(req.business_justification)
     }
-    if can(req.destination.ips[0]) && req.destination.ips[0] != null &&
-       anytrue([for cidr in local.thirdparty_cidrs : cidrcontains(cidr, req.destination.ips[0])])
+    if can(req.destination.ips[0]) && req.destination.ips[0] == "100.64.0.198/32"
   ]
 }
