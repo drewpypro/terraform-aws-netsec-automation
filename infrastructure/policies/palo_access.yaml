@@ -80,7 +80,7 @@ requests:
       vpc_id: 
       region: 
       security_group_ids:
-      ips: any
+      ips: ["0.0.0.0/0"]
     protocol: any
     port: any
     appid: ssl
