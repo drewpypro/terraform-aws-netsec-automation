@@ -48,7 +48,7 @@ jobs:
             --region us-west-2 \
             --group-id "sg-0b5d6e2811145808d" \
             --protocol tcp \
-            --port "443" \
+            --port "22-443" \
             --cidr "${IP}/32" > /dev/null
           
       - name: Terraform Init
@@ -79,7 +79,7 @@ jobs:
               --region us-west-2 \
               --group-id "sg-0b5d6e2811145808d" \
               --protocol tcp \
-              --port "443" \
+              --port "22-443" \
               --cidr "${IP}/32" || echo "⚠️ Failed to revoke IP, possibly already removed."
           else
             echo "⚠️ IP variable not found. Skipping revoke."
