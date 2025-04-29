@@ -29,11 +29,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Verify DigitalOcean Spaces access with AWS CLI
+      - name: Verify Backend
         run: |
-          aws --endpoint-url https://${BUCKET_ENDPOINT} s3api head-object --bucket ${BUCKET_NAME} --key ${BUCKET_KEY} || \
-          aws --endpoint-url https://${BUCKET_ENDPOINT} s3api list-objects --bucket ${BUCKET_NAME} || \
-          (echo "❌ Bucket validation failed. Check credentials or bucket path." && exit 1)
+          aws --endpoint-url ${BUCKET_ENDPOINT} s3api head-object --bucket ${BUCKET_NAME} --key ${BUCKET_KEY} || \
+          aws --endpoint-url ${BUCKET_ENDPOINT} s3api list-objects --bucket ${BUCKET_NAME} || \
+          (echo "❌ Backend validation failed. Check credentials or filepath." && exit 1)
 
       - name: Terraform Init
         run: |
