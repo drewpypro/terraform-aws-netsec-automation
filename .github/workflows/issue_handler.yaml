@@ -17,6 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Append issue body to correct file
+        working-directory: ${{ github.workspace }}
         run: |
           LABELS=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH")
 
