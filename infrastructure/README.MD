@@ -49,3 +49,34 @@ thirdparty-access-prod-repo/
 │   ├── us-west-2.yaml
 │   └── us-east-1.yaml
 ```
+
+## 🛡️ drewpy.pro License
+
+Copyright (c) 2025 drewpy.pro
+
+This software is provided freely for personal, academic, or internal enterprise use.
+
+> **Commercial use, redistribution, or integration into hosted or monetized services requires prior written permission.**
+
+All derived works or deployments must visibly attribute the original author:
+
+    drewpy.pro
+
+Please retain a link to this license file in all copies or modifications.
+
+If you find this project useful and wish to use it in a commercial product, hosted service, or enterprise platform, please get in touch:
+
+📧 licensing@drewpy.mozmail.com
+
+> 💡 Note: This project was developed during drewpy.pro hours using drewpy.pro equipment and services.  
+> It is not affiliated with any employer or built using any company-owned resources.
+
+
+---
+
+## Summary
+
+- ✅ Personal/internal use — allowed
+- ✅ Learning and adaptation — encouraged
+- 🧾 Commercial or hosted use — by permission
+- 🚫 Obscuring authorship — not permitted
