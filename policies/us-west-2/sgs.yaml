@@ -1,0 +1,18 @@
+
+# From issue #53
+### SG Request YAML
+
+request_id: req-{{timestamp}}-<github-username>
+submitted_by: <email>
+submitted_at: {{now}}
+overall_business_justification: >
+  Create new doo doo dog sg
+
+requests:
+  - business_justification: >
+      reate SG for Doodoodog VPC endpoint
+    thirdpartyName: Datadog
+    thirdpartyId: 6969
+    accountId: 6666666
+    vpcId: vpc-0123456789abcdef0
+    region: us-west-2
