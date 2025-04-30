@@ -18,7 +18,7 @@ jobs:
 
       - name: Append issue body to correct file
         run: |
-          LABELS="${{ toJson(github.event.issue.labels) }}"
+          LABELS=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH")
 
           if echo "$LABELS" | grep -q 'sg-request'; then
             FILE=policies/us-west-2/sgs.yaml
@@ -30,12 +30,10 @@ jobs:
           fi
 
           echo "FILE=$FILE" >> $GITHUB_ENV
-
-          {
-            echo ""
-            echo "# From issue #${{ github.event.issue.number }}"
-            printf '%s\n' "${{ github.event.issue.body }}"
-          } >> "$FILE"
+          
+          echo "" >> "$FILE"
+          echo "# From issue #$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")" >> "$FILE"
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" >> "$FILE"
 
       - name: Commit Changes and Create PR
         id: create_pr
