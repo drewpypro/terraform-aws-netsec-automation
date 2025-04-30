@@ -11,12 +11,12 @@ requests:
     thirdpartyName: Datadog
     thirdpartyId: 1234567
     accountId: 6666666
-    vpcId: vpc-1234456
+    vpcId: vpc-0c9a555406867d5da
     region: us-west-2
   - business_justification: >
       Create security-group for mongoDB privatelink in us-west-2
     thirdpartyName: MongoDB
     thirdpartyId: 456748
     accountId: 6666666
-    vpcId: vpc-1234456
+    vpcId: vpc-0c9a555406867d5da
     region: us-west-2
