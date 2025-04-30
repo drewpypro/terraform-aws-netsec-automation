@@ -11,6 +11,9 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
 
     steps:
       - name: Checkout Repository
@@ -37,7 +40,8 @@ jobs:
           ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
 
           if [ ! -f "$FILE" ]; then
-            echo "requests: []" > "$FILE"
+            echo "❌ ERROR: Expected file '$FILE' not found. Check repo structure or checkout path."
+            exit 1
           fi
 
           # Ensure file ends with newline
@@ -56,7 +60,7 @@ jobs:
           BRANCH="issue-${ISSUE_ID}"
           FILE_CHANGED=$(git status --porcelain | awk '{print $2}')
           LABEL=$(echo "${{ toJson(github.event.issue.labels) }}" | jq -r '.[0].name')
-          
+
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
