@@ -47,9 +47,11 @@ jobs:
           # Ensure file ends with newline
           tail -c1 "$FILE" | read -r _ || echo >> "$FILE"
 
-          echo "" >> "$FILE"
-          echo "# From issue #${ISSUE_NUMBER}" >> "$FILE"
-          echo "$ISSUE_BODY" >> "$FILE"
+          {
+            echo ""
+            echo "  # From issue #${ISSUE_NUMBER}"
+            echo "$ISSUE_BODY" | sed 's/^/  /'  # indent with 2 spaces
+          } >> "$FILE"
 
       - name: Commit Changes and Create PR
         id: create_pr
