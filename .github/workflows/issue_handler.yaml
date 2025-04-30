@@ -33,10 +33,10 @@ jobs:
             exit 1
           fi
 
-      - name: Append SG request to correct file
+      - name: Append request to correct file
         run: |
           FILE="${{ steps.filepath.outputs.target_file }}"
-          ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH" | sed '/^### SG Request YAML$/d')
+          ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
           ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
 
           if [ ! -f "$FILE" ]; then
@@ -44,13 +44,16 @@ jobs:
             exit 1
           fi
 
+          # Remove template headers like '### SG Request YAML' or '### Access Rule YAML'
+          CLEANED_BODY=$(echo "$ISSUE_BODY" | sed '/^###/d')
+
           # Ensure file ends with newline
           tail -c1 "$FILE" | read -r _ || echo >> "$FILE"
 
           {
             echo ""
             echo "  # From issue #${ISSUE_NUMBER}"
-            echo "$ISSUE_BODY" | sed 's/^/  /'  # indent with 2 spaces
+            echo "$CLEANED_BODY" | sed 's/^/  /'
           } >> "$FILE"
 
       - name: Commit Changes and Create PR
