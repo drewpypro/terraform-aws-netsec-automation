@@ -59,7 +59,7 @@ jobs:
           ISSUE_ID=${{ github.event.issue.number }}
           BRANCH="issue-${ISSUE_ID}"
           FILE_CHANGED=$(git status --porcelain | awk '{print $2}')
-          LABEL=$(echo "${{ toJson(github.event.issue.labels) }}" | jq -r '.[0].name')
+          LABEL=$(jq -r '.issue.labels[0].name' "$GITHUB_EVENT_PATH")
 
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
