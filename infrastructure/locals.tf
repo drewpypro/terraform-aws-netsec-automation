@@ -1,7 +1,7 @@
 locals {
-  sg_raw   = yamldecode(file("${path.module}/../policies/${var.region}/sgs.yaml"))
-  rules_raw         = yamldecode(file("${path.module}/../policies/${var.region}/rules.yaml"))
-
+  sg_raw   = yamldecode(file("${path.module}/policies/${var.region}/sgs.yaml"))
+  rules_raw = yamldecode(file("${path.module}/policies/${var.region}/rules.yaml"))
+  
   security_groups = {
     for req in local.sg_raw.requests :
     "${req.thirdpartyName}-${req.thirdpartyId}" => {
