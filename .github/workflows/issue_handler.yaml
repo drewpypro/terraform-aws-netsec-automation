@@ -1,0 +1,60 @@
+name: Issue Workflow
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  validate_issue:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Append issue body to correct file
+        run: |
+          LABELS="${{ toJson(github.event.issue.labels) }}"
+
+          if echo "$LABELS" | grep -q 'sg-request'; then
+            FILE=policies/us-west-2/sgs.yaml
+          elif echo "$LABELS" | grep -q 'access-request'; then
+            FILE=policies/us-west-2/rules.yaml
+          else
+            echo "❌ No recognized label found on issue. Exiting."
+            exit 1
+          fi
+
+          echo "FILE=$FILE" >> $GITHUB_ENV
+
+          echo "" >> "$FILE"
+          echo "# From issue #${{ github.event.issue.number }}" >> "$FILE"
+          echo "${{ github.event.issue.body }}" >> "$FILE"
+
+      - name: Commit Changes and Create PR
+        id: create_pr
+        env:
+          GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
+        run: |
+          ISSUE_ID=${{ github.event.issue.number }}
+          BRANCH="issue-${ISSUE_ID}"
+          FILE_CHANGED=$(git status --porcelain | awk '{print $2}')
+
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git checkout -b "$BRANCH"
+          git add "$FILE_CHANGED"
+          git commit -m "Append request from issue #${ISSUE_ID}"
+          git push origin "$BRANCH"
+
+          gh pr create \
+            --title "[Auto] Add request from issue #${ISSUE_ID}" \
+            --label "$LABEL" \
+            --body "This PR adds a new request submitted in issue #${ISSUE_ID}." \
+            --head "$BRANCH" \
+            --base main
