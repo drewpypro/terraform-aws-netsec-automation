@@ -37,3 +37,15 @@ requests:
 - if sg-id is supplied for source and destination, create an ingress and egress rule on each respective sg-id
 - if enable_palo_inspection is true; generate palo alto policy using IPs only. 
 
+# Structure
+```
+thirdparty-access-nonprod-repo/
+├── policies/
+│   ├── us-west-2.yaml
+│   └── us-east-1.yaml
+
+thirdparty-access-prod-repo/
+├── policies/
+│   ├── us-west-2.yaml
+│   └── us-east-1.yaml
+```

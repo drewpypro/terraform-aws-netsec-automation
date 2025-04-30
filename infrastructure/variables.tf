@@ -1,3 +1,9 @@
+variable "region" {
+  type        = string
+  description = "The AWS region for this workspace (e.g. us-west-2)"
+  default     = "us-west-2"
+}
+
 variable "palo_host" {
   description = "Elastic IP or DNS of the Palo instance"
   type        = string
