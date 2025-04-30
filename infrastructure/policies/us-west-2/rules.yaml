@@ -142,7 +142,7 @@ requests:
     destination:
       security_group_ids:
   	  - sg-0b79868485b793c17
-  	ips: ["100.64.0.169/32"]
+      ips: ["100.64.0.169/32"]
     protocol: tcp
     port: 443
     appid: ssl
