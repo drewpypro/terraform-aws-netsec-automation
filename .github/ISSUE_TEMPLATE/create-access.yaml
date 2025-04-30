@@ -33,30 +33,30 @@ body:
         Terraform will use this to generate all AWS and Palo rules for the specified region.
 
       value: |
-      - business_justification: >
-          Allow HTTPS access from EC2 to Datadog
-        source:
-          account_id: 
-          vpc_id: 
-          region: 
-          security_group_ids:
-          - sg-0b7029dc87dbcb848
-          ips: ["192.168.1.18/32"]
-        destination:
-          account_id: $TEST_ACCOUNT
-          vpc_id: $TEST_VPC
-          region: "us-west-2"
-          security_group_ids:
-          - sg-01057cb19af0373d7
-          ips: ["100.64.0.198/32"]
-        protocol: tcp
-        port: 443
-        appid: ssl
-        url:  
-        enable_palo_inspection: true
-        thirdPartyID: 123456
-        thirdPartyName: Datadog
-        region: us-west-2
+          - business_justification: >
+              Allow HTTPS access from EC2 to Datadog
+            source:
+              account_id: 
+              vpc_id: 
+              region: 
+              security_group_ids:
+              - sg-0b7029dc87dbcb848
+              ips: ["192.168.1.18/32"]
+            destination:
+              account_id: $TEST_ACCOUNT
+              vpc_id: $TEST_VPC
+              region: "us-west-2"
+              security_group_ids:
+              - sg-01057cb19af0373d7
+              ips: ["100.64.0.198/32"]
+            protocol: tcp
+            port: 443
+            appid: ssl
+            url:  
+            enable_palo_inspection: true
+            thirdPartyID: 123456
+            thirdPartyName: Datadog
+            region: us-west-2
 
     validations:
       required: true
