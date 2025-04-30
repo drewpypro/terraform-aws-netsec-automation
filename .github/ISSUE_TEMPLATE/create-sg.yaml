@@ -26,12 +26,6 @@ body:
       description: |
         Paste the YAML request below. The format **must match** the structure used in Terraform locals:
       value: |
-        request_id: req-{{timestamp}}-<github-username>
-        submitted_by: <email>
-        submitted_at: {{now}}
-        overall_business_justification: >
-          <One-line summary of why these SGs are needed>
-
         requests:
           - business_justification: >
               Create SG for Datadog VPC endpoint
