@@ -16,6 +16,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Debug: Dump issue context
+        run: echo "${{ toJson(github.event.issue) }}"
+
       - name: Append issue body to correct file
         run: |
           LABELS="${{ toJson(github.event.issue.labels) }}"
