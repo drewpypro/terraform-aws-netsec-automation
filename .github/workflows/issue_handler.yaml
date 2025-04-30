@@ -16,27 +16,36 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Append issue body to correct file
+      - name: Parse Labels and Set Target File
+        id: filepath
         run: |
           LABELS=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH")
 
           if echo "$LABELS" | grep -q 'sg-request'; then
-            FILE="${{ github.workspace }}/policies/us-west-2/sgs.yaml"
+            echo "target_file=policies/us-west-2/sgs.yaml" >> $GITHUB_OUTPUT
           elif echo "$LABELS" | grep -q 'access-request'; then
-            FILE="${{ github.workspace }}/policies/us-west-2/rules.yaml"
+            echo "target_file=policies/us-west-2/rules.yaml" >> $GITHUB_OUTPUT
           else
             echo "❌ No recognized label found on issue. Exiting."
             exit 1
           fi
 
-          echo "FILE=$FILE" >> $GITHUB_ENV
+      - name: Append SG request to correct file
+        run: |
+          FILE="${{ steps.filepath.outputs.target_file }}"
+          ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
+          ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
 
-          mkdir -p "$(dirname "$FILE")"
-          touch "$FILE"
+          if [ ! -f "$FILE" ]; then
+            echo "requests: []" > "$FILE"
+          fi
+
+          # Ensure file ends with newline
+          tail -c1 "$FILE" | read -r _ || echo >> "$FILE"
 
           echo "" >> "$FILE"
-          echo "# From issue #$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")" >> "$FILE"
-          jq -r '.issue.body' "$GITHUB_EVENT_PATH" >> "$FILE"
+          echo "# From issue #${ISSUE_NUMBER}" >> "$FILE"
+          echo "$ISSUE_BODY" >> "$FILE"
 
       - name: Commit Changes and Create PR
         id: create_pr
@@ -46,12 +55,13 @@ jobs:
           ISSUE_ID=${{ github.event.issue.number }}
           BRANCH="issue-${ISSUE_ID}"
           FILE_CHANGED=$(git status --porcelain | awk '{print $2}')
-
+          LABEL=$(echo "${{ toJson(github.event.issue.labels) }}" | jq -r '.[0].name')
+          
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
           git checkout -b "$BRANCH"
-          git add "$FILE_CHANGED"
+          git add "${{ steps.filepath.outputs.target_file }}"
           git commit -m "Append request from issue #${ISSUE_ID}"
           git push origin "$BRANCH"
 
