@@ -1,0 +1,62 @@
+name: "Request Access for Third-Party"
+description: "Submit a rule request to grant access between source and destination"
+title: "[ACCESS REQUEST] <Direction> <Port> to <ThirdPartyName> in <region>"
+labels: ["access-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🚦 Access Request
+
+        Use this to submit one or more **access rules** that will be translated into:
+        - AWS Security Group ingress/egress rules
+        - (Optional) Palo Alto firewall policies
+
+        > **NOTE:** Ensure the referenced Security Groups already exist. If not, [submit a Security Group Request first](https://github.com/<your-org>/<repo>/issues/new?assignees=&labels=sg-request&template=create-sg.yaml)
+
+        ### 🧠 Field Guidance:
+        - `source.ips` = If source is IP-based
+        - `source.security_group_ids` = If source is an SG
+        - `destination.security_group_ids` = For destination SGs
+        - `protocol` = `tcp`, `udp`, or `any`
+        - `port` = numeric or `any`
+        - `appid` = Optional Palo Alto AppID (e.g., `ssl`)
+        - `enable_palo_inspection`: Set to `true` if traffic must be Layer 7 inspected
+        - `thirdPartyName` & `thirdPartyID`: (Optional) Used in Palo policy names
+
+  - type: textarea
+    id: access_request_yaml
+    attributes:
+      label: Access Rule YAML
+      description: |
+        Paste your request YAML block below.
+        Terraform will use this to generate all AWS and Palo rules for the specified region.
+
+      value: |
+        request_id: req-{{timestamp}}-<github-username>
+        submitted_by: <email>
+        submitted_at: {{now}}
+        overall_business_justification: >
+          <Why is this access needed?>
+
+        requests:
+          - business_justification: >
+              Allow HTTPS access from EC2 to Datadog
+            source:
+              security_group_ids:
+                - sg-0b7029dc87dbcb848
+              ips: ["192.168.1.18/32"]
+            destination:
+              security_group_ids:
+                - sg-01057cb19af0373d7
+              ips: ["100.64.0.198/32"]
+            protocol: tcp
+            port: 443
+            appid: ssl
+            enable_palo_inspection: true
+            thirdPartyID: 123456
+            thirdPartyName: Datadog
+            region: us-west-2
+
+    validations:
+      required: true

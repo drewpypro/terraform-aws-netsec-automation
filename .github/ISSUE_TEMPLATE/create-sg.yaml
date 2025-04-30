@@ -1,0 +1,44 @@
+name: "Create New Security Group"
+description: "Request a new security group for third-party access"
+title: "[SG REQUEST] <ThirdPartyName> in <region>"
+labels: ["sg-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🔐 Security Group Request
+
+        Use the template below to request **one or more security groups** for third-party PrivateLink or control-plane use cases.
+
+        ### 📝 Guidelines:
+        - ✅ `thirdpartyName`: Friendly name of the third-party (e.g., Datadog)
+        - ✅ `thirdpartyId`: Internal or vendor-specific ID (e.g., 1234567)
+        - ✅ `vpcId`: Must be a valid AWS VPC ID (`vpc-xxxx...`)
+        - ✅ `region`: Must match a supported AWS region (`us-west-2`, `us-east-1`, etc.)
+        - 🧠 Multiple entries allowed in `requests:`
+
+        When submitted, this will append entries to `policies/<region>/sgs.yaml` via PR for review + merge.
+
+  - type: textarea
+    id: sg_request_yaml
+    attributes:
+      label: SG Request YAML
+      description: |
+        Paste the YAML request below. The format **must match** the structure used in Terraform locals:
+      value: |
+        request_id: req-{{timestamp}}-<github-username>
+        submitted_by: <email>
+        submitted_at: {{now}}
+        overall_business_justification: >
+          <One-line summary of why these SGs are needed>
+
+        requests:
+          - business_justification: >
+              Create SG for Datadog VPC endpoint
+            thirdpartyName: Datadog
+            thirdpartyId: 1234567
+            accountId: 6666666
+            vpcId: vpc-0123456789abcdef0
+            region: us-west-2
+    validations:
+      required: true
