@@ -56,27 +56,6 @@ resource "aws_eip_association" "palo_mgmt_assoc" {
   allocation_id        = aws_eip.palo_mgmt_eip.id
 }
 
-resource "panos_security_rule_group" "example_ruleset" {
-  position_keyword = "bottom"
-  rule {
-    name                  = "example rule 1"
-    source_zones          = ["any"]
-    source_addresses      = ["1.1.1.1/32"]
-    source_users          = ["any"]
-    destination_zones     = ["any"]
-    destination_addresses = ["2.2.2.2/32"]
-    applications          = ["any"]
-    services              = ["any"]
-    categories            = ["any"]
-    action                = "allow"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-
 resource "panos_security_policy" "from_yaml" {
   for_each = { for rule in local.palo_rules : rule.name => rule }
 
