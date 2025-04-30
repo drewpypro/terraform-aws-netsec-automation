@@ -31,9 +31,11 @@ jobs:
 
           echo "FILE=$FILE" >> $GITHUB_ENV
 
-          echo "" >> "$FILE"
-          echo "# From issue #${{ github.event.issue.number }}" >> "$FILE"
-          echo "${{ github.event.issue.body }}" >> "$FILE"
+          {
+            echo ""
+            echo "# From issue #${{ github.event.issue.number }}"
+            printf '%s\n' "${{ github.event.issue.body }}"
+          } >> "$FILE"
 
       - name: Commit Changes and Create PR
         id: create_pr
