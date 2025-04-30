@@ -40,6 +40,16 @@ resource "aws_security_group" "paloalto_vm_sg" {
   }
 }
 
+
+resource "aws_security_group" "thirdparty_sg" {
+  for_each = local.security_groups
+
+  name        = each.value.name
+  description = each.value.description
+  vpc_id      = each.value.vpc_id
+  tags        = each.value.tags
+}
+
 resource "aws_vpc_security_group_ingress_rule" "from_yaml" {
   for_each = {
     for rule in local.sg_rules : rule.name => rule if rule.direction == "ingress"
