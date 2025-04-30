@@ -130,23 +130,3 @@ requests:
     port: 443
     appid: ssl
     host: ec2.us-west-2.amazonaws.com
-
-  # From issue #80
-  
-  - business_justification: >
-      Allow HTTPS access from EC2 to DooDooDog
-    source:
-      security_group_ids:
-  	  - sg-0b7029dc87dbcb848
-      ips: ["192.168.1.18/32"]
-    destination:
-      security_group_ids:
-  	  - sg-0b79868485b793c17
-    ips: ["100.64.0.169/32"]
-    protocol: tcp
-    port: 443
-    appid: ssl
-    enable_palo_inspection: true
-    thirdPartyID: 6969
-    thirdPartyName: DooDooDog
-    region: us-west-2
