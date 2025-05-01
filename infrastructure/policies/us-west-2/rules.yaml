@@ -177,3 +177,25 @@ requests:
     thirdPartyID: 68594
     thirdPartyName: realoksi
     region: us-west-2
+
+  # From issue #94
+  
+  - business_justification: >
+      Allow UI Access from Alternate Source subnet
+    source:
+      account_id: 
+      vpc_id: 
+      region: 
+      security_group_ids:
+      ips: ["ALTERNATE_SOURCE"]
+    destination:
+      account_id: 12345567
+      vpc_id: vpc-0c9a555406867d5da
+      region: "us-west-2"
+      security_group_ids:
+        - sg-0b5d6e2811145808d 
+      ips: []
+    protocol: tcp
+    port: 443
+    appid: ssl
+    url:  
