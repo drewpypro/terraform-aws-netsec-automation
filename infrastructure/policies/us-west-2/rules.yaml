@@ -193,7 +193,7 @@ requests:
       vpc_id: vpc-0c9a555406867d5da
       region: "us-west-2"
       security_group_ids:
-      - sg-0b5d6e2811145808d 
+        - sg-0b5d6e2811145808d 
       ips: []
     protocol: tcp
     port: 443
