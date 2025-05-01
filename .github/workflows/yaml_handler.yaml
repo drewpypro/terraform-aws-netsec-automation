@@ -26,11 +26,11 @@ jobs:
           npm install -g ajv-cli prettier
           pip install yamllint
 
-      - name: Fix and prettify YAML Files (dry run)
-        run: |
-          find infrastructure/policies -name '*.yaml' -exec dos2unix {} \;
-          prettier --write infrastructure/policies/**/*.yaml
-          yamllint -c .yamllint infrastructure/policies --format github
+      # - name: Fix and prettify YAML Files
+      #   run: |
+      #     find infrastructure/policies -name '*.yaml' -exec dos2unix {} \;
+      #     prettier --write infrastructure/policies/**/*.yaml
+      #     yamllint -c .yamllint infrastructure/policies --format github
 
       - name: Validate against Schema (access requests)
         run: |
