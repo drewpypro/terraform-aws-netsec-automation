@@ -21,9 +21,11 @@ jobs:
 
       - name: Install YAML Validation Tools
         run: |
-          npm install -g ajv-cli prettier dos2unix
+          sudo apt-get update
+          sudo apt-get install -y dos2unix
+          npm install -g ajv-cli prettier
           pip install yamllint
-
+          
       - name: Fix and prettify YAML Files (dry run)
         run: |
           find infrastructure/policies -name '*.yaml' -exec dos2unix {} \;
