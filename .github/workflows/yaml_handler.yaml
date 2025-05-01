@@ -36,12 +36,18 @@ jobs:
         run: |
           for file in infrastructure/policies/**/rules.yaml; do
             echo "Validating $file"
-            ajv validate -s schemas/access-request-schema.json -d "$file" --strict=false --errors=text
+            ajv validate \
+              -s ./schemas/access-request-schema.json \
+              -d "$file" \
+              --strict=false --errors=text
           done
 
       - name: Validate against Schema (sg requests)
         run: |
           for file in infrastructure/policies/**/sgs.yaml; do
             echo "Validating $file"
-            ajv validate -s schemas/sg-request-schema.json -d "$file" --strict=false --errors=text
+            ajv validate \
+              -s ./schemas/sg-request-schema.json \
+              -d "$file" \
+              --strict=false --errors=text
           done
