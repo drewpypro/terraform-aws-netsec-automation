@@ -140,14 +140,14 @@ requests:
       vpc_id: 
       region: 
       security_group_ids:
-      - sg-0b7029dc87dbcb848
+        - sg-0b7029dc87dbcb848
       ips: ["192.168.1.18/32"]
     destination:
       account_id: 
       vpc_id: 
       region: "us-west-2"
       security_group_ids:
-      - sg-0b79868485b793c17
+        - sg-0b79868485b793c17
       ips: ["100.64.0.199/32"]
     protocol: tcp
     port: 443
@@ -164,11 +164,11 @@ requests:
       Allow HTTPS access from EC2 to realoksi vpc-endpoint
     source:
       security_group_ids:
-          - sg-0b7029dc87dbcb848
+        - sg-0b7029dc87dbcb848
       ips: ["192.168.1.18/32"]
     destination:
       security_group_ids:
-  	  - sg-04666e610aa2d5bb0
+        - sg-04666e610aa2d5bb0
       ips: ["100.64.0.170/32"]
     protocol: tcp
     port: 443
