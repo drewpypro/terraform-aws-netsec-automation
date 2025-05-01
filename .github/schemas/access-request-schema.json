@@ -1,0 +1,63 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Access Rule Request",
+    "type": "object",
+    "required": ["request_id", "submitted_by", "submitted_at", "overall_business_justification", "requests"],
+    "properties": {
+      "request_id": { "type": "string" },
+      "submitted_by": { "type": "string", "format": "email" },
+      "submitted_at": { "type": "string", "format": "date-time" },
+      "overall_business_justification": { "type": "string" },
+      "requests": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["business_justification", "source", "destination", "protocol", "port"],
+          "properties": {
+            "business_justification": { "type": "string" },
+            "source": {
+              "type": "object",
+              "properties": {
+                "account_id": { "type": ["string", "null"] },
+                "vpc_id": { "type": ["string", "null"] },
+                "region": { "type": ["string", "null"] },
+                "security_group_ids": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "ips": {
+                  "type": "array",
+                  "items": { "type": "string", "pattern": "^(\\d{1,3}\\.){3}\\d{1,3}(\\/\\d+)?$" }
+                }
+              }
+            },
+            "destination": {
+              "type": "object",
+              "properties": {
+                "account_id": { "type": ["string", "null"] },
+                "vpc_id": { "type": ["string", "null"] },
+                "region": { "type": ["string", "null"] },
+                "security_group_ids": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "ips": {
+                  "type": "array",
+                  "items": { "type": "string", "pattern": "^(\\d{1,3}\\.){3}\\d{1,3}(\\/\\d+)?$" }
+                }
+              }
+            },
+            "protocol": { "type": "string" },
+            "port": { "type": ["integer", "string"] },
+            "appid": { "type": ["string", "null"] },
+            "url": { "type": ["string", "null"] },
+            "host": { "type": ["string", "null"] },
+            "url_category": { "type": ["string", "null"] },
+            "enable_palo_inspection": { "type": "boolean" },
+            "thirdPartyID": { "type": ["integer", "null"] },
+            "thirdPartyName": { "type": ["string", "null"] }
+          }
+        }
+      }
+    }
+  }
