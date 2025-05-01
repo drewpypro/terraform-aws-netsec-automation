@@ -37,7 +37,7 @@ jobs:
           for file in infrastructure/policies/**/rules.yaml; do
             echo "Validating $file"
             ajv validate \
-              -s ./schemas/access-request-schema.json \
+              -s .github/schemas/access-request-schema.json \
               -d "$file" \
               --strict=false --errors=text
           done
@@ -47,7 +47,7 @@ jobs:
           for file in infrastructure/policies/**/sgs.yaml; do
             echo "Validating $file"
             ajv validate \
-              -s ./schemas/sg-request-schema.json \
+              -s .github/schemas/sg-request-schema.json \
               -d "$file" \
               --strict=false --errors=text
           done
