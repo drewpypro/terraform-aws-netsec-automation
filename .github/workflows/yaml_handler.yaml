@@ -1,9 +1,10 @@
 name: Validate YAML Request
 
 on:
-  pull_request:
-    paths:
-      - 'infrastructure/policies/**/*.yaml'
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
 
 jobs:
   validate-yaml:
