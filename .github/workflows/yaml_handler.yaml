@@ -21,7 +21,7 @@ jobs:
 
       - name: Install YAML Validation Tools
         run: |
-          npm install -g ajv-cli prettier prettier-plugin-yaml yaml
+          npm install -g ajv-cli prettier
           pip install yamllint
 
       - name: Lint YAML Formatting
@@ -30,8 +30,7 @@ jobs:
 
       - name: Prettify YAML Files (dry run)
         run: |
-          prettier --plugin=prettier-plugin-yaml \
-            --check infrastructure/policies/**/*.yaml
+          prettier --check infrastructure/policies/**/*.yaml
 
       - name: Validate against Schema (access requests)
         run: |
