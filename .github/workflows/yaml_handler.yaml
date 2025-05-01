@@ -21,16 +21,14 @@ jobs:
 
       - name: Install YAML Validation Tools
         run: |
-          npm install -g ajv-cli prettier
+          npm install -g ajv-cli prettier dos2unix
           pip install yamllint
 
-      - name: Lint YAML Formatting
+      - name: Fix and prettify YAML Files (dry run)
         run: |
-          yamllint infrastructure/policies --format github
-
-      - name: Prettify YAML Files (dry run)
-        run: |
+          find infrastructure/policies -name '*.yaml' -exec dos2unix {} \;
           prettier --check infrastructure/policies/**/*.yaml
+          yamllint -c .yamllint infrastructure/policies --format github
 
       - name: Validate against Schema (access requests)
         run: |
