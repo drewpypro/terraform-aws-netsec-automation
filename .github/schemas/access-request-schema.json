@@ -6,7 +6,7 @@
     "properties": {
       "request_id": { "type": "string" },
       "submitted_by": { "type": "string", "format": "email" },
-      "submitted_at": { "type": "string", "format": "date-time" },
+      "submitted_at": { "type": "string" },
       "overall_business_justification": { "type": "string" },
       "requests": {
         "type": "array",
