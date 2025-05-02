@@ -199,3 +199,54 @@ requests:
     port: 443
     appid: ssl
     url:  
+
+  # From issue #98
+  
+  - business_justification: >
+      Allow Connectivity to maxbarb for hair-styling ai agent requirements. 
+    source:
+      account_id: 
+      vpc_id: 
+      region: 
+      security_group_ids:
+      - sg-0b7029dc87dbcb848
+      ips: ["100.64.1.0/23"]
+    destination:
+      account_id: 
+      vpc_id: vpc-0c9a555406867d5da
+      region: "us-west-2"
+      security_group_ids:
+      - sg-0ddaccbfa68e04f44
+      ips: ["100.64.2.55/32"]
+    protocol: tcp
+    port: 443
+    appid: ssl
+    url:  
+    enable_palo_inspection: true
+    thirdPartyID:
+    thirdPartyName: MaxBarb
+    region: us-west-2
+  - business_justification: >
+      Allow Connectivity to maxbarb for hair-styling ai agent requirements. 
+    source:
+      account_id: 
+      vpc_id: 
+      region: 
+      security_group_ids:
+      - sg-0ddaccbfa68e04f44
+      ips: []
+    destination:
+      account_id: 
+      vpc_id: vpc-0c9a555406867d5da
+      region: "us-west-2"
+      security_group_ids:
+      - sg-0ddaccbfa68e04f44
+      ips: []
+    protocol: tcp
+    port: 8443
+    appid: ssl
+    url:  
+    enable_palo_inspection: false
+    thirdPartyID:
+    thirdPartyName: MaxBarb
+    region: us-west-2
