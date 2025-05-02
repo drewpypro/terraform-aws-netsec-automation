@@ -29,8 +29,6 @@ jobs:
       - name: Fix and prettify YAML Files
         run: |
           find infrastructure/policies -name '*.yaml' -exec dos2unix {} \;
-          set -xeuo pipefail
-          echo "::group::Validation Output"
-          yamllint infrastructure/policies --format github
-          echo "::endgroup::"
+          yamllint -c .yamllint infrastructure/policies --format github
+
           
