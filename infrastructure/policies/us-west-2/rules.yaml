@@ -86,7 +86,7 @@ requests:
       account_id: 
       vpc_id: 
       region: 
-      security_group_id:v "sg-0b7029dc87dbcb848"
+      security_group_id: "sg-0b7029dc87dbcb848"
       ips: ["192.168.1.18/32"]
     destination:
       account_id: 
