@@ -28,6 +28,7 @@ jobs:
 
       - name: Fix and prettify YAML Files
         run: |
+          set -o pipefail
           find infrastructure/policies -name '*.yaml' -exec dos2unix {} \;
           prettier --write infrastructure/policies/**/*.yaml
           yamllint -c .yamllint infrastructure/policies --format github
@@ -39,8 +40,6 @@ jobs:
               --strict=false --errors=text
           done
 
-      - name: Validate against Schema (sg requests)
-        run: |
           for file in infrastructure/policies/**/sgs.yaml; do
             echo "Validating $file"
             ajv validate \
