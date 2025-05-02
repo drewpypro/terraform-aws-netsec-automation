@@ -1,20 +1,20 @@
 request_id: "req-20240428-xyz"
 
 overall_business_justification: >
-  Create security-groups for third-party use-cases
+  "Create security-groups for third-party use-cases"
 
 requests:
   - business_justification: >
-      Create security-group for datadog privatelink in us-west-2
-    thirdpartyName: Datadog
-    thirdpartyId: 1234567
-    accountId: 6666666
-    vpcId: vpc-0c9a555406867d5da
-    region: us-west-2
+      "Create security-group for datadog privatelink in us-west-2"
+    thirdpartyName: "Datadog"
+    thirdpartyId: "1234567"
+    accountId: "6666666"
+    vpcId: "vpc-0c9a555406867d5da"
+    region: "us-west-2"
   - business_justification: >
-      Create security-group for mongoDB privatelink in us-west-2
-    thirdpartyName: MongoDB
-    thirdpartyId: 456748
-    accountId: 6666666
-    vpcId: vpc-0c9a555406867d5da
-    region: us-west-2
+      "Create security-group for mongoDB privatelink in us-west-2"
+    thirdpartyName: "MongoDB"
+    thirdpartyId: "456748"
+    accountId: "6666666"
+    vpcId: "vpc-0c9a555406867d5da"
+    region: "us-west-2"
