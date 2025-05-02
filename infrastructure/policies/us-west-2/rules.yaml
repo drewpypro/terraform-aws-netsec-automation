@@ -11,16 +11,16 @@ requests:
       vpc_id: ""
       region: ""
       security_group_id:
-      ips: "[$HOME_IP]"
+      ips: ["$HOME_IP"]
     destination:
       account_id: "$TEST_ACCOUNT"
       vpc_id: "$TEST_VPC"
-      region: "us-west-2"
-      security_group_id: "sg-0b5d6e2811145808d"
+      region: us-west-2
+      security_group_id: sg-0b5d6e2811145808d
       ips: []
-    protocol: "tcp"
-    port: "443"
-    appid: "ssl"
+    protocol: tcp
+    port: 443
+    appid: ssl
     url:  ""
 
   - business_justification: >
@@ -30,35 +30,35 @@ requests:
       vpc_id: ""
       region: ""
       security_group_id: ""
-      ips: "[$HOME_IP]"
+      ips: ["$HOME_IP"]
     destination:
       account_id: "$TEST_ACCOUNT"
       vpc_id: "$TEST_VPC"
-      region: "us-west-2"
-      security_group_id: "sg-0b5d6e2811145808d"
+      region: us-west-2
+      security_group_id: sg-0b5d6e2811145808d
       ips: []
-    protocol: "tcp"
-    port: "22"
-    appid: "ssl"
+    protocol: tcp
+    port: 22
+    appid: ssl
     url: ""
 
   - business_justification: >
-      "Allow ICMP access from home. ""
+      "Allow ICMP access from home."
     source:
-      account_id: ""
-      vpc_id: ""
-      region: ""
+      account_id: 
+      vpc_id: 
+      region: 
       security_group_id:
-      ips: "[$HOME_IP]"
+      ips: ["$HOME_IP"]
     destination:
       account_id: "$TEST_ACCOUNT"
       vpc_id: "$TEST_VPC"
-      region: "us-west-2"
-      security_group_id: "sg-0b5d6e2811145808d"
+      region: us-west-2
+      security_group_id: sg-0b5d6e2811145808d
       ips: []
-    protocol: "any"
-    port: "any"
-    appid: "ssl"
+    protocol: any
+    port: any
+    appid: ssl
     url:  ""
 
   - business_justification: >
@@ -66,58 +66,58 @@ requests:
     source:
       account_id: "$TEST_ACCOUNT"
       vpc_id: "$TEST_VPC"
-      region: "us-west-2"
-      security_group_id: "sg-0b5d6e2811145808d"
+      region: us-west-2
+      security_group_id: sg-0b5d6e2811145808d
       ips: []
     destination:
-      account_id: ""
-      vpc_id: ""
-      region: ""
-      security_group_id: ""
+      account_id: 
+      vpc_id: 
+      region: 
+      security_group_id: 
       ips: ["0.0.0.0/0"]
-    protocol: "any"
-    port: "any"
-    appid: "ssl"
-    url:  ""
+    protocol: any
+    port: any
+    appid: ssl
+    url:  
   
   - business_justification: >
       "EC2 instance needs HTTPS access to thirdparty endpoint."
     source:
-      account_id: ""
-      vpc_id: ""
-      region: ""
-      security_group_id: "sg-0b7029dc87dbcb848"
+      account_id: 
+      vpc_id: 
+      region: 
+      security_group_id: sg-0b7029dc87dbcb848
       ips: ["192.168.1.18/32"]
     destination:
-      account_id: ""
-      vpc_id: ""
-      region: ""
-      security_group_id: "sg-01057cb19af0373d7"
+      account_id: 
+      vpc_id: 
+      region: 
+      security_group_id: sg-01057cb19af0373d7
       ips: ["100.64.0.198/32"]
     protocol: tcp
-    port: "443"
-    appid: "ssl"
-    url_category: "api.datadoghq.com"
-    thirdPartyID: "123456"
-    thirdPartyName: "DataDog"
-    enable_palo_inspection: "true"
+    port: 443
+    appid: ssl
+    url_category: api.datadoghq.com
+    thirdPartyID: 123456
+    thirdPartyName: DataDog
+    enable_palo_inspection: true
 
   - business_justification: >
       "EC2 needs to connect to aws service vpc-endpoints via PrivateLink."
     source:
-      account_id: ""
-      vpc_id: ""
-      region: ""
-      security_group_id: "sg-0b7029dc87dbcb848"
+      account_id: 
+      vpc_id: 
+      region: 
+      security_group_id: sg-0b7029dc87dbcb848
       ips: []
     destination:
-      account_id: ""
-      vpc_id: ""
-      region: ""
-      security_group_id: "sg-0dfca87f31291ec64"
+      account_id: 
+      vpc_id: 
+      region: 
+      security_group_id: sg-0dfca87f31291ec64
       ips: []
-    protocol: "tcp"
-    port: "443"
-    appid: "ssl"
-    host: "ec2.us-west-2.amazonaws.com"
+    protocol: tcp
+    port: 443
+    appid: ssl
+    host: ec2.us-west-2.amazonaws.com
 
