@@ -68,6 +68,13 @@ jobs:
             echo "$CLEANED_BODY" | sed 's/^/  /'
           } >> "$FILE"
 
+          sudo apt-get install -y dos2unix
+          pip install yamllint
+
+          find infrastructure/policies -name '*.yaml' -exec dos2unix {} \;
+          yamllint -c .yamllint infrastructure/policies --format github
+
+
       - name: Commit Changes and Create PR
         id: create_pr
         env:
