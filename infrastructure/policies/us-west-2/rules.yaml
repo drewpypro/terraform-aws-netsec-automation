@@ -29,7 +29,7 @@ requests:
       account_id: ""
       vpc_id: ""
       region: ""
-      security_group_id: ""
+      security_group_id: 
       ips: ["$HOME_IP"]
     destination:
       account_id: "$TEST_ACCOUNT"
