@@ -20,15 +20,15 @@ locals {
   sg_rules = flatten([
     for req in local.rules_raw.requests : concat(
       [
-        for sg_id in coalesce(req.source.security_group_id, []) : {
+        for sg_id in coalesce(req.source.security_group_id) : {
           name = "${sg_id}-egress-${req.protocol}-${req.port}-${try(req.destination.security_group_id[0], replace(req.destination.ips[0], "/", "_"))}"
           direction                 = "egress"
           security_group_id         = sg_id
           ip_protocol               = req.protocol == "any" ? "-1" : req.protocol
           from_port                 = req.port == "any" ? null : tonumber(req.port)
           to_port                   = req.port == "any" ? null : tonumber(req.port)
-          cidr_ipv4                 = length(coalesce(req.destination.ips, [])) > 0 && length(coalesce(req.destination.security_group_id, [])) == 0 ? req.destination.ips[0] : null
-          referenced_security_group = length(coalesce(req.destination.security_group_id, [])) > 0 ? req.destination.security_group_id[0] : null
+          cidr_ipv4                 = length(coalesce(req.destination.ips, [])) > 0 && length(coalesce(req.destination.security_group_id, )) == 0 ? req.destination.ips[0] : null
+          referenced_security_group = length(coalesce(req.destination.security_group_id)) > 0 ? req.destination.security_group_id : null
           description               = trimspace(req.business_justification)
         }
       ],
@@ -40,8 +40,8 @@ locals {
           ip_protocol               = req.protocol == "any" ? "-1" : req.protocol
           from_port                 = req.port == "any" ? null : tonumber(req.port)
           to_port                   = req.port == "any" ? null : tonumber(req.port)
-          cidr_ipv4                 = length(coalesce(req.source.ips, [])) > 0 && length(coalesce(req.source.security_group_id, [])) == 0 ? req.source.ips[0] : null
-          referenced_security_group = length(coalesce(req.source.security_group_id, [])) > 0 ? req.source.security_group_id[0] : null
+          cidr_ipv4                 = length(coalesce(req.source.ips, [])) > 0 && length(coalesce(req.source.security_group_id)) == 0 ? req.source.ips[0] : null
+          referenced_security_group = length(coalesce(req.source.security_group_id)) > 0 ? req.source.security_group_id[0] : null
           description               = trimspace(req.business_justification)
         }
       ]
