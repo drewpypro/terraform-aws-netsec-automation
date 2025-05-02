@@ -52,7 +52,7 @@ locals {
 
   palo_rules = [
     for req in local.rules_raw.requests : {
-      name = "palo-${try(req.thirdPartyName, "unknown")}-${try(req.thirdPartyID, "na")}-${req.protocol}-${req.port}-${replace(try(req.source.ips[0], "any"), "/", "_")}_to_${replace(try(req.destination.ips[0], "any"), "/", "_")}"
+      name = "palo-${try(req.thirdPartyName, "unknown")}-${try(req.thirdpartyID, "na")}-${req.protocol}-${req.port}-${replace(try(req.source.ips[0], "any"), "/", "_")}_to_${replace(try(req.destination.ips[0], "any"), "/", "_")}"
       source_ip       = try(req.source.ips[0], "any")
       destination_ip  = try(req.destination.ips[0], "any")
       appid           = req.appid
