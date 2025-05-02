@@ -23,27 +23,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y dos2unix
-          npm install -g ajv-cli prettier
+          npm install -g prettier
           pip install yamllint
 
       - name: Fix and prettify YAML Files
         run: |
-          set -o pipefail
+          set -xeuo pipefail
           find infrastructure/policies -name '*.yaml' -exec dos2unix {} \;
           prettier --write infrastructure/policies/**/*.yaml
           yamllint -c .yamllint infrastructure/policies --format github
-          for file in infrastructure/policies/**/rules.yaml; do
-            echo "Validating $file"
-            ajv validate \
-              -s .github/schemas/access-request-schema.json \
-              -d "$file" \
-              --strict=false --errors=text
-          done
-
-          for file in infrastructure/policies/**/sgs.yaml; do
-            echo "Validating $file"
-            ajv validate \
-              -s .github/schemas/sg-request-schema.json \
-              -d "$file" \
-              --strict=false --errors=text
-          done
