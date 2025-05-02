@@ -187,7 +187,7 @@ requests:
       vpc_id: 
       region: 
       security_group_ids:
-      ips: ["ALTERNATE_SOURCE"]
+      ips: [$ALTERNATE_SOURCE]
     destination:
       account_id: 12345567
       vpc_id: vpc-0c9a555406867d5da
