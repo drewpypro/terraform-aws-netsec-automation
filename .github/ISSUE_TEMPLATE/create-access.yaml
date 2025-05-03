@@ -39,15 +39,13 @@ body:
               account_id: 
               vpc_id: 
               region: 
-              security_group_ids:
-              - sg-0b7029dc87dbcb848
+              security_group_ids: sg-0b7029dc87dbcb848
               ips: ["192.168.1.18/32"]
             destination:
               account_id: $TEST_ACCOUNT
               vpc_id: $TEST_VPC
               region: "us-west-2"
-              security_group_ids:
-              - sg-01057cb19af0373d7
+              security_group_ids: sg-01057cb19af0373d7
               ips: ["100.64.0.198/32"]
             protocol: tcp
             port: 443

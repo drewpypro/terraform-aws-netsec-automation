@@ -40,7 +40,6 @@ resource "aws_security_group" "paloalto_vm_sg" {
   }
 }
 
-
 resource "aws_security_group" "thirdparty_sg" {
   for_each = local.security_groups
 

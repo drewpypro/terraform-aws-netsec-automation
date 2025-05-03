@@ -1,0 +1,12 @@
+extends: default
+
+rules:
+  line-length: disable
+  document-start: disable
+  trailing-spaces:
+    level: warning
+  indentation:
+    spaces: 2
+    level: warning
+  new-lines:
+    level: warning

@@ -19,19 +19,53 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Extract Region from Issue YAML
+        id: region
+        run: |
+          ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
+          REGION=$(echo "$ISSUE_BODY" | grep -m1 'region:' | awk 'NF{print $2}')
+          if [ -z "$REGION" ]; then
+            echo "❌ Region not found in issue. Failing."
+            exit 1
+          fi
+          echo "region=$REGION" >> "$GITHUB_OUTPUT"
+
       - name: Parse Labels and Set Target File
         id: filepath
         run: |
           LABELS=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH")
 
           if echo "$LABELS" | grep -q 'sg-request'; then
-            echo "target_file=infrastructure/policies/us-west-2/sgs.yaml" >> $GITHUB_OUTPUT
+            echo "target_file=infrastructure/policies/${{ steps.region.outputs.region }}/sgs.yaml" >> $GITHUB_OUTPUT
           elif echo "$LABELS" | grep -q 'access-request'; then
-            echo "target_file=infrastructure/policies/us-west-2/rules.yaml" >> $GITHUB_OUTPUT
+            echo "target_file=infrastructure/policies/${{ steps.region.outputs.region }}/rules.yaml" >> $GITHUB_OUTPUT
           else
             echo "❌ No recognized label found on issue. Exiting."
             exit 1
           fi
+
+      - name: Lint issue.body YAML and comment result
+        env:
+          GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
+        run: |
+          pip install yamllint
+
+          ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH" | sed '/^###/d')
+          echo "$ISSUE_BODY" > /tmp/issue.yaml
+
+          yamllint_output=$(yamllint -c .yamllint /tmp/issue.yaml || true)
+
+          if [ -n "$yamllint_output" ]; then
+            echo "### ⚠️ yamllint found issues in your submitted YAML" > /tmp/lint_comment.txt
+            echo '```' >> /tmp/lint_comment.txt
+            echo "$yamllint_output" >> /tmp/lint_comment.txt
+            echo '```' >> /tmp/lint_comment.txt
+          else
+            echo "### ✅ yamllint passed" > /tmp/lint_comment.txt
+            echo "No issues found in your YAML." >> /tmp/lint_comment.txt
+          fi
+
+          gh issue comment ${{ github.event.issue.number }} --body-file /tmp/lint_comment.txt
 
       - name: Append request to correct file
         run: |
@@ -40,7 +74,8 @@ jobs:
           ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
 
           if [ ! -f "$FILE" ]; then
-            echo "❌ ERROR: Expected file '$FILE' not found. Check repo structure or checkout path."
+            echo "❌ ERROR: Expected file '$FILE' not found for region '${{ steps.region.outputs.region }}'."
+            echo "This may be due to unsupported region or cross-region mismatch. Exiting."
             exit 1
           fi
 
@@ -55,6 +90,11 @@ jobs:
             echo "  # From issue #${ISSUE_NUMBER}"
             echo "$CLEANED_BODY" | sed 's/^/  /'
           } >> "$FILE"
+
+          pip install yamllint
+
+          yamllint -c .yamllint infrastructure/policies --format github
+
 
       - name: Commit Changes and Create PR
         id: create_pr
