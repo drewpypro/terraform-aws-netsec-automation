@@ -12,9 +12,7 @@ locals {
         Name         = "thirdparty-${req.thirdpartyName}-${req.thirdpartyId}-${req.region}"
         ThirdParty   = req.thirdpartyName
         ThirdPartyId = req.thirdpartyId
-        RequestedAt  = local.sg_raw.submitted_at
-        Requestor    = local.sg_raw.submitted_by
-        RequestID    = local.sg_raw.request_id
+        RequestID    = req.request_id
       }
     }
   }
