@@ -50,9 +50,11 @@ jobs:
         run: |
           pip install --quiet yamllint
 
-          # Extract and clean YAML from issue
-          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | sed '/^###/d' > /tmp/issue.yaml
-
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" \
+            | sed '/^```/d' \
+            | sed '/^###/d' \
+            > /tmp/issue.yaml
+            
           # Run yamllint
           raw_output=$(yamllint --no-warnings -f parsable -c .yamllint /tmp/issue.yaml 2>&1 || true)
           # Debug: print hex and special chars
@@ -101,10 +103,6 @@ jobs:
             echo "  # From issue #${ISSUE_NUMBER}"
             echo "$CLEANED_BODY" | sed 's/^/  /'
           } >> "$FILE"
-
-          pip install yamllint
-
-          yamllint -c .yamllint infrastructure/policies --format github
 
 
       - name: Commit Changes and Create PR
