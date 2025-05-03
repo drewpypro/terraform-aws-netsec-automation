@@ -145,7 +145,7 @@ jobs:
           git config user.email "github-actions@github.com"
 
           git checkout -b "$BRANCH"
-          git add "${{ steps.issues_vars.outputs.target_file }}"
+          git add "$FILE"
           git commit -m "Append request from issue #${ISSUE_ID}"
           git push origin "$BRANCH"
 
@@ -168,5 +168,3 @@ jobs:
           else
             echo "ℹ️ PR created but not auto-approved. Submitted by @$AUTHOR"
           fi
-
-          
