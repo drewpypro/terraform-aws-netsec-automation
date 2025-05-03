@@ -19,10 +19,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Extract Region from Issue YAML
-        id: region
+      - name: Collect and set issues_vars
+        id: issues_vars
         run: |
           ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
+          
           REGION=$(echo "$ISSUE_BODY" | grep -E '^\s*region:' | head -n1 | sed -E 's/.*region:[[:space:]]*"?([^"]+)"?/\1/')
           if [ -z "$REGION" ]; then
             echo "❌ Region not found in issue. Failing."
@@ -30,11 +31,10 @@ jobs:
           fi
           echo "region=$REGION" >> "$GITHUB_OUTPUT"
 
-      - name: Parse Labels and Set Target File
-        id: filepath
-        run: |
-          LABELS=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH")
+          AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
+          echo "author=$AUTHOR" >> "$GITHUB_OUTPUT"
 
+          LABELS=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH")
           if echo "$LABELS" | grep -q 'sg-request'; then
             echo "target_file=infrastructure/policies/${{ steps.region.outputs.region }}/sgs.yaml" >> $GITHUB_OUTPUT
           elif echo "$LABELS" | grep -q 'access-request'; then
@@ -77,7 +77,7 @@ jobs:
             echo "No linting issues found in your YAML." >> /tmp/lint_comment.txt
           fi
 
-          if echo "${{ steps.filepath.outputs.target_file }}" | grep -q 'sgs.yaml'; then
+          if echo "${{ steps.issues_vars.outputs.target_file }}" | grep -q 'sgs.yaml'; then
             SCHEMA=".github/schemas/sg-request-schema.json"
           else
             SCHEMA=".github/schemas/access-request-schema.json"
@@ -106,12 +106,12 @@ jobs:
 
       - name: Append request to correct file
         run: |
-          FILE="${{ steps.filepath.outputs.target_file }}"
+          FILE="${{ steps.issues_vars.outputs.target_file }}"
           ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
           ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
 
           if [ ! -f "$FILE" ]; then
-            echo "❌ ERROR: Expected file '$FILE' not found for region '${{ steps.region.outputs.region }}'."
+            echo "❌ ERROR: Expected file '$FILE' not found for region '${{ steps.issues_vars.outputs.region }}'."
             echo "This may be due to unsupported region or cross-region mismatch. Exiting."
             exit 1
           fi
@@ -138,18 +138,30 @@ jobs:
           BRANCH="issue-${ISSUE_ID}"
           FILE_CHANGED=$(git status --porcelain | awk '{print $2}')
           LABEL=$(jq -r '.issue.labels[0].name' "$GITHUB_EVENT_PATH")
+          AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
 
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
           git checkout -b "$BRANCH"
-          git add "${{ steps.filepath.outputs.target_file }}"
+          git add "${{ steps.issues_vars.outputs.target_file }}"
           git commit -m "Append request from issue #${ISSUE_ID}"
           git push origin "$BRANCH"
 
-          gh pr create \
+          PR_URL=$(gh pr create \
             --title "[Auto] Add request from issue #${ISSUE_ID}" \
             --label "$LABEL" \
             --body "This PR adds a new request submitted in issue #${ISSUE_ID}." \
             --head "$BRANCH" \
-            --base main
+            --base main \
+            --json url -q .url)
+
+          echo "🔍 PR created at $PR_URL"
+
+          if [ "$AUTHOR" = "drewpypro" ]; then
+            echo "✅ Auto-approving PR since author is $AUTHOR"
+            gh pr review --approve "$PR_URL"
+            gh pr comment "$PR_URL" --body "✅ Auto-approved since this request was submitted by @$AUTHOR"
+          else
+            echo "ℹ️ PR created but not auto-approved. Submitted by @$AUTHOR"
+          fi
