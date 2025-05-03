@@ -100,7 +100,7 @@ jobs:
             exit 1
           else
             echo "### ✅ Schema validation passed" >> /tmp/lint_comment.txt
-            echo "" >> /tmp/lint_comment.txt
+            echo "No schema issues found in your YAML." >> /tmp/lint_comment.txt
             gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/lint_comment.txt
           fi
 
