@@ -86,3 +86,28 @@ jobs:
           else
             echo "⚠️ IP variable not found. Skipping revoke."
           fi
+
+      - name: Download issue number artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: issue-metadata
+
+      - name: Extract newly created SGs
+        run: |
+          terraform show -json tfplan | jq -r '
+            .resource_changes[]
+            | select(.type == "aws_security_group")
+            | select(.change.actions[] == "create")
+            | "\(.change.after.tags.ThirdParty)-\(.change.after.tags.ThirdPartyId): \(.change.after.id)"
+          ' > sg_ids.txt
+
+      - name: Comment SGs on Issue
+        env:
+          GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
+        run: |
+          ISSUE_ID=$(cat issue_number.txt)
+          echo "### ✅ Created Security Groups" > comment.txt
+          echo '```' >> comment.txt
+          cat sg_ids.txt >> comment.txt
+          echo '```' >> comment.txt
+          gh issue comment "$ISSUE_ID" --body-file comment.txt

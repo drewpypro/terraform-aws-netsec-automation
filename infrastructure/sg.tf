@@ -49,6 +49,12 @@ resource "aws_security_group" "thirdparty_sg" {
   tags        = each.value.tags
 }
 
+output "thirdparty_sg_ids" {
+  value = {
+    for k, v in aws_security_group.thirdparty_sg : k => v.id
+  }
+}
+
 resource "aws_vpc_security_group_ingress_rule" "from_yaml" {
   for_each = {
     for rule in local.sg_rules : rule.name => rule if rule.direction == "ingress"
