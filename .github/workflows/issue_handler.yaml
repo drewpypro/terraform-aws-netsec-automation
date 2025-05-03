@@ -44,7 +44,7 @@ jobs:
             exit 1
           fi
 
-      - name: Lint issue.body and comment with offending lines
+      - name: Lint and schema validate
         env:
           GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
         run: |
@@ -55,8 +55,8 @@ jobs:
             | sed '/^###/d' \
             > /tmp/issue.yaml
 
-          # Run yamllint
           raw_output=$(yamllint --format standard -c .yamllint /tmp/issue.yaml 2>&1 || true)
+
           echo "::group::🧪 /tmp/issue.yaml visible chars"
           cat -A /tmp/issue.yaml || echo "File missing or empty"
           echo "::endgroup::"
@@ -117,7 +117,7 @@ jobs:
           fi
 
           # Remove template headers like '### SG Request YAML' or '### Access Rule YAML'
-          CLEANED_BODY=$(echo "$ISSUE_BODY" | sed '/^###/d')
+          CLEANED_BODY=$(echo "$ISSUE_BODY" | sed -n '/```yaml/,/```/p' | sed '/^```/d')
 
           # Ensure file ends with newline
           tail -c1 "$FILE" | read -r _ || echo >> "$FILE"
