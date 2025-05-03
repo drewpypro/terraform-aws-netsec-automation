@@ -65,12 +65,6 @@ jobs:
               echo ""
               echo "$yamllint_output"
               echo ""
-              echo "<details><summary>📄 Full YAML</summary>"
-              echo ""
-              echo '```yaml'
-              cat /tmp/issue.yaml
-              echo '```'
-              echo "</details>"
             } > /tmp/lint_comment.txt
           else
             echo "### ✅ yamllint passed" > /tmp/lint_comment.txt
