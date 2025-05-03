@@ -53,12 +53,22 @@ jobs:
           ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH" | sed '/^###/d')
           echo "$ISSUE_BODY" > /tmp/issue.yaml
 
-          yamllint_output=$(yamllint -c .yamllint /tmp/issue.yaml || true)
+          yamllint -c .yamllint /tmp/issue.yaml > /tmp/lint_raw.txt || true
 
-          if [ -n "$yamllint_output" ]; then
+          if [ -s /tmp/lint_raw.txt ]; then
             echo "### ⚠️ yamllint found issues in your submitted YAML" > /tmp/lint_comment.txt
+            echo '' >> /tmp/lint_comment.txt
             echo '```' >> /tmp/lint_comment.txt
-            echo "$yamllint_output" >> /tmp/lint_comment.txt
+            while IFS= read -r line; do
+              echo "$line" >> /tmp/lint_comment.txt
+
+              # Extract line number using regex
+              LINE_NUM=$(echo "$line" | sed -n 's|.*line=\([0-9]\+\).*|\1|p')
+              if [[ -n "$LINE_NUM" ]]; then
+                echo ">> $(sed -n "${LINE_NUM}p" /tmp/issue.yaml)" >> /tmp/lint_comment.txt
+              fi
+              echo '' >> /tmp/lint_comment.txt
+            done < /tmp/lint_raw.txt
             echo '```' >> /tmp/lint_comment.txt
           else
             echo "### ✅ yamllint passed" > /tmp/lint_comment.txt
