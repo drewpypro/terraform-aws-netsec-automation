@@ -64,12 +64,16 @@ jobs:
             while IFS= read -r line; do
               echo "$line" >> /tmp/lint_comment.txt
 
-              # Extract the line number (e.g., line=3)
+              # Extract the line number from yamllint output (e.g., line=3)
               LINE_NUM=$(echo "$line" | sed -n 's/.*line=\([0-9]\+\).*/\1/p')
 
               if [ -n "$LINE_NUM" ]; then
                 YAML_LINE=$(sed -n "${LINE_NUM}p" /tmp/issue.yaml)
-                echo ">> $YAML_LINE" >> /tmp/lint_comment.txt
+                if [ -z "$YAML_LINE" ]; then
+                  echo ">> [blank line]" >> /tmp/lint_comment.txt
+                else
+                  echo ">> $YAML_LINE" >> /tmp/lint_comment.txt
+                fi
               fi
 
               echo "" >> /tmp/lint_comment.txt
@@ -83,7 +87,7 @@ jobs:
           fi
 
           gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/lint_comment.txt
-          
+
       - name: Append request to correct file
         run: |
           FILE="${{ steps.filepath.outputs.target_file }}"
