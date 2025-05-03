@@ -1,72 +1,73 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "required": ["request_id", "submitted_by", "submitted_at", "overall_business_justification", "requests"],
-  "properties": {
-    "request_id": { "type": "string" },
-    "submitted_by": { "type": "string", "format": "email" },
-    "submitted_at": { "type": "string", "format": "date-time" },
-    "overall_business_justification": { "type": "string" },
-    "requests": {
-      "type": "array",
-      "items": {
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "business_justification",
+      "source",
+      "destination",
+      "protocol",
+      "port",
+      "appid"
+    ],
+    "properties": {
+      "business_justification": { "type": "string" },
+      "source": {
         "type": "object",
-        "required": ["business_justification", "source", "destination", "protocol", "port"],
         "properties": {
-          "business_justification": { "type": "string" },
-          "source": {
-            "type": "object",
-            "properties": {
-              "account_id": { "type": "string" },
-              "vpc_id": { "type": "string" },
-              "region": { "type": "string" },
-              "security_group_ids": {
-                "type": "array",
-                "items": { "type": "string" }
-              },
-              "ips": {
-                "type": "array",
-                "items": { "type": "string", "format": "ipv4" }
-              }
-            }
+          "account_id": { "type": ["number", "null"] },
+          "vpc_id": { "type": ["string", "null"] },
+          "region": { "type": ["string", "null"] },
+          "security_group_ids": {
+            "type": ["array", "null"],
+            "items": { "type": "string" },
+            "default": []
           },
-          "destination": {
-            "type": "object",
-            "properties": {
-              "account_id": { "type": "string" },
-              "vpc_id": { "type": "string" },
-              "region": { "type": "string" },
-              "security_group_ids": {
-                "type": "array",
-                "items": { "type": "string" }
-              },
-              "ips": {
-                "type": "array",
-                "items": { "type": "string", "format": "ipv4" }
-              }
-            }
+          "ips": {
+            "type": ["array", "null"],
+            "items": { "type": "string" },
+            "default": []
+          }
+        },
+        "additionalProperties": false
+      },
+      "destination": {
+        "type": "object",
+        "properties": {
+          "account_id": { "type": ["number", "null"] },
+          "vpc_id": { "type": ["string", "null"] },
+          "region": {
+            "type": ["string", "null"],
+            "enum": ["us-west-2", "us-east-1", null]
           },
-          "protocol": {
-            "type": "string",
-            "enum": ["tcp", "udp", "icmp", "any"]
+          "security_group_ids": {
+            "type": ["array", "null"],
+            "items": { "type": "string" },
+            "default": []
           },
-          "port": {
-            "type": "string",
-            "pattern": "^[0-9]{1,5}|any$"
-          },
-          "appid": { "type": "string" },
-          "url": { "type": "string" },
-          "url_category": { "type": "string" },
-          "host": { "type": "string" },
-          "thirdPartyID": { "type": "string" },
-          "thirdPartyName": { "type": "string" },
-          "enable_palo_inspection": {
-            "type": ["string", "boolean"],
-            "enum": ["true", "false", true, false]
-          },
-          "region": { "type": "string" }
-        }
+          "ips": {
+            "type": ["array", "null"],
+            "items": { "type": "string" },
+            "default": []
+          }
+        },
+        "additionalProperties": false
+      },
+      "protocol": { "type": "string" },
+      "port": { "type": ["string", "integer"] },
+      "appid": { "type": "string" },
+      "url": { "type": ["string", "null"] },
+      "url_category": { "type": ["string", "null"] },
+      "host": { "type": ["string", "null"] },
+      "thirdPartyID": { "type": ["number", "null"] },
+      "thirdPartyName": { "type": ["string", "null"] },
+      "enable_palo_inspection": { "type": ["boolean", "null"] },
+      "region": {
+        "type": ["string", "null"],
+        "enum": ["us-west-2", "us-east-1", null]
       }
-    }
+    },
+    "additionalProperties": false
   }
 }

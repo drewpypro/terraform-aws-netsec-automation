@@ -1,4 +1,3 @@
-requests:
   - business_justification: >
       Allow UI access from home. 
     source:
@@ -6,10 +5,10 @@ requests:
       vpc_id: 
       region: 
       security_group_ids:
-      ips: [$HOME_IP]
+      ips: ["1.1.1.1/32"]
     destination:
-      account_id: $TEST_ACCOUNT
-      vpc_id: $TEST_VPC
+      account_id: 12345678
+      vpc_id: vpc-0c9a555406867d5da
       region: "us-west-2"
       security_group_ids:
       - sg-0b5d6e2811145808d
@@ -26,10 +25,10 @@ requests:
       vpc_id: 
       region: 
       security_group_ids:
-      ips: [$HOME_IP]
+      ips: ["1.1.1.1/32"]
     destination:
-      account_id: $TEST_ACCOUNT
-      vpc_id: $TEST_VPC
+      account_id: 12345678
+      vpc_id: vpc-0c9a555406867d5da
       region: "us-west-2"
       security_group_ids:
       - sg-0b5d6e2811145808d
@@ -46,10 +45,10 @@ requests:
       vpc_id: 
       region: 
       security_group_ids:
-      ips: [$HOME_IP]
+      ips: ["1.1.1.1/32"]
     destination:
-      account_id: $TEST_ACCOUNT
-      vpc_id: $TEST_VPC
+      account_id: 12345678
+      vpc_id: vpc-0c9a555406867d5da
       region: "us-west-2"
       security_group_ids:
       - sg-0b5d6e2811145808d
@@ -62,8 +61,8 @@ requests:
   - business_justification: >
       Allow egress access from palo. 
     source:
-      account_id: $TEST_ACCOUNT
-      vpc_id: $TEST_VPC
+      account_id: 12345678
+      vpc_id: vpc-0c9a555406867d5da
       region: "us-west-2"
       security_group_ids:
       - sg-0b5d6e2811145808d
@@ -180,7 +179,7 @@ requests:
       vpc_id: 
       region: 
       security_group_ids:
-      ips: [$ALTERNATE_SOURCE]
+      ips: ["1.1.1.1/32"]
     destination:
       account_id: 12345567
       vpc_id: vpc-0c9a555406867d5da

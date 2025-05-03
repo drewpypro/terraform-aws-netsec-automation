@@ -1,32 +1,30 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "required": ["request_id", "submitted_by", "submitted_at", "overall_business_justification", "requests"],
-  "properties": {
-    "request_id": { "type": "string" },
-    "submitted_by": { "type": "string", "format": "email" },
-    "submitted_at": { "type": "string", "format": "date-time" },
-    "overall_business_justification": { "type": "string" },
-    "requests": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "business_justification",
-          "thirdpartyName",
-          "thirdpartyId",
-          "accountId",
-          "vpcId",
-          "region"
-        ],
-        "properties": {
-          "business_justification": { "type": "string" },
-          "thirdpartyName": { "type": "string" },
-          "thirdpartyId": { "type": "string" },
-          "accountId": { "type": "string" },
-          "vpcId": { "type": "string", "pattern": "^vpc-[a-f0-9]{17}$" },
-          "region": { "type": "string" }
-        }
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "request_id",
+      "business_justification",
+      "thirdpartyName",
+      "thirdpartyId",
+      "accountId",
+      "vpcId",
+      "region"
+    ],
+    "properties": {
+      "request_id": { "type": ["string", "number"] },
+      "business_justification": { "type": "string" },
+      "thirdpartyName": { "type": "string" },
+      "thirdpartyId": { "type": "number" },
+      "accountId": { "type": "number" },
+      "vpcId": {
+        "type": "string",
+        "pattern": "^vpc-[a-f0-9]{17}$"
+      },
+      "region": {
+        "type": "string",
+        "enum": ["us-west-2", "us-east-1"]
       }
     }
   }

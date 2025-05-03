@@ -26,7 +26,8 @@ body:
       description: |
         Paste the YAML request below. The format **must match** the structure used in Terraform locals:
       value: |
-          - business_justification: >
+          - request_id REQ123456
+            business_justification: >
               Create SG for Datadog VPC endpoint
             thirdpartyName: Datadog
             thirdpartyId: 1234567
