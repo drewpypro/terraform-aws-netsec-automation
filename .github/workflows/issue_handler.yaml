@@ -51,8 +51,8 @@ jobs:
           pip install --quiet yamllint PyYAML jsonschema
 
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" \
+            | sed -n '/```yaml/,/```/p' \
             | sed '/^```/d' \
-            | sed '/^###/d' \
             > /tmp/issue.yaml
 
           raw_output=$(yamllint --format standard -c .yamllint /tmp/issue.yaml 2>&1 || true)
