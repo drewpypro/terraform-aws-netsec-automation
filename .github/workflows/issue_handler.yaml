@@ -154,8 +154,7 @@ jobs:
             --label "$LABEL" \
             --body "This PR adds a new request submitted in issue #${ISSUE_ID}." \
             --head "$BRANCH" \
-            --base main \
-            --json url -q .url)
+            --base main)
 
           echo "🔍 PR created at $PR_URL"
           echo "author=$AUTHOR" >> "$GITHUB_OUTPUT"
