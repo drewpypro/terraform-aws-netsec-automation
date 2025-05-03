@@ -50,36 +50,27 @@ jobs:
         run: |
           pip install --quiet yamllint
 
-          # Extract and clean the YAML from the issue body
+          # Extract and clean YAML from issue
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" | sed '/^###/d' > /tmp/issue.yaml
 
-          # Run yamllint and capture output
-          yamllint -c .yamllint /tmp/issue.yaml > /tmp/yamllint_output.txt || true
+          # Run yamllint
+          yamllint_output=$(yamllint -c .yamllint /tmp/issue.yaml 2>&1 || true)
 
-          if [ -s /tmp/yamllint_output.txt ]; then
-            echo "### ⚠️ yamllint found issues in your submitted YAML" > /tmp/lint_comment.txt
-            echo "" >> /tmp/lint_comment.txt
-            echo '```yaml' >> /tmp/lint_comment.txt
-
-            while IFS= read -r line; do
-              echo "$line" >> /tmp/lint_comment.txt
-
-              # Extract the line number from yamllint output (e.g., line=3)
-              LINE_NUM=$(echo "$line" | sed -n 's/.*line=\([0-9]\+\).*/\1/p')
-
-              if [ -n "$LINE_NUM" ]; then
-                YAML_LINE=$(sed -n "${LINE_NUM}p" /tmp/issue.yaml)
-                if [ -z "$YAML_LINE" ]; then
-                  echo ">> [blank line]" >> /tmp/lint_comment.txt
-                else
-                  echo ">> $YAML_LINE" >> /tmp/lint_comment.txt
-                fi
-              fi
-
-              echo "" >> /tmp/lint_comment.txt
-            done < /tmp/yamllint_output.txt
-
-            echo '```' >> /tmp/lint_comment.txt
+          if [ -n "$yamllint_output" ]; then
+            {
+              echo "### ⚠️ yamllint found issues in your submitted YAML"
+              echo ""
+              echo '```txt'
+              echo "$yamllint_output"
+              echo '```'
+              echo ""
+              echo "<details><summary>📄 Full YAML</summary>"
+              echo ""
+              echo '```yaml'
+              cat /tmp/issue.yaml
+              echo '```'
+              echo "</details>"
+            } > /tmp/lint_comment.txt
           else
             echo "### ✅ yamllint passed" > /tmp/lint_comment.txt
             echo "" >> /tmp/lint_comment.txt
@@ -87,7 +78,7 @@ jobs:
           fi
 
           gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/lint_comment.txt
-
+          
       - name: Append request to correct file
         run: |
           FILE="${{ steps.filepath.outputs.target_file }}"
