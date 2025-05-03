@@ -32,7 +32,7 @@ body:
             thirdpartyName: Datadog
             thirdpartyId: 1234567
             accountId: 6666666
-            vpcId: vpc-0123456789abcdef0
+            vpc_id: vpc-0123456789abcdef0
             region: us-west-2
       render: yaml
     validations:
