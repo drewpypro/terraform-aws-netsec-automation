@@ -78,7 +78,7 @@ jobs:
             echo "No linting issues found in your YAML." >> /tmp/lint_comment.txt
           fi
 
-          if echo "${{ steps.issues_vars.outputs.target_file }}" | grep -q 'sgs.yaml'; then
+          if [ "${{ steps.issues_vars.outputs.file_type }}" = "sgs" ]; then
             SCHEMA=".github/schemas/sg-request-schema.json"
           else
             SCHEMA=".github/schemas/access-request-schema.json"
