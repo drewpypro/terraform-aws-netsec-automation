@@ -33,7 +33,8 @@ jobs:
 
           AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
           echo "author=$AUTHOR" >> "$GITHUB_OUTPUT"
-
+          echo "🔎 Detected issue author: $AUTHOR"
+          
           LABELS=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH")
           if echo "$LABELS" | grep -q 'sg-request'; then
             echo "target_file=infrastructure/policies/${{ steps.region.outputs.region }}/sgs.yaml" >> $GITHUB_OUTPUT
