@@ -9,7 +9,7 @@
       "thirdpartyName",
       "thirdpartyId",
       "accountId",
-      "vpcId",
+      "vpc_id",
       "region"
     ],
     "properties": {
@@ -18,7 +18,7 @@
       "thirdpartyName": { "type": "string" },
       "thirdpartyId": { "type": "number" },
       "accountId": { "type": "number" },
-      "vpcId": {
+      "vpc_id": {
         "type": "string",
         "pattern": "^vpc-[a-f0-9]{17}$"
       },

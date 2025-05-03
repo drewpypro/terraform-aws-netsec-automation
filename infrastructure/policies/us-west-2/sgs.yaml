@@ -4,14 +4,14 @@ requests:
     thirdpartyName: Datadog
     thirdpartyId: 1234567
     accountId: 6666666
-    vpcId: vpc-0c9a555406867d5da
+    vpc_id: vpc-0c9a555406867d5da
     region: us-west-2
   - business_justification: >
       Create security-group for mongoDB privatelink in us-west-2
     thirdpartyName: MongoDB
     thirdpartyId: 456748
     accountId: 6666666
-    vpcId: vpc-0c9a555406867d5da
+    vpc_id: vpc-0c9a555406867d5da
     region: us-west-2
 
 
@@ -22,14 +22,14 @@ requests:
     thirdpartyName: Doodoodog
     thirdpartyId: 6969
     accountId: 6666666
-    vpcId: vpc-0c9a555406867d5da
+    vpc_id: vpc-0c9a555406867d5da
     region: us-west-2
   - business_justification: >
       Create SG for Mongloid VPC endpoint
     thirdpartyName: Mongloid
     thirdpartyId: 666
     accountId: 6666666
-    vpcId: vpc-0c9a555406867d5da
+    vpc_id: vpc-0c9a555406867d5da
     region: us-west-2
 
   # From issue #88
@@ -39,7 +39,7 @@ requests:
     thirdpartyName: realoksi
     thirdpartyId: 68594
     accountId: 6666666
-    vpcId: vpc-0c9a555406867d5da
+    vpc_id: vpc-0c9a555406867d5da
     region: us-west-2
 
   # From issue #96
@@ -49,5 +49,5 @@ requests:
     thirdpartyName: MaxBarb
     thirdpartyId: 474833
     accountId: 6666666
-    vpcId: vpc-0c9a555406867d5da
+    vpc_id: vpc-0c9a555406867d5da
     region: us-west-2

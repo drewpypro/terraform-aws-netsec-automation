@@ -3,14 +3,48 @@ import sys
 import yaml
 import json
 import jsonschema
+from jsonschema.exceptions import ValidationError
 
 def load_yaml_file(path):
     with open(path, 'r') as f:
-        return yaml.safe_load(f)
+        content = f.read()
+    try:
+        data = yaml.safe_load(content)
+        return data, content.splitlines()
+    except yaml.YAMLError as e:
+        print("❌ YAML parsing failed:\n")
+        if hasattr(e, 'problem_mark'):
+            mark = e.problem_mark
+            line = mark.line
+            print_context(line, content.splitlines(), "YAML syntax error")
+        else:
+            print(str(e))
+        sys.exit(1)
 
 def load_json_file(path):
     with open(path, 'r') as f:
         return json.load(f)
+
+def print_context(line_num, lines, error_msg):
+    start = max(line_num - 1, 0)
+    end = min(line_num + 2, len(lines))
+
+    print(f"Error: {error_msg}")
+    print("Problem:")
+    print("```yaml")
+    for i in range(start, end):
+        prefix = ">> " if i == line_num else "   "
+        print(f"{prefix}{i + 1:03}: {lines[i]}")
+    print("```")
+    print("")
+
+def find_error_line(data_lines, error_path):
+    # Try to match the deepest key in the path to a line in the YAML text
+    keys = [str(k) for k in error_path if not isinstance(k, int)]
+    for i, line in enumerate(data_lines):
+        if any(k in line for k in keys[-1:]):
+            return i
+    return None
 
 def main():
     if len(sys.argv) != 3:
@@ -20,24 +54,22 @@ def main():
     yaml_file = sys.argv[1]
     schema_file = sys.argv[2]
 
-    try:
-        data = load_yaml_file(yaml_file)
-        schema = load_json_file(schema_file)
+    data, data_lines = load_yaml_file(yaml_file)
+    schema = load_json_file(schema_file)
 
-        if not isinstance(data, list):
-            print("❌ Top-level YAML is not a list (array), but schema expects one.")
-            sys.exit(1)
+    validator = jsonschema.Draft7Validator(schema)
+    errors = list(validator.iter_errors(data))
 
-        jsonschema.validate(instance=data, schema=schema)
+    if not errors:
         print("✅ Schema validation passed")
-    except jsonschema.exceptions.ValidationError as ve:
-        print("❌ Schema validation failed:")
-        print(json.dumps(ve.schema, indent=2))
-        print(ve.message)
-        sys.exit(1)
-    except Exception as e:
-        print(f"❌ Unexpected error: {str(e)}")
-        sys.exit(1)
+        return
+
+    print("❌ Schema validation failed:\n")
+    for error in errors:
+        line = find_error_line(data_lines, error.path) or 0
+        print_context(line, data_lines, error.message)
+
+    sys.exit(1)
 
 if __name__ == "__main__":
     main()

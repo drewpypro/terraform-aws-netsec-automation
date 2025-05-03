@@ -4,20 +4,24 @@
   "items": {
     "type": "object",
     "required": [
+      "request_id",
       "business_justification",
       "source",
       "destination",
       "protocol",
-      "port",
-      "appid"
+      "port"
     ],
     "properties": {
+      "request_id": { "type": ["string", "number"] },
       "business_justification": { "type": "string" },
       "source": {
         "type": "object",
         "properties": {
           "account_id": { "type": ["number", "null"] },
-          "vpc_id": { "type": ["string", "null"] },
+          "vpc_id": {
+            "type": ["string", "null"],
+            "pattern": "^vpc-[a-f0-9]{17}$"
+          },
           "region": { "type": ["string", "null"] },
           "security_group_ids": {
             "type": ["array", "null"],
@@ -36,7 +40,10 @@
         "type": "object",
         "properties": {
           "account_id": { "type": ["number", "null"] },
-          "vpc_id": { "type": ["string", "null"] },
+          "vpc_id": {
+            "type": ["string", "null"],
+            "pattern": "^vpc-[a-f0-9]{17}$"
+          },
           "region": {
             "type": ["string", "null"],
             "enum": ["us-west-2", "us-east-1", null]
