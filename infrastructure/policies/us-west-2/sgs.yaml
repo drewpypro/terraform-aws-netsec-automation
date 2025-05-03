@@ -1,12 +1,14 @@
 requests:
-  - business_justification: >
+  - request_id: 1234687
+    business_justification: >
       Create security-group for datadog privatelink in us-west-2
     thirdpartyName: Datadog
     thirdpartyId: 1234567
     accountId: 6666666
     vpc_id: vpc-0c9a555406867d5da
     region: us-west-2
-  - business_justification: >
+  - request_id: 1234687
+    business_justification: >
       Create security-group for mongoDB privatelink in us-west-2
     thirdpartyName: MongoDB
     thirdpartyId: 456748
@@ -17,14 +19,16 @@ requests:
 
   # From issue #76
   
-  - business_justification: >
+  - request_id: 1234687
+    business_justification: >
       Create SG for Doodoodog VPC endpoint
     thirdpartyName: Doodoodog
     thirdpartyId: 6969
     accountId: 6666666
     vpc_id: vpc-0c9a555406867d5da
     region: us-west-2
-  - business_justification: >
+  - request_id: 1234687
+    business_justification: >
       Create SG for Mongloid VPC endpoint
     thirdpartyName: Mongloid
     thirdpartyId: 666
@@ -34,7 +38,8 @@ requests:
 
   # From issue #88
   
-  - business_justification: >
+  - request_id: 1234687
+    business_justification: >
       Create SG for realoksis ice cream truck company
     thirdpartyName: realoksi
     thirdpartyId: 68594
@@ -44,7 +49,8 @@ requests:
 
   # From issue #96
   
-  - business_justification: >
+  - request_id: 1234687
+    business_justification: >
       Create SG for Thirdparty MaxBarb 
     thirdpartyName: MaxBarb
     thirdpartyId: 474833
