@@ -94,7 +94,6 @@ jobs:
               echo ""
               echo '```txt'
               cat /tmp/schema_output.txt
-              echo '```'
             } >> /tmp/lint_comment.txt
             gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/lint_comment.txt
             exit 1
