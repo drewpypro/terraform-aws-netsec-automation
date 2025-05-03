@@ -23,7 +23,7 @@ jobs:
         id: region
         run: |
           ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
-          REGION=$(echo "$ISSUE_BODY" | grep -m1 'region:' | awk 'NF{print $2}')
+          REGION=$(echo "$ISSUE_BODY" | grep -E '^\s*region:' | head -n1 | sed -E 's/.*region:[[:space:]]*"?([^"]+)"?/\1/')
           if [ -z "$REGION" ]; then
             echo "❌ Region not found in issue. Failing."
             exit 1
