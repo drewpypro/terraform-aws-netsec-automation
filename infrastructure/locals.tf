@@ -6,7 +6,7 @@ locals {
     for req in local.sg_raw.requests :
     "${req.thirdpartyName}-${req.thirdpartyId}" => {
       name        = "thirdparty-${req.thirdpartyName}-${req.thirdpartyId}-${req.region}"
-      vpc_id      = req.vpcId
+      vpc_id      = req.vpc_id
       description = trimspace(req.business_justification)
       tags = {
         Name         = "thirdparty-${req.thirdpartyName}-${req.thirdpartyId}-${req.region}"
