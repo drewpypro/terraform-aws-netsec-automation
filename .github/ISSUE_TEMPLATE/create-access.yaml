@@ -53,7 +53,7 @@ body:
               port: 443
               appid: 
               url:  
-              enable_palo_inspection: true
+              enable_palo_inspection: false
       render: yaml
     validations:
       required: true
