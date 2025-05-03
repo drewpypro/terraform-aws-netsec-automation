@@ -34,7 +34,7 @@ jobs:
           AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
           echo "author=$AUTHOR" >> "$GITHUB_OUTPUT"
           echo "🔎 Detected issue author: $AUTHOR"
-          
+
           LABELS=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH")
           if echo "$LABELS" | grep -q 'sg-request'; then
             echo "target_file=infrastructure/policies/${{ steps.region.outputs.region }}/sgs.yaml" >> $GITHUB_OUTPUT
@@ -158,7 +158,9 @@ jobs:
             --json url -q .url)
 
           echo "🔍 PR created at $PR_URL"
-
+          echo "author=$AUTHOR" >> "$GITHUB_OUTPUT"
+          echo "🔎 Detected issue author: $AUTHOR"
+          
           if [ "$AUTHOR" = "drewpypro" ]; then
             echo "✅ Auto-approving PR since author is $AUTHOR"
             gh pr review --approve "$PR_URL"
@@ -166,3 +168,5 @@ jobs:
           else
             echo "ℹ️ PR created but not auto-approved. Submitted by @$AUTHOR"
           fi
+
+          
