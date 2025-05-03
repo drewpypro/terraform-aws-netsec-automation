@@ -77,3 +77,13 @@ requests:
     accountId: 6666666
     vpc_id: vpc-0c9a555406867d5da
     region: us-west-2
+
+  # From issue #161
+  - request_id: REQ123456
+    business_justification: >
+      Create SG for GoblinDog VPC endpoint
+    thirdpartyName: GoblinDog
+    thirdpartyId: 1234567
+    accountId: 6666666
+    vpc_id: vpc-0c9a555406867d5da
+    region: us-west-2
