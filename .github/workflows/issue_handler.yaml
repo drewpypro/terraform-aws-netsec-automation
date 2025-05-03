@@ -63,9 +63,7 @@ jobs:
             {
               echo "### ⚠️ yamllint found issues in your submitted YAML"
               echo ""
-              echo '```txt'
               echo "$yamllint_output"
-              echo '```'
               echo ""
               echo "<details><summary>📄 Full YAML</summary>"
               echo ""
