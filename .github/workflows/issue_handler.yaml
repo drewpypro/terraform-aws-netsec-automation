@@ -48,13 +48,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
         run: |
-          pip install --quiet yamllint
+          pip install --quiet yamllint PyYAML jsonschema
 
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" \
             | sed '/^```/d' \
             | sed '/^###/d' \
             > /tmp/issue.yaml
-            
+
           # Run yamllint
           raw_output=$(yamllint --no-warnings -f parsable -c .yamllint /tmp/issue.yaml 2>&1 || true)
           # Debug: print hex and special chars
@@ -78,8 +78,33 @@ jobs:
             echo "No linting issues found in your YAML." >> /tmp/lint_comment.txt
           fi
 
-          gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/lint_comment.txt
-          
+          if echo "${{ steps.filepath.outputs.target_file }}" | grep -q 'sgs.yaml'; then
+            SCHEMA=".github/schemas/sg-request-schema.json"
+          else
+            SCHEMA=".github/schemas/access-request-schema.json"
+          fi
+
+          set +e
+          python3 scripts/validate_schema.py /tmp/issue.yaml "$SCHEMA" > /tmp/schema_output.txt 2>&1
+          exit_code=$?
+          set -e
+
+          if [ $exit_code -ne 0 ]; then
+            {
+              echo "### ❌ Schema validation failed"
+              echo ""
+              echo '```txt'
+              cat /tmp/schema_output.txt
+              echo '```'
+            } >> /tmp/lint_comment.txt
+            gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/lint_comment.txt
+            exit 1
+          else
+            echo "### ✅ Schema validation passed" >> /tmp/lint_comment.txt
+            echo "" >> /tmp/lint_comment.txt
+            gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/lint_comment.txt
+          fi
+
       - name: Append request to correct file
         run: |
           FILE="${{ steps.filepath.outputs.target_file }}"
