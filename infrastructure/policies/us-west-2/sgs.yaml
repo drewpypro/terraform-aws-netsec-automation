@@ -57,3 +57,13 @@ requests:
     accountId: 6666666
     vpc_id: vpc-0c9a555406867d5da
     region: us-west-2
+
+  # From issue #146
+  - request_id: REQ134234
+    business_justification: >
+      Create auto-approved-sg
+    thirdpartyName: auto-approver
+    thirdpartyId: 1234567
+    accountId: 6666666
+    vpc_id: vpc-0123456789abcdef0
+    region: us-west-2
