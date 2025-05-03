@@ -56,7 +56,7 @@ jobs:
             > /tmp/issue.yaml
 
           # Run yamllint
-          raw_output=$(yamllint --no-warnings -f parsable -c .yamllint /tmp/issue.yaml 2>&1 || true)
+          raw_output=$(yamllint --format standard -c .yamllint /tmp/issue.yaml 2>&1 || true)
           echo "::group::🧪 /tmp/issue.yaml visible chars"
           cat -A /tmp/issue.yaml || echo "File missing or empty"
           echo "::endgroup::"
@@ -67,9 +67,9 @@ jobs:
           if [ -n "$yamllint_output" ]; then
             {
               echo "### ⚠️ yamllint found issues in your submitted YAML"
-              echo ""
+              echo '```yaml'
               echo "$yamllint_output"
-              echo ""
+              echo '```'
             } > /tmp/lint_comment.txt
           else
             echo "### ✅ yamllint passed" > /tmp/lint_comment.txt
