@@ -57,3 +57,13 @@ requests:
     accountId: 6666666
     vpc_id: vpc-0c9a555406867d5da
     region: us-west-2
+
+  # From issue #135
+  - request_id: REQ123456
+    business_justification: >
+      Create SG for Datadog VPC endpoint
+    thirdpartyName: Datadog
+    thirdpartyId: 1234567
+    accountId: 6666666
+    vpc_id: vpc-0123456789abcdef0
+    region: us-west-2
