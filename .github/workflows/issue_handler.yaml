@@ -92,7 +92,6 @@ jobs:
             {
               echo "### ❌ Schema validation failed"
               echo ""
-              echo '```txt'
               cat /tmp/schema_output.txt
             } >> /tmp/lint_comment.txt
             gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/lint_comment.txt
