@@ -54,7 +54,7 @@ jobs:
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" | sed '/^###/d' > /tmp/issue.yaml
 
           # Run yamllint
-          yamllint_output=$(yamllint -c .yamllint /tmp/issue.yaml 2>&1 || true)
+          yamllint_output=$(yamllint -f parsable -c .yamllint /tmp/issue.yaml 2>&1 || true)
 
           if [ -n "$yamllint_output" ]; then
             {
