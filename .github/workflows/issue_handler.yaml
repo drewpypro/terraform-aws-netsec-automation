@@ -56,8 +56,9 @@ jobs:
           # Run yamllint
           raw_output=$(yamllint --no-warnings -f parsable -c .yamllint /tmp/issue.yaml 2>&1 || true)
           # Debug: print hex and special chars
-          cat -A /tmp/issue.yaml > /tmp/debug_visible_chars.txt
-          cat /tmp/debug_visible_chars.txt
+          echo "::group::🧪 /tmp/issue.yaml visible chars"
+          cat -A /tmp/issue.yaml || echo "File missing or empty"
+          echo "::endgroup::"
 
           # Strip the path and format to be cleaner
           yamllint_output=$(echo "$raw_output" | sed 's|/tmp/issue.yaml:|line |')
