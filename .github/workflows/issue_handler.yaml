@@ -44,6 +44,29 @@ jobs:
             exit 1
           fi
 
+      - name: Lint issue.body YAML and comment result
+        env:
+          GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
+        run: |
+          pip install yamllint
+
+          ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH" | sed '/^###/d')
+          echo "$ISSUE_BODY" > /tmp/issue.yaml
+
+          yamllint_output=$(yamllint -c .yamllint /tmp/issue.yaml || true)
+
+          if [ -n "$yamllint_output" ]; then
+            echo "### ⚠️ yamllint found issues in your submitted YAML" > /tmp/lint_comment.txt
+            echo '```' >> /tmp/lint_comment.txt
+            echo "$yamllint_output" >> /tmp/lint_comment.txt
+            echo '```' >> /tmp/lint_comment.txt
+          else
+            echo "### ✅ yamllint passed" > /tmp/lint_comment.txt
+            echo "No issues found in your YAML." >> /tmp/lint_comment.txt
+          fi
+
+          gh issue comment ${{ github.event.issue.number }} --body-file /tmp/lint_comment.txt
+
       - name: Append request to correct file
         run: |
           FILE="${{ steps.filepath.outputs.target_file }}"
@@ -68,10 +91,8 @@ jobs:
             echo "$CLEANED_BODY" | sed 's/^/  /'
           } >> "$FILE"
 
-          sudo apt-get install -y dos2unix
           pip install yamllint
 
-          find infrastructure/policies -name '*.yaml' -exec dos2unix {} \;
           yamllint -c .yamllint infrastructure/policies --format github
 
 
