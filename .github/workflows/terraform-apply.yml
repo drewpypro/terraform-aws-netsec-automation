@@ -111,3 +111,4 @@ jobs:
           cat sg_ids.txt >> comment.txt
           echo '```' >> comment.txt
           gh issue comment "$ISSUE_ID" --body-file comment.txt
+ 
