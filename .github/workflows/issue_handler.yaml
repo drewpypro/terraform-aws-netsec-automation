@@ -37,9 +37,9 @@ jobs:
 
           LABELS=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH")
           if echo "$LABELS" | grep -q 'sg-request'; then
-            echo "target_file=infrastructure/policies/${{ steps.region.outputs.region }}/sgs.yaml" >> $GITHUB_OUTPUT
+            echo "target_file=infrastructure/policies/${{ steps.issues_vars.outputs.region }}/sgs.yaml" >> $GITHUB_OUTPUT
           elif echo "$LABELS" | grep -q 'access-request'; then
-            echo "target_file=infrastructure/policies/${{ steps.region.outputs.region }}/rules.yaml" >> $GITHUB_OUTPUT
+            echo "target_file=infrastructure/policies/${{ steps.issues_vars.outputs.region }}/rules.yaml" >> $GITHUB_OUTPUT
           else
             echo "❌ No recognized label found on issue. Exiting."
             exit 1
