@@ -33,5 +33,6 @@ body:
             accountId: 6666666
             vpcId: vpc-0123456789abcdef0
             region: us-west-2
+      render: yaml
     validations:
       required: true
