@@ -10,13 +10,15 @@ requests:
       account_id: ""
       vpc_id: ""
       region: ""
-      security_group_id:
+      security_group_ids:
+      - 
       ips: ["$HOME_IP"]
     destination:
       account_id: "$TEST_ACCOUNT"
       vpc_id: "$TEST_VPC"
       region: us-west-2
-      security_group_id: sg-0b5d6e2811145808d
+      security_group_ids:
+      -  sg-0b5d6e2811145808d
       ips: []
     protocol: tcp
     port: 443
@@ -29,13 +31,15 @@ requests:
       account_id: ""
       vpc_id: ""
       region: ""
-      security_group_id: 
+      security_group_ids:
+      -  
       ips: ["$HOME_IP"]
     destination:
       account_id: "$TEST_ACCOUNT"
       vpc_id: "$TEST_VPC"
       region: us-west-2
-      security_group_id: sg-0b5d6e2811145808d
+      security_group_ids:
+      -  sg-0b5d6e2811145808d
       ips: []
     protocol: tcp
     port: 22
@@ -48,13 +52,15 @@ requests:
       account_id: 
       vpc_id: 
       region: 
-      security_group_id:
+      security_group_ids:
+      - 
       ips: ["$HOME_IP"]
     destination:
       account_id: "$TEST_ACCOUNT"
       vpc_id: "$TEST_VPC"
       region: us-west-2
-      security_group_id: sg-0b5d6e2811145808d
+      security_group_ids:
+      -  sg-0b5d6e2811145808d
       ips: []
     protocol: any
     port: any
@@ -67,13 +73,15 @@ requests:
       account_id: "$TEST_ACCOUNT"
       vpc_id: "$TEST_VPC"
       region: us-west-2
-      security_group_id: sg-0b5d6e2811145808d
+      security_group_ids:
+      -  sg-0b5d6e2811145808d
       ips: []
     destination:
       account_id: 
       vpc_id: 
       region: 
-      security_group_id: 
+      security_group_ids:
+      -  
       ips: ["0.0.0.0/0"]
     protocol: any
     port: any
@@ -86,13 +94,15 @@ requests:
       account_id: 
       vpc_id: 
       region: 
-      security_group_id: sg-0b7029dc87dbcb848
+      security_group_ids:
+      -  sg-0b7029dc87dbcb848
       ips: ["192.168.1.18/32"]
     destination:
       account_id: 
       vpc_id: 
       region: 
-      security_group_id: sg-01057cb19af0373d7
+      security_group_ids:
+      -  sg-01057cb19af0373d7
       ips: ["100.64.0.198/32"]
     protocol: tcp
     port: 443
@@ -108,13 +118,15 @@ requests:
       account_id: 
       vpc_id: 
       region: 
-      security_group_id: sg-0b7029dc87dbcb848
+      security_group_ids:
+      -  sg-0b7029dc87dbcb848
       ips: []
     destination:
       account_id: 
       vpc_id: 
       region: 
-      security_group_id: sg-0dfca87f31291ec64
+      security_group_ids:
+      -  sg-0dfca87f31291ec64
       ips: []
     protocol: tcp
     port: 443
