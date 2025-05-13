@@ -1,4 +1,10 @@
 locals {
+  
+  aws_provider_alias_map = {
+    "us-west-2" = aws.us-west-2
+    "us-east-1" = aws.us-east-1
+  }
+  
   flat_security_groups = merge([
     for region in var.regions : {
       for req in yamldecode(file("${path.module}/policies/${region}/sgs.yaml")).requests :

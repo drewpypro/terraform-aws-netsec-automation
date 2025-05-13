@@ -61,7 +61,8 @@ resource "aws_vpc_security_group_ingress_rule" "from_yaml" {
     for rule in local.flat_sg_rules : rule.name => rule if rule.direction == "ingress"
   }
 
-  provider = aws[each.value.region]
+  provider = local.aws_provider_alias_map[each.value.region]
+
 
   security_group_id            = each.value.security_group_id
   ip_protocol                  = each.value.ip_protocol
@@ -78,7 +79,8 @@ resource "aws_vpc_security_group_egress_rule" "from_yaml" {
     for rule in local.flat_sg_rules : rule.name => rule if rule.direction == "egress"
   }
 
-  provider = aws[each.value.region]
+  provider = local.aws_provider_alias_map[each.value.region]
+
 
   security_group_id            = each.value.security_group_id
   ip_protocol                  = each.value.ip_protocol
