@@ -41,18 +41,18 @@ jobs:
           aws --endpoint-url ${BUCKET_ENDPOINT} s3api head-object --bucket ${BUCKET_NAME} --key test/poop.txt || \
           (echo "❌ Backend validation failed. Check credentials or filepath." && exit 1)
 
-      - name: Inject IPs into policy YAML
-        run: |
-          sed -i "s|\\\$HOME_IP|${{ secrets.HOME_IP }}|g" policies/us-west-2/rules.yaml
-          sed -i "s|\\\$ALTERNATE_SOURCE|${{ secrets.ALTERNATE_SOURCE }}|g" policies/us-west-2/rules.yaml
-          IP=$(curl -s ifconfig.me)
-          echo "Runner public IP: $IP"
-          aws ec2 authorize-security-group-ingress \
-            --region us-west-2 \
-            --group-id "sg-0b5d6e2811145808d" \
-            --protocol tcp \
-            --port "22-443" \
-            --cidr "${IP}/32" > /dev/null
+      # - name: Inject IPs into policy YAML
+      #   run: |
+      #     sed -i "s|\\\$HOME_IP|${{ secrets.HOME_IP }}|g" policies/us-west-2/rules.yaml
+      #     sed -i "s|\\\$ALTERNATE_SOURCE|${{ secrets.ALTERNATE_SOURCE }}|g" policies/us-west-2/rules.yaml
+      #     IP=$(curl -s ifconfig.me)
+      #     echo "Runner public IP: $IP"
+      #     aws ec2 authorize-security-group-ingress \
+      #       --region us-west-2 \
+      #       --group-id "sg-0b5d6e2811145808d" \
+      #       --protocol tcp \
+      #       --port "22-443" \
+      #       --cidr "${IP}/32" > /dev/null
           
       - name: Terraform Init
         run: |
@@ -67,19 +67,19 @@ jobs:
         run: |
           terraform plan -out=tfplan
 
-      - name: Cleanup SG rule
-        if: always()
-        run: |
-          IP=$(curl -s ifconfig.me)
-          echo "Runner public IP: $IP"
-          if [[ -n "$IP" ]]; then
-            echo "Revoking IP: $IP"
-            aws ec2 revoke-security-group-ingress \
-              --region us-west-2 \
-              --group-id "sg-0b5d6e2811145808d" \
-              --protocol tcp \
-              --port "22-443" \
-              --cidr "${IP}/32" || echo "⚠️ Failed to revoke IP, possibly already removed."
-          else
-            echo "⚠️ IP variable not found. Skipping revoke."
-          fi
+      # - name: Cleanup SG rule
+      #   if: always()
+      #   run: |
+      #     IP=$(curl -s ifconfig.me)
+      #     echo "Runner public IP: $IP"
+      #     if [[ -n "$IP" ]]; then
+      #       echo "Revoking IP: $IP"
+      #       aws ec2 revoke-security-group-ingress \
+      #         --region us-west-2 \
+      #         --group-id "sg-0b5d6e2811145808d" \
+      #         --protocol tcp \
+      #         --port "22-443" \
+      #         --cidr "${IP}/32" || echo "⚠️ Failed to revoke IP, possibly already removed."
+      #     else
+      #       echo "⚠️ IP variable not found. Skipping revoke."
+      #     fi
