@@ -8,7 +8,7 @@
 - It enables developers to request network access declaratively through GitHub Issues, while network security policies are dynamically generated, validated, and enforced across multi-account AWS infrastructure.
 - Access is only granted if the requesting accounts meet security posture requirements, traffic patterns are classified correctly, and all necessary security control points are updated.
 
-# Repo Structure
+# Single Region Repo Structure
     terraform-aws-netsec-automation/
     ├── img/
     ├── infrastructure/
@@ -26,6 +26,28 @@
     │   ├── sg.tf
     │   ├── variables.tf
     ├── README.MD
+
+# Multi Region Module Repo Structure
+    terraform-aws-netsec-automation/
+    ├── .github/
+    │   ├── workflows
+    │   │   ├── issue_handler.yaml
+    │   ├── ISSUE_TEMPLATES
+    │   │   ├── create-access.yaml
+    ├── module/
+    │   ├── main.tf
+    │   ├── palo.tf
+    │   ├── sg.tf
+    │   ├── providers.tf
+    │   ├── variables.tf
+    ├── main.tf
+    ├── variables.tf
+    ├── providers.tf
+    ├── policies/
+    │   ├── us-west-2-policy.yaml
+    │   ├── us-east-1-policy.yaml
+
+
 
 
 # Prerequisites
