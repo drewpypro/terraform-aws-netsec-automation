@@ -6,7 +6,7 @@ resource "aws_vpc" "regional_vpc" {
     Name = "vpc-${each.key}"
   }
 
-  provider = aws[each.key]
+  provider = aws[each.value.region]
 }
 
 output "vpc_ids" {
