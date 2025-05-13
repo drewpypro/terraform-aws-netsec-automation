@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - multiregion
   workflow_dispatch:
 
 env:
