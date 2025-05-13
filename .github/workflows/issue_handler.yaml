@@ -167,6 +167,7 @@ jobs:
           else
             echo "ℹ️ PR created but not auto-approved. Submitted by @$AUTHOR"
           fi
+          
       - name: Save issue number artifact for terraform apply workflow
         run: |
           echo "${{ github.event.issue.number }}" > issue_number.txt
