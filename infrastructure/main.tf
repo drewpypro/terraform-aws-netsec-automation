@@ -20,8 +20,8 @@ module "consumer_sg_us_east_1" {
   protocol = each.value[0].rule.protocol
   from_port = each.value[0].rule.port
   to_port = each.value[0].rule.port
-  source_cidr = each.value[0].cidr
-  destination_cidr = ""
+  source_cidrs = [for rule in each.value : rule.cidr]
+  destination_cidrs = [""]
   description = "Allow access from ${each.value[0].rule.source.account_id} (${each.value[0].rule.request_id})"
   rule_tags = each.value[0].rule_tags
   
@@ -56,8 +56,8 @@ module "provider_sg_us_east_1" {
   protocol = each.value[0].rule.protocol
   from_port = each.value[0].rule.port
   to_port = each.value[0].rule.port
-  destination_cidr = each.value[0].cidr
-  source_cidr = ""
+  destination_cidrs = [for rule in each.value : rule.cidr]
+  source_cidrs = ""
   description = "Allow access to backend (${each.value[0].rule.request_id})"
   rule_tags = each.value[0].rule_tags
   
@@ -92,8 +92,8 @@ module "consumer_sg_us_west_2" {
   protocol = each.value[0].rule.protocol
   from_port = each.value[0].rule.port
   to_port = each.value[0].rule.port
-  source_cidr = each.value[0].cidr
-  destination_cidr = ""
+  source_cidrs = [for rule in each.value : rule.cidr]
+  destination_cidrs = [""]
   description = "Allow access from ${each.value[0].rule.source.account_id} (${each.value[0].rule.request_id})"
   rule_tags = each.value[0].rule_tags
   
@@ -128,8 +128,8 @@ module "provider_sg_us_west_2" {
   protocol = each.value[0].rule.protocol
   from_port = each.value[0].rule.port
   to_port = each.value[0].rule.port
-  destination_cidr = each.value[0].cidr
-  source_cidr = ""
+  destination_cidrs = [for rule in each.value : rule.cidr]
+  source_cidrs = ""
   description = "Allow access to backend (${each.value[0].rule.request_id})"
   rule_tags = each.value[0].rule_tags
   
