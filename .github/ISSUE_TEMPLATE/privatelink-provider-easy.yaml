@@ -1,0 +1,139 @@
+name: Create PrivateLink Provider (Guided)
+description: Step-by-step guide to create a security group for exposing a service via AWS PrivateLink
+title: "[SG] Create PrivateLink Provider for: "
+labels: ["sg-request", "privatelink-provider", "guided"]
+assignees:
+  - netops-team
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## PrivateLink Provider Request (Guided)
+        This template will guide you through creating a security group for exposing your service via AWS PrivateLink.
+        
+  - type: dropdown
+    id: region
+    attributes:
+      label: AWS Region
+      description: Select the AWS region for this request
+      options:
+        - us-east-1
+        - us-west-2
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: vpc_id
+    attributes:
+      label: VPC ID
+      description: Select the VPC where the security group will be created
+      options:
+        - vpc-0f0330876868cc9d2 (us-east-1)
+        - vpc-014a623d564aa2524 (us-west-2)
+    validations:
+      required: true
+      
+  - type: input
+    id: internal_app_id
+    attributes:
+      label: Internal App ID
+      description: The internal application identifier
+      placeholder: "e.g., app-zyx"
+    validations:
+      required: true
+      
+  - type: input
+    id: service_name
+    attributes:
+      label: Service Name
+      description: The service or namespace
+      placeholder: "e.g., my-service"
+    validations:
+      required: true
+      
+  - type: input
+    id: request_id
+    attributes:
+      label: Request ID
+      description: Tracking ID for this request
+      placeholder: "e.g., RQ-006"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: business_justification
+    attributes:
+      label: Business Justification
+      description: Explain why this service needs to be exposed
+      placeholder: "e.g., Need to expose app-zyx service via PrivateLink for partner access"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: destination_ips
+    attributes:
+      label: Destination IP Addresses
+      description: List of destination IP addresses with CIDR notation (one per line)
+      placeholder: |
+        172.20.1.1/32
+        172.21.1.1/32
+        172.22.1.1/32
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: protocol
+    attributes:
+      label: Protocol
+      description: Network protocol for the rule
+      options:
+        - tcp
+        - udp
+      default: 0
+    validations:
+      required: true
+      
+  - type: input
+    id: port
+    attributes:
+      label: Port Number
+      description: Port number for the connection
+      placeholder: "e.g., 443"
+    validations:
+      required: true
+      
+  - type: input
+    id: appid
+    attributes:
+      label: Application ID
+      description: Application identifier for firewall rules
+      placeholder: "e.g., ssl"
+    validations:
+      required: true
+      
+  - type: input
+    id: url
+    attributes:
+      label: Service URL
+      description: URL for your service
+      placeholder: "e.g., app-zyx.us-west-2.mycompany.com"
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: enable_palo_inspection
+    attributes:
+      label: Enable Palo Alto Inspection
+      description: Whether to enable deep packet inspection on the firewall
+      options:
+        - "true"
+        - "false"
+      default: 0
+    validations:
+      required: true
+      
+  - type: markdown
+    attributes:
+      value: |
+        This form will automatically generate the required YAML configuration for your request.

@@ -1,0 +1,91 @@
+name: Create PrivateLink Provider (YAML)
+description: Create a security group for exposing a service via AWS PrivateLink using YAML
+title: "[SG] Create PrivateLink Provider for: "
+labels: ["sg-request", "privatelink-provider", "yaml"]
+assignees:
+  - netops-team
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## PrivateLink Provider Request (YAML)
+        Use this template to request a new security group for exposing your service via AWS PrivateLink.
+        
+        Complete the YAML template below with your request details.
+        
+  - type: dropdown
+    id: region
+    attributes:
+      label: AWS Region
+      description: Select the AWS region for this request (must match the region in your YAML)
+      options:
+        - us-east-1
+        - us-west-2
+    validations:
+      required: true
+      
+  - type: textarea
+    id: yaml_config
+    attributes:
+      label: PrivateLink Provider YAML
+      description: Complete this YAML template with your request details
+      value: |
+        ```yaml
+        security_group:
+          request_id: YOUR-REQUEST-ID
+          business_justification: >
+            YOUR BUSINESS JUSTIFICATION HERE
+          accountId: 6666666
+          region: us-east-1  # or us-west-2
+          vpc_id: vpc-0f0330876868cc9d2  # or vpc-014a623d564aa2524
+          serviceType: privatelink-provider
+          serviceName: YOUR-SERVICE-NAME
+          internalAppID: YOUR-INTERNAL-APP-ID
+        rules:
+          - request_id: YOUR-REQUEST-ID
+            business_justification: >
+              YOUR RULE JUSTIFICATION HERE
+            destination:
+              ips:
+                - 172.16.1.1/32
+                - 172.17.1.1/32
+            protocol: tcp
+            port: 443
+            url: your-app-url.mycompany.com
+            appid: ssl
+            enable_palo_inspection: true
+        ```
+    validations:
+      required: true
+      
+  - type: markdown
+    attributes:
+      value: |
+        ### Example
+        ```yaml
+        security_group:
+          request_id: RQ-006
+          business_justification: >
+            Create security-group to expose `app-zyx` behind NLB over PrivateLink in us-west-2.
+          accountId: 6666666
+          region: us-west-2
+          vpc_id: vpc-014a623d564aa2524
+          serviceType: privatelink-provider
+          serviceName: app-service
+          internalAppID: app-zyx
+        rules:
+          - request_id: RQ-006
+            business_justification: >
+              Allow partner nlb health checks and backend connectivity for app-zyx. 
+            destination:
+              ips:
+                - 172.20.1.1/32
+                - 172.21.1.1/32
+                - 172.22.1.1/32
+            protocol: tcp
+            port: 443
+            url: app-zyx.us-west-2.mycompany.com
+            appid: ssl
+            enable_palo_inspection: true
+        ```
