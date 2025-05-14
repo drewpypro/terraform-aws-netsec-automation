@@ -61,21 +61,31 @@ def process_yaml_documents(yaml_docs):
         
         # Extract common fields
         processed_doc = {
-            'request_id': security_group.get('request_id', ''),
-            'business_justification': security_group.get('business_justification', ''),
-            'region': security_group.get('region', ''),
-            'vpc_id': security_group.get('vpc_id', ''),
-            'service_type': security_group.get('serviceType', ''),
-            'service_name': security_group.get('serviceName', ''),
-            'third_party_name': security_group.get('thirdpartyName', ''),
-            'third_party_id': security_group.get('thirdPartyID', ''),
+            'security_group': {
+                'request_id': security_group.get('request_id', ''),
+                'business_justification': security_group.get('business_justification', ''),
+                'accountId': security_group.get('accountId', '6666666'),
+                'region': security_group.get('region', ''),
+                'vpc_id': security_group.get('vpc_id', ''),
+                'serviceType': security_group.get('serviceType', ''),
+                'serviceName': security_group.get('serviceName', ''),
+                'thirdpartyName': security_group.get('thirdpartyName', ''),
+                'thirdPartyID': security_group.get('thirdPartyID', '')
+            },
             'rules': []
         }
         
         # Process rules
         for rule in rules:
             processed_rule = {
-                'source': rule.get('source', {}).get('ips', []),
+                'request_id': rule.get('request_id', ''),
+                'business_justification': rule.get('business_justification', ''),
+                'source': {
+                    'account_id': rule.get('source', {}).get('account_id', ''),
+                    'vpc_id': rule.get('source', {}).get('vpc_id', ''),
+                    'region': rule.get('source', {}).get('region', ''),
+                    'ips': rule.get('source', {}).get('ips', [])
+                },
                 'protocol': rule.get('protocol', ''),
                 'port': rule.get('port', ''),
                 'appid': rule.get('appid', ''),
@@ -150,7 +160,7 @@ def main():
         
         # Write processed documents to file
         with open("/tmp/issue.yaml", "w") as f:
-            yaml.safe_dump_all(processed_docs, f, default_flow_style=False)
+            yaml.safe_dump_all(processed_docs, f, default_flow_style=False, indent=2)
         
         log_debug("YAML file generated successfully")
         print(f"request_type={request_type}")
