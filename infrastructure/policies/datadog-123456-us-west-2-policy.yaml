@@ -4,7 +4,7 @@ security_group:
     Create security-group for datadog API us-east-1 privatelink in us-west-2
   accountId: 6666666
   region: us-west-2
-  vpc_id: vpc-ddd
+  vpc_id: vpc-014a623d564aa2524
   serviceType: privatelink-consumer
   serviceName: com.amazonaws.vpce.us-east-1.vpce-svc-064ea718f8d0ead77
   thirdpartyName: Datadog
