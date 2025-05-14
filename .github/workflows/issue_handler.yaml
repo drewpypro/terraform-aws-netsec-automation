@@ -47,32 +47,45 @@ jobs:
             | sed '/^```/d' \
             > /tmp/issue.yaml
           
-          # Split YAML documents
-          csplit -z /tmp/issue.yaml '/---/' '{*}'
+          # Debug - show extracted YAML
+          echo "Extracted YAML content:"
+          cat /tmp/issue.yaml
+          
+          # Split YAML documents at the '---' markers
+          echo "Splitting YAML documents..."
+          csplit -z -f "/tmp/yaml-doc-" /tmp/issue.yaml '/^---$/' '{*}' 2>/dev/null || true
           
           # Initialize tracking variables
           FILENAMES=()
           REGIONS=()
           
           # Process each document
-          for file in xx*; do
-            # Extract region
+          for file in /tmp/yaml-doc-*; do
+            echo "Processing YAML document: $file"
+            
+            # Extract key fields from document
             REGION=$(grep -o 'region: [a-z0-9-]*' "$file" | head -1 | cut -d ' ' -f 2)
-            THIRD_PARTY_NAME=$(grep 'thirdpartyName:' "$file" | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
-            THIRD_PARTY_ID=$(grep 'thirdPartyID:' "$file" | awk '{print $2}' | tr -d '\n')
+            THIRD_PARTY_NAME=$(grep 'thirdpartyName:' "$file" | head -1 | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
+            THIRD_PARTY_ID=$(grep 'thirdPartyID:' "$file" | head -1 | awk '{print $2}' | tr -d '\n')
+            
+            echo "Found region: $REGION, thirdpartyName: $THIRD_PARTY_NAME, thirdPartyID: $THIRD_PARTY_ID"
             
             # Fallback to safe naming if extraction fails
-            if [ -z "$THIRD_PARTY_NAME" ] || [ -z "$THIRD_PARTY_ID" ]; then
-              THIRD_PARTY_NAME="unknown"
-              THIRD_PARTY_ID="policy"
+            if [ -z "$THIRD_PARTY_NAME" ] || [ -z "$THIRD_PARTY_ID" ] || [ -z "$REGION" ]; then
+              echo "Warning: Missing required fields, using default values"
+              THIRD_PARTY_NAME="${THIRD_PARTY_NAME:-unknown}"
+              THIRD_PARTY_ID="${THIRD_PARTY_ID:-policy}"
+              REGION="${REGION:-unknown}"
             fi
             
             FILENAME="${THIRD_PARTY_NAME}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
             FILE="infrastructure/policies/${FILENAME}"
             
+            echo "Creating policy file: $FILE"
+            
             # Copy the specific document to its file
             # Use sed to remove any extra document separators
-            sed '/^---$/d' "$file" > "$FILE"
+            cat "$file" | sed '/^---$/d' > "$FILE"
             
             # Store filename and region
             FILENAMES+=("$FILENAME")
@@ -80,15 +93,22 @@ jobs:
           done
           
           # Clean up temporary files
-          rm xx*
+          rm /tmp/yaml-doc-* 2>/dev/null || true
           
-          # Output first filename and region for workflow compatibility
-          echo "filename=${FILENAMES[0]}" >> "$GITHUB_OUTPUT"
-          echo "region=${REGIONS[0]}" >> "$GITHUB_OUTPUT"
+          # Debug: Check how many filenames we have
+          echo "Number of policy files created: ${#FILENAMES[@]}"
           
-          # Save all filenames for later steps if needed
-          printf '%s\n' "${FILENAMES[@]}" > /tmp/policy_filenames.txt
-          printf '%s\n' "${REGIONS[@]}" > /tmp/policy_regions.txt
+          # Output first filename and region for workflow compatibility (if any were created)
+          if [ ${#FILENAMES[@]} -gt 0 ]; then
+            echo "filename=${FILENAMES[0]}" >> "$GITHUB_OUTPUT"
+            echo "region=${REGIONS[0]}" >> "$GITHUB_OUTPUT"
+            
+            # Save all filenames for later steps if needed
+            printf '%s\n' "${FILENAMES[@]}" > /tmp/policy_filenames.txt
+            printf '%s\n' "${REGIONS[@]}" > /tmp/policy_regions.txt
+          else
+            echo "No policy files were created!"
+          fi
 
           # Debug: Show created files
           echo "Created policy files:"
