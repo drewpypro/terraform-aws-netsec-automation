@@ -174,36 +174,3 @@ body:
       value: |
         ## YAML Preview
         This is the YAML that will be generated from your inputs:
-
-  - type: output
-    attributes:
-      format: yaml
-      value: |
-        security_group:
-          request_id: {{ request_id }}
-          business_justification: >
-            {{ business_justification }}
-          accountId: 6666666
-          region: {{ region }}
-          vpc_id: {{ vpc_id }}
-          serviceType: privatelink-consumer
-          serviceName: {{ service_name }}
-          thirdpartyName: {{ third_party_name }}
-          thirdPartyID: {{ third_party_id }}
-        rules:
-          - request_id: {{ request_id }}
-            business_justification: >
-              {{ business_justification }}
-            source:
-              account_id: {{ source_account_id }}
-              vpc_id: {{ source_vpc_id }}
-              region: {{ source_region }}
-              ips:
-                {% for ip in source_ips.split('\n') %}
-                - {{ ip.strip() }}
-                {% endfor %}
-            protocol: {{ protocol }}
-            port: {{ port }}
-            appid: {{ appid }}
-            url: {{ url }}
-            enable_palo_inspection: {{ enable_palo_inspection }}
