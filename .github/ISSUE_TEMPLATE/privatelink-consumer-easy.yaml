@@ -1,7 +1,7 @@
-name: Create PrivateLink Consumer (Guided)
-description: Step-by-step guide to create a security group for a PrivateLink consumer service
+name: Create PrivateLink Consumer
+description: Create a security group for a PrivateLink consumer service
 title: "[SG] Create PrivateLink Consumer for: "
-labels: ["sg-request", "privatelink-consumer", "guided"]
+labels: ["sg-request", "privatelink-consumer"]
 assignees:
   - netops-team
 
@@ -9,8 +9,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## PrivateLink Consumer Request (Guided)
-        This template will guide you through creating a security group for accessing a third-party service via AWS PrivateLink.
+        ## PrivateLink Consumer Request
+        Fill out this form to create a security group for accessing a third-party service via AWS PrivateLink.
         
   - type: dropdown
     id: region
@@ -35,33 +35,6 @@ body:
       required: true
       
   - type: input
-    id: third_party_name
-    attributes:
-      label: Third-Party Name
-      description: Name of the third-party service provider
-      placeholder: "e.g., Datadog, MongoDB Atlas"
-    validations:
-      required: true
-      
-  - type: input
-    id: third_party_id
-    attributes:
-      label: Third-Party ID
-      description: Tracking ID for the third-party (if applicable)
-      placeholder: "e.g., 123456"
-    validations:
-      required: true
-      
-  - type: input
-    id: service_name
-    attributes:
-      label: VPC Endpoint Service Name
-      description: AWS PrivateLink service name to connect to
-      placeholder: "e.g., com.amazonaws.vpce.us-east-1.vpce-svc-0123456789abcdef"
-    validations:
-      required: true
-      
-  - type: input
     id: request_id
     attributes:
       label: Request ID
@@ -76,6 +49,33 @@ body:
       label: Business Justification
       description: Explain why this access is needed
       placeholder: "e.g., Need to connect to Datadog API via PrivateLink for secure monitoring"
+    validations:
+      required: true
+      
+  - type: input
+    id: third_party_name
+    attributes:
+      label: Third-Party Name
+      description: Name of the third-party service provider
+      placeholder: "e.g., Datadog, MongoDB Atlas"
+    validations:
+      required: true
+      
+  - type: input
+    id: third_party_id
+    attributes:
+      label: Third-Party ID
+      description: Tracking ID for the third-party
+      placeholder: "e.g., 123456"
+    validations:
+      required: true
+      
+  - type: input
+    id: service_name
+    attributes:
+      label: VPC Endpoint Service Name
+      description: AWS PrivateLink service name to connect to
+      placeholder: "e.g., com.amazonaws.vpce.us-east-1.vpce-svc-0123456789abcdef"
     validations:
       required: true
       
@@ -168,8 +168,3 @@ body:
       default: 0
     validations:
       required: true
-      
-  - type: markdown
-    attributes:
-      value: |
-        This form will automatically generate the required YAML configuration for your request.

@@ -30,46 +30,42 @@ jobs:
         run: |
           pip install --quiet yamllint PyYAML jsonschema
 
-      - name: Extract issue data
+      - name: Process Issue Form
         id: issue_data
         run: |
-          ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
-          ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
-          ISSUE_AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
-          ISSUE_TITLE=$(jq -r '.issue.title' "$GITHUB_EVENT_PATH")
-          ISSUE_LABELS=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH" | tr '\n' ' ')
+          # Make script executable
+          chmod +x scripts/form_to_yaml.py
+
+          # Run the script to process the form data
+          DATA=$(scripts/form_to_yaml.py)
           
-          # Extract YAML content
-          echo "$ISSUE_BODY" | sed -n '/```yaml/,/```/p' | sed '/^```/d' > /tmp/issue.yaml
+          # Extract and set outputs
+          REQUEST_TYPE=$(echo "$DATA" | grep "request_type=" | cut -d= -f2)
+          echo "request_type=$REQUEST_TYPE" >> $GITHUB_OUTPUT
           
-          # Extract region from YAML
+          # Extract region from the generated YAML
           REGION=$(grep -o 'region: [a-z0-9-]*' /tmp/issue.yaml | head -1 | cut -d ' ' -f 2)
           echo "region=$REGION" >> $GITHUB_OUTPUT
           
-          # Determine request type
-          if echo "$ISSUE_LABELS" | grep -q "privatelink-consumer"; then
-            echo "request_type=consumer" >> $GITHUB_OUTPUT
+          # Set schema file
+          if [ "$REQUEST_TYPE" = "consumer" ]; then
             echo "schema_file=.github/schemas/privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
-          elif echo "$ISSUE_LABELS" | grep -q "privatelink-provider"; then
-            echo "request_type=provider" >> $GITHUB_OUTPUT
+          elif [ "$REQUEST_TYPE" = "provider" ]; then
             echo "schema_file=.github/schemas/privatelink-provider-schema.json" >> $GITHUB_OUTPUT
-          elif echo "$ISSUE_LABELS" | grep -q "access-request"; then
-            echo "request_type=access" >> $GITHUB_OUTPUT
-            # For access requests, we need additional logic to determine the schema
-            TYPE=$(grep -o 'serviceType: [a-z-]*' /tmp/issue.yaml | head -1 | cut -d ' ' -f 2)
-            if [ "$TYPE" = "privatelink-consumer" ]; then
-              echo "schema_file=.github/schemas/privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
-            else
-              echo "schema_file=.github/schemas/privatelink-provider-schema.json" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "No recognized label found on issue. Will validate against both schemas."
-            echo "request_type=unknown" >> $GITHUB_OUTPUT
           fi
+          
+          # Set other outputs
+          ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
+          ISSUE_AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
+          ISSUE_TITLE=$(jq -r '.issue.title' "$GITHUB_EVENT_PATH")
           
           echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
           echo "issue_author=$ISSUE_AUTHOR" >> $GITHUB_OUTPUT
           echo "issue_title=$ISSUE_TITLE" >> $GITHUB_OUTPUT
+          
+          # Display generated YAML for debugging
+          echo "Generated YAML content:"
+          cat /tmp/issue.yaml
 
       - name: YAML Validation
         id: yaml_validation
