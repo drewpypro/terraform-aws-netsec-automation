@@ -25,15 +25,6 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Prepare Policy Tracking
-        run: |
-          # Ensure policies directory exists
-          mkdir -p infrastructure/policies
-          
-          # Always create these files to prevent errors in later steps
-          touch /tmp/policy_filenames.txt
-          touch /tmp/policy_regions.txt
-
       - name: Process Issue YAML
         id: issue_yaml
         if: "contains(github.event.issue.labels.*.name, 'skip-form-processing')"
@@ -47,23 +38,16 @@ jobs:
             | sed '/^```/d' \
             > /tmp/issue.yaml
           
-          # Debug - show extracted YAML
-          echo "Extracted YAML content:"
-          cat /tmp/issue.yaml
-          
           # Split YAML documents at the '---' markers
           echo "Splitting YAML documents..."
-          cp /tmp/issue.yaml /tmp/issue-with-marker.yaml
-          csplit -z -f "/tmp/yaml-doc-" /tmp/issue-with-marker.yaml '/^---$/' '{*}' 2>/dev/null || true
-           
+          csplit -z /tmp/issue.yaml '/---/' '{*}'
+          
           # Initialize tracking variables
           FILENAMES=()
           REGIONS=()
           
           # Process each document
-          for file in /tmp/yaml-doc-*; do
-            echo "Processing YAML document: $file"
-            
+          for file in xx*; do
             # Extract key fields from document
             REGION=$(grep -o 'region: [a-z0-9-]*' "$file" | head -1 | cut -d ' ' -f 2)
             THIRD_PARTY_NAME=$(grep -m 1 'thirdpartyName:' "$file" | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
@@ -72,29 +56,26 @@ jobs:
             echo "Found region: $REGION, thirdpartyName: $THIRD_PARTY_NAME, thirdPartyID: $THIRD_PARTY_ID"
             
             # Fallback to safe naming if extraction fails
-            if [ -z "$THIRD_PARTY_NAME" ] || [ -z "$THIRD_PARTY_ID" ] || [ -z "$REGION" ]; then
+            if [ -z "$THIRD_PARTY_NAME" ] || [ -z "$THIRD_PARTY_ID" ]; then
               echo "Warning: Missing required fields, using default values"
-              THIRD_PARTY_NAME="${THIRD_PARTY_NAME:-unknown}"
-              THIRD_PARTY_ID="${THIRD_PARTY_ID:-policy}"
-              REGION="${REGION:-unknown}"
+              THIRD_PARTY_NAME="unknown"
+              THIRD_PARTY_ID="policy"
             fi
             
             FILENAME="${THIRD_PARTY_NAME}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
             FILE="infrastructure/policies/${FILENAME}"
-            
-            echo "Creating policy file: $FILE"
-            
+
             # Copy the specific document to its file
             # Use sed to remove any extra document separators
-            cat "$file" | sed '/^---$/d' > "$FILE"
-            
+            sed '/^---$/d' "$file" > "$FILE"
+                        
             # Store filename and region
             FILENAMES+=("$FILENAME")
             REGIONS+=("$REGION")
           done
           
           # Clean up temporary files
-          rm /tmp/yaml-doc-* 2>/dev/null || true
+          rm xx*
           
           # Debug: Check how many filenames we have
           echo "Number of policy files created: ${#FILENAMES[@]}"
