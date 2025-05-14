@@ -165,6 +165,33 @@ jobs:
             exit 1
           fi
 
+      - name: Prepare Policy File
+        id: policy_file
+        run: |
+          # Ensure policies directory exists
+          mkdir -p infrastructure/policies
+          
+          # Generate policy filename
+          REGION="${{ steps.issue_data.outputs.region }}"
+          THIRD_PARTY_NAME=$(grep 'thirdpartyName:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
+          THIRD_PARTY_ID=$(grep 'thirdPartyID:' /tmp/issue.yaml | awk '{print $2}' | tr -d '\n')
+          
+          # Fallback to safe naming if extraction fails
+          if [ -z "$THIRD_PARTY_NAME" ] || [ -z "$THIRD_PARTY_ID" ]; then
+            THIRD_PARTY_NAME="unknown"
+            THIRD_PARTY_ID="policy"
+          fi
+          
+          FILENAME="${THIRD_PARTY_NAME}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
+          FILE="infrastructure/policies/${FILENAME}"
+          
+          # Copy YAML to policies directory
+          cp /tmp/issue.yaml "$FILE"
+          
+          # Output the filename for subsequent steps
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+          echo "filename=$FILENAME" >> "$GITHUB_OUTPUT"
+
       - name: Commit Changes and Create PR
         id: create_pr
         env:
@@ -172,7 +199,8 @@ jobs:
         run: |
           ISSUE_ID=${{ github.event.issue.number }}
           BRANCH="issue-${ISSUE_ID}"
-          FILE="infrastructure/policies/${{ steps.issues_vars.outputs.region }}/${{ steps.issues_vars.outputs.file_type }}.yaml"
+          FILE="${{ steps.policy_file.outputs.file }}"
+          FILENAME="${{ steps.policy_file.outputs.filename }}"
           LABEL=$(jq -r '.issue.labels[0].name' "$GITHUB_EVENT_PATH")
           AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
 
