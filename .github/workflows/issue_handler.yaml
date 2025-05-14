@@ -63,7 +63,8 @@ jobs:
             FILE="infrastructure/policies/${FILENAME}"
             
             # Copy the specific document to its file
-            cp "$file" "$FILE"
+            # Use sed to remove any extra document separators
+            sed '/^---$/d' "$file" > "$FILE"
             
             # Store filename and region
             FILENAMES+=("$FILENAME")
@@ -80,6 +81,10 @@ jobs:
           # Save all filenames for later steps if needed
           printf '%s\n' "${FILENAMES[@]}" > /tmp/policy_filenames.txt
           printf '%s\n' "${REGIONS[@]}" > /tmp/policy_regions.txt
+
+          # Debug: Show created files
+          echo "Created policy files:"
+          ls -l infrastructure/policies/
 
       # Set other outputs similar to form processing
       - name: Set Issue YAML Outputs
