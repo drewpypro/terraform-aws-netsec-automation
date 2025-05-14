@@ -165,58 +165,58 @@ jobs:
             exit 1
           fi
 
-- name: Create Pull Request
-  id: create_pr
-  env:
-    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  run: |
-    ISSUE_NUMBER="${{ steps.issue_data.outputs.issue_number }}"
-    BRANCH="issue-${ISSUE_NUMBER}"
-    
-    git config user.name "github-actions"
-    git config user.email "github-actions@github.com"
-    
-    # Ensure policies directory exists
-    mkdir -p infrastructure/policies
-    
-    # Generate policy filename
-    REGION="${{ steps.issue_data.outputs.region }}"
-    THIRD_PARTY_NAME=$(grep 'thirdpartyName:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]')
-    THIRD_PARTY_ID=$(grep 'thirdPartyID:' /tmp/issue.yaml | awk '{print $2}')
-    
-    if [ -n "$THIRD_PARTY_NAME" ] && [ -n "$THIRD_PARTY_ID" ]; then
-      FILENAME="${THIRD_PARTY_NAME}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
-    else
-      FILENAME="policy-${REGION}-${ISSUE_NUMBER}.yaml"
-    fi
-    
-    # Copy YAML to policies directory
-    cp /tmp/issue.yaml "infrastructure/policies/${FILENAME}"
-    
-    git checkout -b "$BRANCH"
-    git add infrastructure/policies/
-    git commit -m "Add network access policy from issue #${ISSUE_NUMBER}"
-    
-    # Push the branch
-    git push origin "$BRANCH"
-    
-    # Create PR
-    PR_URL=$(gh pr create \
-      --title "Add network access policy from issue #${ISSUE_NUMBER}" \
-      --body "This PR adds the network access policy requested in issue #${ISSUE_NUMBER}." \
-      --base main \
-      --head "$BRANCH")
-    
-    echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
-    
-    # Comment on the issue
-    {
-      echo "### ✅ Request Processed Successfully"
-      echo ""
-      echo "Your request has been processed and a pull request has been created:"
-      echo "- [View Pull Request](${PR_URL})"
-      echo ""
-      echo "The policy file will be deployed once the PR is approved and merged."
-    } > /tmp/success_comment.txt
-    
-    gh issue comment "${{ steps.issue_data.outputs.issue_number }}" --body-file /tmp/success_comment.txt
+      - name: Create Pull Request
+        id: create_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUMBER="${{ steps.issue_data.outputs.issue_number }}"
+          BRANCH="issue-${ISSUE_NUMBER}"
+          
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          
+          # Ensure policies directory exists
+          mkdir -p infrastructure/policies
+          
+          # Generate policy filename
+          REGION="${{ steps.issue_data.outputs.region }}"
+          THIRD_PARTY_NAME=$(grep 'thirdpartyName:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]')
+          THIRD_PARTY_ID=$(grep 'thirdPartyID:' /tmp/issue.yaml | awk '{print $2}')
+          
+          if [ -n "$THIRD_PARTY_NAME" ] && [ -n "$THIRD_PARTY_ID" ]; then
+            FILENAME="${THIRD_PARTY_NAME}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
+          else
+            FILENAME="policy-${REGION}-${ISSUE_NUMBER}.yaml"
+          fi
+          
+          # Copy YAML to policies directory
+          cp /tmp/issue.yaml "infrastructure/policies/${FILENAME}"
+          
+          git checkout -b "$BRANCH"
+          git add infrastructure/policies/
+          git commit -m "Add network access policy from issue #${ISSUE_NUMBER}"
+          
+          # Push the branch
+          git push origin "$BRANCH"
+          
+          # Create PR
+          PR_URL=$(gh pr create \
+            --title "Add network access policy from issue #${ISSUE_NUMBER}" \
+            --body "This PR adds the network access policy requested in issue #${ISSUE_NUMBER}." \
+            --base main \
+            --head "$BRANCH")
+          
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          
+          # Comment on the issue
+          {
+            echo "### ✅ Request Processed Successfully"
+            echo ""
+            echo "Your request has been processed and a pull request has been created:"
+            echo "- [View Pull Request](${PR_URL})"
+            echo ""
+            echo "The policy file will be deployed once the PR is approved and merged."
+          } > /tmp/success_comment.txt
+          
+          gh issue comment "${{ steps.issue_data.outputs.issue_number }}" --body-file /tmp/success_comment.txt
