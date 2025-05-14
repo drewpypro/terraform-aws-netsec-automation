@@ -165,87 +165,58 @@ jobs:
             exit 1
           fi
 
-      - name: Generate policy file
-        id: policy_file
-        run: |
-          REGION="${{ steps.issue_data.outputs.region }}"
-          REQUEST_TYPE="${{ steps.issue_data.outputs.request_type }}"
-          
-          # Make sure the policies directory exists
-          mkdir -p infrastructure/policies
-          
-          # Read the YAML content
-          YAML_CONTENT=$(cat /tmp/issue.yaml)
-          
-          if [ "$REQUEST_TYPE" = "consumer" ] || [ "$REQUEST_TYPE" = "provider" ]; then
-            # Extract key information for filename
-            if [ "$REQUEST_TYPE" = "consumer" ]; then
-              THIRD_PARTY_ID=$(echo "$YAML_CONTENT" | grep -o 'thirdPartyID: [a-zA-Z0-9]*' | head -1 | cut -d ' ' -f 2)
-              THIRD_PARTY_NAME=$(echo "$YAML_CONTENT" | grep -o 'thirdpartyName: [a-zA-Z0-9]*' | head -1 | cut -d ' ' -f 2)
-              SERVICE_NAME=$(echo "$YAML_CONTENT" | grep -o 'serviceName: [^ ]*' | head -1 | cut -d ' ' -f 2 | tr -d '"')
-              SERVICE_NAME_SHORT=$(echo "$SERVICE_NAME" | sed 's/com\.amazonaws\.vpce\.[^.]*\.//' | cut -d '.' -f 1)
-              
-              FILENAME="${THIRD_PARTY_NAME,,}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
-            else
-              APP_ID=$(echo "$YAML_CONTENT" | grep -o 'internalAppID: [a-zA-Z0-9-]*' | head -1 | cut -d ' ' -f 2)
-              SERVICE_NAME=$(echo "$YAML_CONTENT" | grep -o 'serviceName: [^ ]*' | head -1 | cut -d ' ' -f 2 | tr -d '"')
-              
-              FILENAME="provider-${APP_ID}-${REGION}-policy.yaml"
-            fi
-            
-            # Create the policy file
-            echo "$YAML_CONTENT" > "infrastructure/policies/${FILENAME}"
-            echo "policy_file=infrastructure/policies/${FILENAME}" >> $GITHUB_OUTPUT
-            echo "Created policy file: ${FILENAME}"
-          else
-            # For access rules, we need to find the existing policy file and append
-            # This logic would need to be expanded based on your specific needs
-            echo "Access rule handling not implemented yet"
-            exit 1
-          fi
-
-      - name: Create Pull Request
-        id: create_pr
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          ISSUE_NUMBER="${{ steps.issue_data.outputs.issue_number }}"
-          BRANCH="issue-${ISSUE_NUMBER}"
-          
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          
-          git checkout -b "$BRANCH"
-          git add infrastructure/policies/
-          git commit -m "Add network access policy from issue #${ISSUE_NUMBER}"
-          
-          # Push the branch
-          git push origin "$BRANCH"
-          
-          # Create PR
-          PR_URL=$(gh pr create \
-            --title "Add network access policy from issue #${ISSUE_NUMBER}" \
-            --body "This PR adds the network access policy requested in issue #${ISSUE_NUMBER}." \
-            --base main \
-            --head "$BRANCH")
-          
-          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
-          
-          # Comment on the issue
-          {
-            echo "### ✅ Request Processed Successfully"
-            echo ""
-            echo "Your request has been processed and a pull request has been created:"
-            echo "- [View Pull Request](${PR_URL})"
-            echo ""
-            echo "The policy file will be deployed once the PR is approved and merged."
-          } > /tmp/success_comment.txt
-          
-          gh issue comment "${{ steps.issue_data.outputs.issue_number }}" --body-file /tmp/success_comment.txt
-
-      - name: Upload policy file for terraform workflow
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: policy-file
-          path: ${{ steps.policy_file.outputs.policy_file }}
+- name: Create Pull Request
+  id: create_pr
+  env:
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run: |
+    ISSUE_NUMBER="${{ steps.issue_data.outputs.issue_number }}"
+    BRANCH="issue-${ISSUE_NUMBER}"
+    
+    git config user.name "github-actions"
+    git config user.email "github-actions@github.com"
+    
+    # Ensure policies directory exists
+    mkdir -p infrastructure/policies
+    
+    # Generate policy filename
+    REGION="${{ steps.issue_data.outputs.region }}"
+    THIRD_PARTY_NAME=$(grep 'thirdpartyName:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]')
+    THIRD_PARTY_ID=$(grep 'thirdPartyID:' /tmp/issue.yaml | awk '{print $2}')
+    
+    if [ -n "$THIRD_PARTY_NAME" ] && [ -n "$THIRD_PARTY_ID" ]; then
+      FILENAME="${THIRD_PARTY_NAME}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
+    else
+      FILENAME="policy-${REGION}-${ISSUE_NUMBER}.yaml"
+    fi
+    
+    # Copy YAML to policies directory
+    cp /tmp/issue.yaml "infrastructure/policies/${FILENAME}"
+    
+    git checkout -b "$BRANCH"
+    git add infrastructure/policies/
+    git commit -m "Add network access policy from issue #${ISSUE_NUMBER}"
+    
+    # Push the branch
+    git push origin "$BRANCH"
+    
+    # Create PR
+    PR_URL=$(gh pr create \
+      --title "Add network access policy from issue #${ISSUE_NUMBER}" \
+      --body "This PR adds the network access policy requested in issue #${ISSUE_NUMBER}." \
+      --base main \
+      --head "$BRANCH")
+    
+    echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+    
+    # Comment on the issue
+    {
+      echo "### ✅ Request Processed Successfully"
+      echo ""
+      echo "Your request has been processed and a pull request has been created:"
+      echo "- [View Pull Request](${PR_URL})"
+      echo ""
+      echo "The policy file will be deployed once the PR is approved and merged."
+    } > /tmp/success_comment.txt
+    
+    gh issue comment "${{ steps.issue_data.outputs.issue_number }}" --body-file /tmp/success_comment.txt
