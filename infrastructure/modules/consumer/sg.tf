@@ -1,3 +1,4 @@
+# Create the consumer security group
 resource "aws_security_group" "this" {
   name        = var.security_group_name
   description = var.security_group_description
@@ -10,14 +11,19 @@ resource "aws_security_group" "this" {
   }
 }
 
-# Create ingress rule - always created since this is a consumer module
-resource "aws_vpc_security_group_ingress_rule" "this" {
-  security_group_id = aws_security_group.this.id
-  ip_protocol       = var.protocol
-  from_port         = var.from_port
-  to_port           = var.to_port
-  cidr_ipv4         = var.source_cidr
-  description       = var.description
+# Create ingress rules for the consumer security group
+resource "aws_vpc_security_group_ingress_rule" "rule" {
+  for_each = {
+    for idx, rule in var.ingress_rules :
+    rule.key => rule
+  }
   
-  tags = var.rule_tags
+  security_group_id = aws_security_group.this.id
+  ip_protocol       = each.value.protocol
+  from_port         = each.value.port
+  to_port           = each.value.port
+  cidr_ipv4         = each.value.cidr
+  description       = each.value.description
+  
+  tags = each.value.rule_tags
 }

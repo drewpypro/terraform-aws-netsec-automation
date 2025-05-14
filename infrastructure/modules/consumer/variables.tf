@@ -19,77 +19,16 @@ variable "tags" {
   default     = {}
 }
 
-variable "rule_tags" {
-  description = "Tags to apply to the security group rules"
-  type        = map(string)
-  default     = {}
-}
-
-variable "protocol" {
-  description = "Protocol for the security group rule"
-  type        = string
-  default     = "tcp"
-}
-
-variable "from_port" {
-  description = "Start port for the security group rule"
-  type        = number
-  default     = 0
-}
-
-variable "to_port" {
-  description = "End port for the security group rule"
-  type        = number
-  default     = 0
-}
-
-variable "source_cidr" {
-  description = "Source CIDR block for ingress rules"
-  type        = string
-}
-
-variable "description" {
-  description = "Description for the security group rule"
-  type        = string
-  default     = ""
-}
-
-# Palo Alto specific variables
-variable "enable_palo_inspection" {
-  description = "Whether to enable Palo Alto inspection"
-  type        = bool
-  default     = false
-}
-
-variable "name_prefix" {
-  description = "Prefix for Palo Alto rule names"
-  type        = string
-  default     = "rule"
-}
-
-variable "request_id" {
-  description = "Request ID for tracking"
-  type        = string
-  default     = ""
-}
-
-variable "appid" {
-  description = "Application ID for Palo Alto rule"
-  type        = string
-  default     = "any"
-}
-
-variable "url" {
-  description = "URL for the service"
-  type        = string
-  default     = ""
-}
-
-variable "source_info" {
-  description = "Source information for the rule"
-  type = object({
-    account_id = string
-    vpc_id     = string
-    region     = string
-  })
+variable "ingress_rules" {
+  description = "List of ingress rules to create"
+  type = list(object({
+    key         = string
+    cidr        = string
+    description = string
+    protocol    = string
+    port        = number
+    rule_tags   = map(string)
+    rule        = any
+  }))
+  default = []
 }
