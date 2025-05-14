@@ -27,6 +27,7 @@ jobs:
 
       - name: Process Issue Form
         id: issue_data
+        if: "!contains(github.event.issue.labels.*.name, 'skip-form-processing')"
         run: |
 
           pip install --quiet yamllint PyYAML jsonschema

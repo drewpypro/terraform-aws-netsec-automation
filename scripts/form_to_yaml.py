@@ -4,7 +4,7 @@ import sys
 import os
 import re
 import traceback
-import yaml
+import yaml  # Add this import
 
 def setup_logging():
     """Set up logging to write debug information to a file"""
@@ -18,40 +18,17 @@ def log_debug(message):
     print(message, file=sys.stderr)
     sys.stderr.flush()
 
-def extract_yaml_from_body(body):
-    """Extract YAML from issue body"""
-    # Look for YAML in code blocks
-    yaml_pattern = r"```yaml\s*(.*?)```"
-    matches = re.findall(yaml_pattern, body, re.DOTALL)
-    
-    if not matches:
-        log_debug("No YAML code blocks found in the issue body")
-        return None
-    
-    # Combine all YAML matches
-    full_yaml = '\n---\n'.join(matches)
-    log_debug(f"Extracted YAML:\n{full_yaml}")
-    
-    return full_yaml
-
-def is_form_submission(body, labels):
-    """Determine if this is a form submission requiring processing"""
-    # Check for form-specific indicators
-    form_indicators = [
-        "YOUR-REQUEST-ID",
-        "YOUR-BUSINESS JUSTIFICATION HERE",
-        "YOUR-SERVICE-NAME",
-        "YOUR-THIRD-PARTY-NAME"
-    ]
-    
-    # Check for placeholders in the YAML
-    form_detected = any(indicator in body for indicator in form_indicators)
-    
-    # Check labels
-    form_labels = ["privatelink-consumer", "privatelink-provider"]
-    is_form_label = any(label in labels for label in form_labels)
-    
-    return form_detected and is_form_label
+def extract_field(body, field_name):
+    """Extract a field value from the GitHub issue body"""
+    log_debug(f"Extracting field: {field_name}")
+    pattern = r"### " + re.escape(field_name) + r"\s*\n(.*?)(?=\n###|\Z)"
+    match = re.search(pattern, body, re.DOTALL)
+    if match:
+        value = match.group(1).strip()
+        log_debug(f"Field {field_name} value: {value}")
+        return value
+    log_debug(f"No value found for field: {field_name}")
+    return ""
 
 def main():
     try:
@@ -82,29 +59,105 @@ def main():
         labels = [label["name"] for label in event.get("issue", {}).get("labels", [])]
         log_debug(f"Labels: {labels}")
         
-        # Determine if this is a form submission requiring processing
-        if not is_form_submission(body, labels):
-            log_debug("Not a form submission. Extracting YAML directly.")
-            yaml_text = extract_yaml_from_body(body)
-            
-            if not yaml_text:
-                log_debug("No YAML found in the issue body")
-                sys.exit(1)
-            
-            # Simply copy the YAML to the output file
-            with open("/tmp/issue.yaml", "w") as f:
-                f.write(yaml_text)
-            
-            # Determine request type from labels
-            request_type = "consumer" if "privatelink-consumer" in labels else "provider"
-            
-            log_debug("YAML copied directly from issue")
-            print(f"request_type={request_type}")
-            print("YAML copied from code block")
-            sys.exit(0)
+        # Determine request type
+        request_type = None
+        if "privatelink-consumer" in labels:
+            request_type = "consumer"
+        elif "privatelink-provider" in labels:
+            request_type = "provider"
         
-        # Process form submission (existing logic)
-        # ... (rest of the existing form processing logic)
+        log_debug(f"Request type: {request_type}")
+        
+        # Check if this is already a YAML template
+        if "```yaml" in body:
+            # Extract YAML directly
+            yaml_pattern = r"```yaml\s*(.*?)\s*```"
+            match = re.search(yaml_pattern, body, re.DOTALL)
+            if match:
+                with open("/tmp/issue.yaml", "w") as f:
+                    f.write(match.group(1))
+                print(f"request_type={request_type}")
+                print("YAML extracted directly from code block")
+                log_debug("YAML extracted from code block")
+                return
+        
+        # Otherwise, treat as a form and convert to YAML
+        # Extract common fields
+        region = extract_field(body, "AWS Region")
+        
+        # Extract VPC ID and remove region info in parentheses if present
+        vpc_id = extract_field(body, "VPC ID")
+        vpc_id = re.sub(r"\s*\(.*\)$", "", vpc_id)
+        
+        request_id = extract_field(body, "Request ID")
+        business_justification = extract_field(body, "Business Justification")
+        
+        # Validate request type
+        if request_type is None:
+            log_debug("Error: Unable to determine request type")
+            print("Unknown request type")
+            sys.exit(1)
+        
+        # Generate YAML based on request type
+        if request_type == "consumer":
+            # Extract consumer-specific fields
+            third_party_name = extract_field(body, "Third-Party Name")
+            third_party_id = extract_field(body, "Third-Party ID")
+            service_name = extract_field(body, "VPC Endpoint Service Name")
+            source_account_id = extract_field(body, "Source Account ID")
+            source_vpc_id = extract_field(body, "Source VPC ID")
+            source_region = extract_field(body, "Source Region")
+            
+            # Extract IPs (one per line)
+            source_ips = extract_field(body, "Source IP Addresses")
+            ips = [ip.strip() for ip in source_ips.split("\n") if ip.strip()]
+            
+            protocol = extract_field(body, "Protocol")
+            port = extract_field(body, "Port Number")
+            appid = extract_field(body, "Application ID")
+            url = extract_field(body, "Service URL")
+            enable_palo = extract_field(body, "Enable Palo Alto Inspection")
+            
+            # Generate YAML structure
+            yaml_doc = {
+                'security_group': {
+                    'request_id': request_id,
+                    'business_justification': business_justification,
+                    'region': region,
+                    'vpc_id': vpc_id,
+                    'serviceName': service_name,
+                    'thirdpartyName': third_party_name,
+                    'thirdPartyID': third_party_id
+                },
+                'rules': [{
+                    'request_id': request_id,
+                    'business_justification': business_justification,
+                    'source': {
+                        'account_id': source_account_id,
+                        'vpc_id': source_vpc_id,
+                        'region': source_region,
+                        'ips': ips
+                    },
+                    'protocol': protocol,
+                    'port': port,
+                    'appid': appid,
+                    'url': url,
+                    'enable_palo_inspection': enable_palo
+                }]
+            }
+            
+            # Write YAML to file
+            with open("/tmp/issue.yaml", "w") as f:
+                yaml.safe_dump_all([yaml_doc], f, default_flow_style=False)
+            
+        elif request_type == "provider":
+            # Similar structure for provider, with appropriate fields
+            # ... (provider-specific logic)
+            pass
+        
+        log_debug("YAML file generated successfully")
+        print(f"request_type={request_type}")
+        print("YAML generated from form fields")
 
     except Exception as e:
         log_debug(f"Unexpected error: {e}")
