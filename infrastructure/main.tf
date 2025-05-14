@@ -27,7 +27,7 @@ module "consumer_us_east_1" {
   rule_tags = each.value.rule_tags
   
   # Palo Alto settings
-  enable_palo_inspection = each.value.rule.enable_palo_inspection
+  enable_palo_inspection = false
   name_prefix = each.value.policy.security_group.thirdpartyName
   request_id = each.value.rule.request_id
   appid = each.value.rule.appid
@@ -64,7 +64,7 @@ module "provider_us_east_1" {
   rule_tags = each.value.rule_tags
   
   # Palo Alto settings
-  enable_palo_inspection = each.value.rule.enable_palo_inspection
+  enable_palo_inspection = false
   name_prefix = each.value.policy.security_group.internalAppID
   request_id = each.value.rule.request_id
   appid = each.value.rule.appid
@@ -100,7 +100,7 @@ module "consumer_us_west_2" {
   rule_tags = each.value.rule_tags
   
   # Palo Alto settings
-  enable_palo_inspection = each.value.rule.enable_palo_inspection
+  enable_palo_inspection = false
   name_prefix = each.value.policy.security_group.thirdpartyName
   request_id = each.value.rule.request_id
   appid = each.value.rule.appid
@@ -137,7 +137,7 @@ module "provider_us_west_2" {
   rule_tags = each.value.rule_tags
   
   # Palo Alto settings
-  enable_palo_inspection = each.value.rule.enable_palo_inspection
+  enable_palo_inspection = false
   name_prefix = each.value.policy.security_group.internalAppID
   request_id = each.value.rule.request_id
   appid = each.value.rule.appid
