@@ -25,18 +25,15 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Convert line endings and make scripts executable
-        run: |
-          # Make scripts executable
-          chmod +x ./scripts/form_to_yaml.py ./scripts/validate_schema.py
-
-      - name: Install dependencies
-        run: |
-          pip install --quiet yamllint PyYAML jsonschema
-
       - name: Process Issue Form
         id: issue_data
         run: |
+
+          pip install --quiet yamllint PyYAML jsonschema
+
+          # Make scripts executable
+          chmod +x ./scripts/form_to_yaml.py ./scripts/validate_schema.py
+
           # Run the script to process the form data
           set -x  # Enable verbose output
           python3 ./scripts/form_to_yaml.py || {

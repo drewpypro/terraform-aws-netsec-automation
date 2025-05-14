@@ -4,6 +4,7 @@ import sys
 import os
 import re
 import traceback
+import yaml
 
 def setup_logging():
     """Set up logging to write debug information to a file"""
@@ -17,17 +18,75 @@ def log_debug(message):
     print(message, file=sys.stderr)
     sys.stderr.flush()
 
-def extract_field(body, field_name):
-    """Extract a field value from the GitHub issue body"""
-    log_debug(f"Extracting field: {field_name}")
-    pattern = r"### " + re.escape(field_name) + r"\s*\n(.*?)(?=\n###|\Z)"
-    match = re.search(pattern, body, re.DOTALL)
-    if match:
-        value = match.group(1).strip()
-        log_debug(f"Field {field_name} value: {value}")
-        return value
-    log_debug(f"No value found for field: {field_name}")
-    return ""
+def extract_yaml_from_body(body):
+    """Extract YAML from issue body"""
+    # Look for code blocks with YAML
+    yaml_pattern = r"```yaml\s*(.*?)```"
+    matches = re.findall(yaml_pattern, body, re.DOTALL)
+    
+    if not matches:
+        log_debug("No YAML code blocks found in the issue body")
+        return None
+    
+    # Combine all YAML matches
+    full_yaml = '\n---\n'.join(matches)
+    log_debug(f"Extracted YAML:\n{full_yaml}")
+    
+    return full_yaml
+
+def validate_yaml_structure(yaml_docs):
+    """Validate the structure of YAML documents"""
+    for doc in yaml_docs:
+        # Check for required top-level keys
+        if not all(key in doc for key in ['security_group', 'rules']):
+            log_debug(f"Invalid YAML document: missing required keys")
+            return False
+        
+        # Additional validation can be added here
+    return True
+
+def process_yaml_documents(yaml_docs):
+    """Process multiple YAML documents"""
+    processed_docs = []
+    
+    for doc in yaml_docs:
+        # Validate document structure
+        security_group = doc.get('security_group', {})
+        rules = doc.get('rules', [])
+        
+        # Basic validation
+        if not security_group or not rules:
+            log_debug("Skipping invalid document")
+            continue
+        
+        # Extract common fields
+        processed_doc = {
+            'request_id': security_group.get('request_id', ''),
+            'business_justification': security_group.get('business_justification', ''),
+            'region': security_group.get('region', ''),
+            'vpc_id': security_group.get('vpc_id', ''),
+            'service_type': security_group.get('serviceType', ''),
+            'service_name': security_group.get('serviceName', ''),
+            'third_party_name': security_group.get('thirdpartyName', ''),
+            'third_party_id': security_group.get('thirdPartyID', ''),
+            'rules': []
+        }
+        
+        # Process rules
+        for rule in rules:
+            processed_rule = {
+                'source': rule.get('source', {}).get('ips', []),
+                'protocol': rule.get('protocol', ''),
+                'port': rule.get('port', ''),
+                'appid': rule.get('appid', ''),
+                'url': rule.get('url', ''),
+                'enable_palo_inspection': rule.get('enable_palo_inspection', False)
+            }
+            processed_doc['rules'].append(processed_rule)
+        
+        processed_docs.append(processed_doc)
+    
+    return processed_docs
 
 def main():
     try:
@@ -67,138 +126,36 @@ def main():
         
         log_debug(f"Request type: {request_type}")
         
-        # Check if this is already a YAML template
-        if "```yaml" in body:
-            # Extract YAML directly
-            yaml_pattern = r"```yaml\s*(.*?)\s*```"
-            match = re.search(yaml_pattern, body, re.DOTALL)
-            if match:
-                with open("/tmp/issue.yaml", "w") as f:
-                    f.write(match.group(1))
-                print(f"request_type={request_type}")
-                print("YAML extracted directly from code block")
-                log_debug("YAML extracted from code block")
-                return
+        # Extract YAML from body
+        yaml_text = extract_yaml_from_body(body)
         
-        # Otherwise, treat as a form and convert to YAML
-        # Extract common fields
-        region = extract_field(body, "AWS Region")
-        
-        # Extract VPC ID and remove region info in parentheses if present
-        vpc_id = extract_field(body, "VPC ID")
-        vpc_id = re.sub(r"\s*\(.*\)$", "", vpc_id)
-        
-        request_id = extract_field(body, "Request ID")
-        business_justification = extract_field(body, "Business Justification")
-        
-        # Validate request type
-        if request_type is None:
-            log_debug("Error: Unable to determine request type")
-            print("Unknown request type")
+        if not yaml_text:
+            log_debug("No YAML found in the issue body")
             sys.exit(1)
         
-        # Generate YAML based on request type
-        if request_type == "consumer":
-            # Extract consumer-specific fields
-            third_party_name = extract_field(body, "Third-Party Name")
-            third_party_id = extract_field(body, "Third-Party ID")
-            service_name = extract_field(body, "VPC Endpoint Service Name")
-            source_account_id = extract_field(body, "Source Account ID")
-            source_vpc_id = extract_field(body, "Source VPC ID")
-            source_region = extract_field(body, "Source Region")
-            
-            # Extract IPs (one per line)
-            source_ips = extract_field(body, "Source IP Addresses")
-            ips = [ip.strip() for ip in source_ips.split("\n") if ip.strip()]
-            
-            protocol = extract_field(body, "Protocol")
-            port = extract_field(body, "Port Number")
-            appid = extract_field(body, "Application ID")
-            url = extract_field(body, "Service URL")
-            enable_palo = extract_field(body, "Enable Palo Alto Inspection")
-            
-            # Generate YAML
-            yaml = f"""security_group:
-  request_id: {request_id}
-  business_justification: >
-    {business_justification}
-  accountId: 6666666
-  region: {region}
-  vpc_id: {vpc_id}
-  serviceType: privatelink-consumer
-  serviceName: {service_name}
-  thirdpartyName: {third_party_name}
-  thirdPartyID: {third_party_id}
-rules:
-  - request_id: {request_id}
-    business_justification: >
-      {business_justification}
-    source:
-      account_id: {source_account_id}
-      vpc_id: {source_vpc_id}
-      region: {source_region}
-      ips:
-"""
-            for ip in ips:
-                yaml += f"        - {ip}\n"
-            
-            yaml += f"""    protocol: {protocol}
-    port: {port}
-    appid: {appid}
-    url: {url}
-    enable_palo_inspection: {enable_palo}
-"""
-            
-        elif request_type == "provider":
-            # Extract provider-specific fields
-            internal_app_id = extract_field(body, "Internal App ID")
-            service_name = extract_field(body, "Service Name")
-            
-            # Extract IPs (one per line)
-            destination_ips = extract_field(body, "Destination IP Addresses")
-            ips = [ip.strip() for ip in destination_ips.split("\n") if ip.strip()]
-            
-            protocol = extract_field(body, "Protocol")
-            port = extract_field(body, "Port Number")
-            appid = extract_field(body, "Application ID")
-            url = extract_field(body, "Service URL")
-            enable_palo = extract_field(body, "Enable Palo Alto Inspection")
-            
-            # Generate YAML
-            yaml = f"""security_group:
-  request_id: {request_id}
-  business_justification: >
-    {business_justification}
-  accountId: 6666666
-  region: {region}
-  vpc_id: {vpc_id}
-  serviceType: privatelink-provider
-  serviceName: {service_name}
-  internalAppID: {internal_app_id}
-rules:
-  - request_id: {request_id}
-    business_justification: >
-      {business_justification}
-    destination:
-      ips:
-"""
-            for ip in ips:
-                yaml += f"        - {ip}\n"
-            
-            yaml += f"""    protocol: {protocol}
-    port: {port}
-    appid: {appid}
-    url: {url}
-    enable_palo_inspection: {enable_palo}
-"""
+        # Parse YAML documents
+        try:
+            yaml_docs = list(yaml.safe_load_all(yaml_text))
+        except yaml.YAMLError as e:
+            log_debug(f"YAML parsing error: {e}")
+            sys.exit(1)
         
-        # Write YAML to file
+        # Validate YAML structure
+        if not validate_yaml_structure(yaml_docs):
+            log_debug("YAML structure validation failed")
+            sys.exit(1)
+        
+        # Process YAML documents
+        processed_docs = process_yaml_documents(yaml_docs)
+        
+        # Write processed documents to file
         with open("/tmp/issue.yaml", "w") as f:
-            f.write(yaml)
+            yaml.safe_dump_all(processed_docs, f, default_flow_style=False)
         
         log_debug("YAML file generated successfully")
         print(f"request_type={request_type}")
-        print("YAML generated from form fields")
+        print(f"documents_count={len(processed_docs)}")
+        print("YAML processed from code block")
 
     except Exception as e:
         log_debug(f"Unexpected error: {e}")
