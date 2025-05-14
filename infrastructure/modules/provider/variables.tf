@@ -43,10 +43,16 @@ variable "to_port" {
   default     = 0
 }
 
-variable "destination_cidr" {
-  description = "Destination CIDR block for egress rules"
+variable "source_cidr" {
+  description = "Source CIDR block"
   type        = string
 }
+
+variable "destination_cidr" {
+  description = "Destination CIDR block"
+  type        = string
+}
+
 
 variable "description" {
   description = "Description for the security group rule"
@@ -83,4 +89,13 @@ variable "url" {
   description = "URL for the service"
   type        = string
   default     = ""
+}
+
+variable "source_info" {
+  description = "Source information for the rule"
+  type = object({
+    account_id = string
+    vpc_id     = string
+    region     = string
+  })
 }
