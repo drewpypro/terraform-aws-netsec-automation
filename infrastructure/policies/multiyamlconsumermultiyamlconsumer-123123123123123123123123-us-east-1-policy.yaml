@@ -1,0 +1,55 @@
+security_group:
+  request_id: RQ-0555
+  business_justification: >
+    multiyamlconsumer
+  accountId: 6666666
+  region: us-east-1
+  vpc_id: vpc-0f0330876868cc9d2
+  serviceType: privatelink-consumer
+  serviceName: com.amazonaws.vpce.us-east-1.vpce-svc-064ea718f8d0ead77
+  thirdpartyName: multiyamlconsumer
+  thirdPartyID: 123123123123
+rules:
+  - request_id: RQ-0555
+    business_justification: >
+        multiyamlconsumer
+    source:
+      account_id: 12312312312
+      vpc_id: vpc-333
+      region: us-east-1
+      ips:
+        - 10.0.0.1/32
+        - 10.0.0.2/32
+    protocol: tcp
+    port: 443
+    appid: ssl
+    url: https://your-service-url.com
+    enable_palo_inspection: true
+---
+security_group:
+  request_id: RQ-0555
+  business_justification: >
+    multiyamlconsumer
+  accountId: 6666666
+  region: us-west-2
+  vpc_id: vpc-014a623d564aa2524
+  serviceType: privatelink-consumer
+  serviceName: com.amazonaws.vpce.us-west-2.vpce-svc-064ea718f8d0ead77
+  thirdpartyName: multiyamlconsumer
+  thirdPartyID: 123123123123
+rules:
+  - request_id: RQ-0555
+    business_justification: >
+        multiyamlconsumer
+    source:
+      account_id: 12312312312
+      vpc_id: vpc-333
+      region: us-west-2
+      ips:
+        - 10.0.0.1/32
+        - 10.0.0.2/32
+    protocol: tcp
+    port: 443
+    appid: ssl
+    url: https://your-service-url.com
+    enable_palo_inspection: true
