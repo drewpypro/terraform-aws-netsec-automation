@@ -5,7 +5,9 @@ module "consumer_us_east_1" {
   for_each = {
     for rule in local.consumer_rules :
     rule.key => rule
+    if rule.region == "us-east-1"
   }
+  
   
   providers = { 
     aws = aws.us_east_1
@@ -40,9 +42,11 @@ module "provider_us_east_1" {
   source = "./modules/provider"
   
   for_each = {
-    for rule in local.provider_rules :
+    for rule in local.consumer_rules :
     rule.key => rule
+    if rule.region == "us-east-1"
   }
+  
   
   providers = { 
     aws = aws.us_east_1
@@ -76,8 +80,9 @@ module "consumer_us_west_2" {
   source = "./modules/consumer"
   
   for_each = {
-    for rule in local.consumer_rules :
+    for rule in local.provider_rules :
     rule.key => rule
+    if rule.region == "us-west-2"
   }
   
   providers = { 
@@ -115,7 +120,9 @@ module "provider_us_west_2" {
   for_each = {
     for rule in local.provider_rules :
     rule.key => rule
+    if rule.region == "us-west-2"
   }
+  
   
   providers = { 
     aws = aws.us_west_2
