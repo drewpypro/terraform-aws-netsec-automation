@@ -57,7 +57,7 @@ module "provider_sg_us_east_1" {
   from_port = each.value[0].rule.port
   to_port = each.value[0].rule.port
   destination_cidrs = [for rule in each.value : rule.cidr]
-  source_cidrs = ""
+  source_cidrs = [""]
   description = "Allow access to backend (${each.value[0].rule.request_id})"
   rule_tags = each.value[0].rule_tags
   
@@ -129,7 +129,7 @@ module "provider_sg_us_west_2" {
   from_port = each.value[0].rule.port
   to_port = each.value[0].rule.port
   destination_cidrs = [for rule in each.value : rule.cidr]
-  source_cidrs = ""
+  source_cidrs = [""]
   description = "Allow access to backend (${each.value[0].rule.request_id})"
   rule_tags = each.value[0].rule_tags
   
