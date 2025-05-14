@@ -25,6 +25,14 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Prepare Policy Tracking
+        run: |
+          # Ensure policies directory exists
+          mkdir -p infrastructure/policies
+          
+          # Always create these files to prevent errors in later steps
+          touch /tmp/policy_filenames.txt
+          touch /tmp/policy_regions.txt
 
       - name: Process Issue YAML
         id: issue_yaml
@@ -86,6 +94,24 @@ jobs:
           echo "Created policy files:"
           ls -l infrastructure/policies/
 
+      - name: Process Issue Form
+        id: issue_data
+        if: "!contains(github.event.issue.labels.*.name, 'skip-form-processing')"
+        run: |
+
+          pip install --quiet yamllint PyYAML jsonschema
+
+          # Make scripts executable
+          chmod +x ./scripts/form_to_yaml.py ./scripts/validate_schema.py
+
+          # Run the script to process the form data
+          set -x  # Enable verbose output
+          python3 ./scripts/form_to_yaml.py || {
+            echo "Script failed. Checking debug log..."
+            cat /tmp/form_to_yaml_debug.log
+            exit 1
+          }
+
       # Set other outputs similar to form processing
       - name: Set Issue YAML Outputs
         id: yaml_outputs
@@ -105,55 +131,6 @@ jobs:
           echo "issue_author=${{ github.event.issue.user.login }}" >> $GITHUB_OUTPUT
           echo "issue_title=${{ github.event.issue.title }}" >> $GITHUB_OUTPUT
             
-      - name: Process Issue Form
-        id: issue_data
-        if: "!contains(github.event.issue.labels.*.name, 'skip-form-processing')"
-        run: |
-
-          pip install --quiet yamllint PyYAML jsonschema
-
-          # Make scripts executable
-          chmod +x ./scripts/form_to_yaml.py ./scripts/validate_schema.py
-
-          # Run the script to process the form data
-          set -x  # Enable verbose output
-          python3 ./scripts/form_to_yaml.py || {
-            echo "Script failed. Checking debug log..."
-            cat /tmp/form_to_yaml_debug.log
-            exit 1
-          }
-          
-          # Extract and set outputs
-          REQUEST_TYPE=$(grep "request_type=" /tmp/form_to_yaml_debug.log | cut -d= -f2)
-          echo "request_type=$REQUEST_TYPE" >> $GITHUB_OUTPUT
-          
-          # Extract region from the generated YAML
-          REGION=$(grep -o 'region: [a-z0-9-]*' /tmp/issue.yaml | head -1 | cut -d ' ' -f 2)
-          echo "region=$REGION" >> $GITHUB_OUTPUT
-          
-          # Set schema file
-          if [ "$REQUEST_TYPE" = "consumer" ]; then
-            echo "schema_file=privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
-          elif [ "$REQUEST_TYPE" = "provider" ]; then
-            echo "schema_file=privatelink-provider-schema.json" >> $GITHUB_OUTPUT
-          fi
-          
-          # Set other outputs
-          ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
-          ISSUE_AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
-          ISSUE_TITLE=$(jq -r '.issue.title' "$GITHUB_EVENT_PATH")
-          
-          echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
-          echo "issue_author=$ISSUE_AUTHOR" >> $GITHUB_OUTPUT
-          echo "issue_title=$ISSUE_TITLE" >> $GITHUB_OUTPUT
-          
-          # Display generated YAML for debugging
-          echo "Generated YAML content:"
-          cat /tmp/issue.yaml
-          
-          # Display debug log
-          echo "Debug Log:"
-          cat /tmp/form_to_yaml_debug.log
 
       - name: YAML Validation
         run: |
@@ -175,70 +152,7 @@ jobs:
             echo "yamllint_error=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create validation comment
-        if: steps.yaml_validation.outputs.yamllint_error == 'true' || steps.schema_validation.outputs.schema_error == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          {
-            echo "### ⚠️ Validation Results"
-            echo ""
-            
-            if [ "${{ steps.yaml_validation.outputs.yamllint_error }}" == "true" ]; then
-              echo "#### YAML Formatting Issues:"
-              echo '```yaml'
-              cat /tmp/yamllint_output.txt
-              echo '```'
-              echo ""
-            else
-              echo "#### ✅ YAML Format Validation: Passed"
-              echo ""
-            fi
-            
-            if [ "${{ steps.schema_validation.outputs.schema_error }}" == "true" ]; then
-              echo "#### Schema Validation Issues:"
-              echo '```'
-              cat /tmp/schema_output.txt
-              echo '```'
-            else
-              echo "#### ✅ Schema Validation: Passed"
-            fi
-          } > /tmp/validation_comment.txt
-          
-          gh issue comment "${{ steps.issue_data.outputs.issue_number }}" --body-file /tmp/validation_comment.txt
-          
-          if [ "${{ steps.yaml_validation.outputs.yamllint_error }}" == "true" ] || [ "${{ steps.schema_validation.outputs.schema_error }}" == "true" ]; then
-            echo "Validation errors found. Exiting workflow."
-            exit 1
-          fi
-
-      - name: Prepare Policy File
-        id: policy_file
-        run: |
-          # Ensure policies directory exists
-          mkdir -p infrastructure/policies
-          
-          # Generate policy filename
-          REGION="${{ steps.issue_data.outputs.region }}"
-          THIRD_PARTY_NAME=$(grep 'thirdpartyName:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
-          THIRD_PARTY_ID=$(grep 'thirdPartyID:' /tmp/issue.yaml | awk '{print $2}' | tr -d '\n')
-          
-          # Fallback to safe naming if extraction fails
-          if [ -z "$THIRD_PARTY_NAME" ] || [ -z "$THIRD_PARTY_ID" ]; then
-            THIRD_PARTY_NAME="unknown"
-            THIRD_PARTY_ID="policy"
-          fi
-          
-          FILENAME="${THIRD_PARTY_NAME}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
-          FILE="infrastructure/policies/${FILENAME}"
-          
-          # Copy YAML to policies directory
-          cp /tmp/issue.yaml "$FILE"
-          
-          # Output the filename for subsequent steps
-          echo "file=$FILE" >> "$GITHUB_OUTPUT"
-          echo "filename=$FILENAME" >> "$GITHUB_OUTPUT"
-
+      # Commit Changes and Create PR (Always Runs)
       - name: Commit Changes and Create PR
         id: create_pr
         env:
@@ -261,32 +175,39 @@ jobs:
           # Create and switch to the branch
           git checkout -b "$BRANCH"
 
-          # Add all policy files from the previous step
+          # Add all policy files from the filenames file (which is always created)
           while IFS= read -r FILENAME; do
-            FILE="infrastructure/policies/${FILENAME}"
-            git add "$FILE"
+            if [ -n "$FILENAME" ]; then
+              FILE="infrastructure/policies/${FILENAME}"
+              git add "$FILE"
+            fi
           done < /tmp/policy_filenames.txt
 
-          git commit -m "Add network access policies from issue #${ISSUE_ID}"
-          
-          # Force push or push with lease to handle potential conflicts
-          git push -f origin "$BRANCH"
+          # Commit only if there are changes
+          if ! git diff --staged --quiet; then
+            git commit -m "Add network access policies from issue #${ISSUE_ID}"
+            
+            # Force push or push with lease to handle potential conflicts
+            git push -f origin "$BRANCH"
 
-          PR_URL=$(gh pr create \
-            --title "[Auto] Add network access policies from issue #${ISSUE_ID}" \
-            --label "$LABEL" \
-            --body "This PR adds multiple network access policies from issue #${ISSUE_ID}." \
-            --head "$BRANCH" \
-            --base main)
+            PR_URL=$(gh pr create \
+              --title "[Auto] Add network access policies from issue #${ISSUE_ID}" \
+              --label "$LABEL" \
+              --body "This PR adds multiple network access policies from issue #${ISSUE_ID}." \
+              --head "$BRANCH" \
+              --base main)
 
-          echo "🔍 PR created at $PR_URL"
-          echo "author=$AUTHOR" >> "$GITHUB_OUTPUT"
-          echo "🔎 Detected issue author: $AUTHOR"
-          
-          if [ "$AUTHOR" = "blahsadfawerwa3r23rwerwe" ]; then
-            echo "✅ Auto-approving PR since author is $AUTHOR"
-            gh pr merge "$PR_URL" --merge --delete-branch
-            gh pr comment "$PR_URL" --body "✅ Auto-merged since this request was submitted by @$AUTHOR"
+            echo "🔍 PR created at $PR_URL"
+            echo "author=$AUTHOR" >> "$GITHUB_OUTPUT"
+            echo "🔎 Detected issue author: $AUTHOR"
+            
+            if [ "$AUTHOR" = "blahsadfawerwa3r23rwerwe" ]; then
+              echo "✅ Auto-approving PR since author is $AUTHOR"
+              gh pr merge "$PR_URL" --merge --delete-branch
+              gh pr comment "$PR_URL" --body "✅ Auto-merged since this request was submitted by @$AUTHOR"
+            else
+              echo "ℹ️ PR created but not auto-approved. Submitted by @$AUTHOR"
+            fi
           else
-            echo "ℹ️ PR created but not auto-approved. Submitted by @$AUTHOR"
+            echo "No changes to commit"
           fi
