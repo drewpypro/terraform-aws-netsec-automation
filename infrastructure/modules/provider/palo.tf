@@ -21,7 +21,6 @@ resource "panos_panorama_security_rule_group" "rule" {
     tags = [
       "managed-by-terraform",
       "privatelink-provider",
-      "request-${var.request_id}"
     ]
   }
 }
