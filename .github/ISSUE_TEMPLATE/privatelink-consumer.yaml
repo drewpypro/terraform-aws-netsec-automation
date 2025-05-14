@@ -1,0 +1,99 @@
+name: Create PrivateLink Consumer (YAML)
+description: Create a security group for a PrivateLink consumer service using YAML
+title: "[SG] Create PrivateLink Consumer for: "
+labels: ["sg-request", "privatelink-consumer", "yaml"]
+assignees:
+  - netops-team
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## PrivateLink Consumer Request (YAML)
+        Use this template to request a new security group for accessing a third-party service via AWS PrivateLink.
+        
+        Complete the YAML template below with your request details.
+        
+  - type: dropdown
+    id: region
+    attributes:
+      label: AWS Region
+      description: Select the AWS region for this request (must match the region in your YAML)
+      options:
+        - us-east-1
+        - us-west-2
+    validations:
+      required: true
+      
+  - type: textarea
+    id: yaml_config
+    attributes:
+      label: PrivateLink Consumer YAML
+      description: Complete this YAML template with your request details
+      value: |
+        ```yaml
+        security_group:
+          request_id: YOUR-REQUEST-ID
+          business_justification: >
+            YOUR BUSINESS JUSTIFICATION HERE
+          accountId: 6666666
+          region: us-east-1  # or us-west-2
+          vpc_id: vpc-0f0330876868cc9d2  # or vpc-014a623d564aa2524
+          serviceType: privatelink-consumer
+          serviceName: YOUR-SERVICE-NAME
+          thirdpartyName: YOUR-THIRD-PARTY-NAME
+          thirdPartyID: YOUR-THIRD-PARTY-ID
+        rules:
+          - request_id: YOUR-REQUEST-ID
+            business_justification: >
+                YOUR RULE JUSTIFICATION HERE
+            source:
+              account_id: YOUR-SOURCE-ACCOUNT-ID
+              vpc_id: YOUR-SOURCE-VPC-ID
+              region: YOUR-SOURCE-REGION
+              ips:
+                - 10.0.0.1/32
+                - 10.0.0.2/32
+            protocol: tcp
+            port: 443
+            appid: ssl
+            url: https://your-service-url.com
+            enable_palo_inspection: true
+        ```
+    validations:
+      required: true
+      
+  - type: markdown
+    attributes:
+      value: |
+        ### Example
+        ```yaml
+        security_group:
+          request_id: RQ-001
+          business_justification: >
+            Create security-group for datadog API us-east-1 privatelink in us-east-1
+          accountId: 6666666
+          region: us-east-1
+          vpc_id: vpc-0f0330876868cc9d2
+          serviceType: privatelink-consumer
+          serviceName: com.amazonaws.vpce.us-east-1.vpce-svc-064ea718f8d0ead77
+          thirdpartyName: Datadog
+          thirdPartyID: 123456
+        rules:
+          - request_id: RQ-001
+            business_justification: >
+                Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint. 
+            source:
+              account_id: 111122223333
+              vpc_id: vpc-aaa
+              region: us-east-1
+              ips:
+                - 10.11.1.1/32
+                - 10.12.1.1/32
+                - 10.13.1.1/32
+            protocol: tcp
+            port: 443
+            appid: ssl
+            url: https://api.datadoghq.com
+            enable_palo_inspection: true
+        ```

@@ -1,0 +1,175 @@
+name: Create PrivateLink Consumer (Guided)
+description: Step-by-step guide to create a security group for a PrivateLink consumer service
+title: "[SG] Create PrivateLink Consumer for: "
+labels: ["sg-request", "privatelink-consumer", "guided"]
+assignees:
+  - netops-team
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## PrivateLink Consumer Request (Guided)
+        This template will guide you through creating a security group for accessing a third-party service via AWS PrivateLink.
+        
+  - type: dropdown
+    id: region
+    attributes:
+      label: AWS Region
+      description: Select the AWS region for this request
+      options:
+        - us-east-1
+        - us-west-2
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: vpc_id
+    attributes:
+      label: VPC ID
+      description: Select the VPC where the security group will be created
+      options:
+        - vpc-0f0330876868cc9d2 (us-east-1)
+        - vpc-014a623d564aa2524 (us-west-2)
+    validations:
+      required: true
+      
+  - type: input
+    id: third_party_name
+    attributes:
+      label: Third-Party Name
+      description: Name of the third-party service provider
+      placeholder: "e.g., Datadog, MongoDB Atlas"
+    validations:
+      required: true
+      
+  - type: input
+    id: third_party_id
+    attributes:
+      label: Third-Party ID
+      description: Tracking ID for the third-party (if applicable)
+      placeholder: "e.g., 123456"
+    validations:
+      required: true
+      
+  - type: input
+    id: service_name
+    attributes:
+      label: VPC Endpoint Service Name
+      description: AWS PrivateLink service name to connect to
+      placeholder: "e.g., com.amazonaws.vpce.us-east-1.vpce-svc-0123456789abcdef"
+    validations:
+      required: true
+      
+  - type: input
+    id: request_id
+    attributes:
+      label: Request ID
+      description: Tracking ID for this request
+      placeholder: "e.g., RQ-001"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: business_justification
+    attributes:
+      label: Business Justification
+      description: Explain why this access is needed
+      placeholder: "e.g., Need to connect to Datadog API via PrivateLink for secure monitoring"
+    validations:
+      required: true
+      
+  - type: input
+    id: source_account_id
+    attributes:
+      label: Source Account ID
+      description: AWS account ID where traffic originates
+      placeholder: "e.g., 111122223333"
+    validations:
+      required: true
+      
+  - type: input
+    id: source_vpc_id
+    attributes:
+      label: Source VPC ID
+      description: VPC ID where traffic originates
+      placeholder: "e.g., vpc-aaa"
+    validations:
+      required: true
+      
+  - type: input
+    id: source_region
+    attributes:
+      label: Source Region
+      description: AWS region where traffic originates
+      placeholder: "e.g., us-east-1"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: source_ips
+    attributes:
+      label: Source IP Addresses
+      description: List of source IP addresses with CIDR notation (one per line)
+      placeholder: |
+        10.11.1.1/32
+        10.12.1.1/32
+        10.13.1.1/32
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: protocol
+    attributes:
+      label: Protocol
+      description: Network protocol for the rule
+      options:
+        - tcp
+        - udp
+      default: 0
+    validations:
+      required: true
+      
+  - type: input
+    id: port
+    attributes:
+      label: Port Number
+      description: Port number for the connection
+      placeholder: "e.g., 443"
+    validations:
+      required: true
+      
+  - type: input
+    id: appid
+    attributes:
+      label: Application ID
+      description: Application identifier for firewall rules
+      placeholder: "e.g., ssl"
+    validations:
+      required: true
+      
+  - type: input
+    id: url
+    attributes:
+      label: Service URL
+      description: URL for the third-party service
+      placeholder: "e.g., https://api.datadoghq.com"
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: enable_palo_inspection
+    attributes:
+      label: Enable Palo Alto Inspection
+      description: Whether to enable deep packet inspection on the firewall
+      options:
+        - "true"
+        - "false"
+      default: 0
+    validations:
+      required: true
+      
+  - type: markdown
+    attributes:
+      value: |
+        This form will automatically generate the required YAML configuration for your request.
