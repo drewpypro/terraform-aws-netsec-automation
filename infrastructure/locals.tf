@@ -36,7 +36,7 @@ locals {
           rule = rule
           cidr = cidr
           region = policy.security_group.region
-          sg_name = "pl-consumer-${policy.security_group.thirdpartyName}-${policy.security_group.thirdPartyID}"
+          sg_name = "pl-consumer-${policy.security_group.thirdpartyName}-${policy.security_group.thirdPartyID}-${policy.security_group.region}"
           sg_description = "Security group for ${policy.security_group.thirdpartyName} PrivateLink (${policy.security_group.serviceName})"
           tags = {
             ThirdPartyID = policy.security_group.thirdPartyID
@@ -69,7 +69,7 @@ locals {
           rule = rule
           cidr = cidr
           region = policy.security_group.region
-          sg_name = "pl-provider-${policy.security_group.internalAppID}"
+          sg_name = "pl-provider-${policy.security_group.internalAppID}-${policy.security_group.region}"
           sg_description = "Security group for ${policy.security_group.internalAppID} PrivateLink provider"
           tags = {
             InternalAppID = policy.security_group.internalAppID
