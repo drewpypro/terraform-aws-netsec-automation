@@ -10,6 +10,7 @@ env:
   TF_VAR_ALTERNATE_SOURCE: ${{ secrets.ALTERNATE_SOURCE }}
   TF_VAR_palo_username: ${{ secrets.PALO_USERNAME }}
   TF_VAR_palo_password: ${{ secrets.PALO_PASSWORD }}
+  TF_VAR_palo_hostname: ${{ secrets.PALO_HOSTNAME }}
   BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
   BUCKET_KEY: ${{ secrets.BUCKET_KEY }}
   BUCKET_ENDPOINT: ${{ secrets.BUCKET_ENDPOINT }}
