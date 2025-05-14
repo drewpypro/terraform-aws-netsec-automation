@@ -11,9 +11,6 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
-    defaults:
-      run:
-        working-directory: ${{ github.workspace }}
 
     steps:
       - name: Checkout Repository
@@ -26,6 +23,14 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Convert line endings and make scripts executable
+        run: |
+          # Convert line endings from CRLF to LF
+          find . -type f \( -name "*.py" -o -name "*.sh" \) -exec dos2unix {} \;
+          
+          # Make scripts executable
+          chmod +x form_to_yaml.py validate_schema.py
+
       - name: Install dependencies
         run: |
           pip install --quiet yamllint PyYAML jsonschema
@@ -33,11 +38,8 @@ jobs:
       - name: Process Issue Form
         id: issue_data
         run: |
-          # Make script executable
-          chmod +x scripts/form_to_yaml.py
-
           # Run the script to process the form data
-          DATA=$(scripts/form_to_yaml.py)
+          DATA=$(./form_to_yaml.py)
           
           # Extract and set outputs
           REQUEST_TYPE=$(echo "$DATA" | grep "request_type=" | cut -d= -f2)
@@ -49,9 +51,9 @@ jobs:
           
           # Set schema file
           if [ "$REQUEST_TYPE" = "consumer" ]; then
-            echo "schema_file=.github/schemas/privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
+            echo "schema_file=privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
           elif [ "$REQUEST_TYPE" = "provider" ]; then
-            echo "schema_file=.github/schemas/privatelink-provider-schema.json" >> $GITHUB_OUTPUT
+            echo "schema_file=privatelink-provider-schema.json" >> $GITHUB_OUTPUT
           fi
           
           # Set other outputs
@@ -84,7 +86,7 @@ jobs:
         id: schema_validation
         run: |
           if [ "${{ steps.issue_data.outputs.request_type }}" != "unknown" ]; then
-            python3 scripts/validate_schema.py /tmp/issue.yaml "${{ steps.issue_data.outputs.schema_file }}" > /tmp/schema_output.txt 2>&1 || echo "schema_error=true" >> $GITHUB_OUTPUT
+            ./validate_schema.py /tmp/issue.yaml "${{ steps.issue_data.outputs.schema_file }}" > /tmp/schema_output.txt 2>&1 || echo "schema_error=true" >> $GITHUB_OUTPUT
             
             if [ -s /tmp/schema_output.txt ]; then
               cat /tmp/schema_output.txt
@@ -99,15 +101,15 @@ jobs:
             fi
           else
             # Try both schemas
-            CONSUMER_RESULT=$(python3 scripts/validate_schema.py /tmp/issue.yaml .github/schemas/privatelink-consumer-schema.json 2>&1 || echo "Failed")
-            PROVIDER_RESULT=$(python3 scripts/validate_schema.py /tmp/issue.yaml .github/schemas/privatelink-provider-schema.json 2>&1 || echo "Failed")
+            CONSUMER_RESULT=$(./validate_schema.py /tmp/issue.yaml privatelink-consumer-schema.json 2>&1 || echo "Failed")
+            PROVIDER_RESULT=$(./validate_schema.py /tmp/issue.yaml privatelink-provider-schema.json 2>&1 || echo "Failed")
             
             if echo "$CONSUMER_RESULT" | grep -q "✅"; then
-              echo "schema_file=.github/schemas/privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
+              echo "schema_file=privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
               echo "schema_error=false" >> $GITHUB_OUTPUT
               echo "Schema validation passed (consumer schema)"
             elif echo "$PROVIDER_RESULT" | grep -q "✅"; then
-              echo "schema_file=.github/schemas/privatelink-provider-schema.json" >> $GITHUB_OUTPUT
+              echo "schema_file=privatelink-provider-schema.json" >> $GITHUB_OUTPUT
               echo "schema_error=false" >> $GITHUB_OUTPUT
               echo "Schema validation passed (provider schema)"
             else
@@ -117,7 +119,7 @@ jobs:
               echo "$PROVIDER_RESULT"
             fi
           fi
-
+          
       - name: Create validation comment
         if: steps.yaml_validation.outputs.yamllint_error == 'true' || steps.schema_validation.outputs.schema_error == 'true'
         env:
