@@ -30,7 +30,7 @@ provider "aws" {
 }
 
 provider "panos" {
-  hostname = var.panos_hostname
-  username = var.panos_username
-  password = var.panos_password
+  hostname = var.palo_hostname
+  username = var.palo_username
+  password = var.palo_password
 }
