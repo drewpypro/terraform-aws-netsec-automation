@@ -7,7 +7,10 @@ module "consumer_us_east_1" {
     rule.key => rule
   }
   
-  providers = { aws = aws.us_east_1 }
+  providers = { 
+    aws = aws.us_east_1
+    panos = panos
+  }
   
   # Security group settings
   security_group_name = each.value.sg_name
@@ -41,7 +44,10 @@ module "provider_us_east_1" {
     rule.key => rule
   }
   
-  providers = { aws = aws.us_east_1 }
+  providers = { 
+    aws = aws.us_east_1
+    panos = panos
+  }
   
   # Security group settings
   security_group_name = each.value.sg_name
@@ -74,7 +80,10 @@ module "consumer_us_west_2" {
     rule.key => rule
   }
   
-  providers = { aws = aws.us_west_2 }
+  providers = { 
+    aws = aws.us_west_2
+    panos = panos
+  }
   
   # Security group settings
   security_group_name = each.value.sg_name
@@ -108,7 +117,10 @@ module "provider_us_west_2" {
     rule.key => rule
   }
   
-  providers = { aws = aws.us_west_2 }
+  providers = { 
+    aws = aws.us_west_2
+    panos = panos
+  }
   
   # Security group settings
   security_group_name = each.value.sg_name
