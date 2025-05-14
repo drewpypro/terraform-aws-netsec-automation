@@ -1,13 +1,3 @@
-provider "aws" {
-  alias  = "us-west-2"
-  region = "us-west-2"
-}
-
-provider "aws" {
-  alias  = "us-east-1"
-  region = "us-east-1"
-}
-
 module "vpc_us_west_2" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.1.2"
@@ -56,3 +46,4 @@ module "vpc_us_east_1" {
     Project = "netsec-automation"
   }
 }
+
