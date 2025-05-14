@@ -91,3 +91,8 @@ variable "url" {
   type        = string
   default     = ""
 }
+
+variable "region" {
+  description = "AWS region for the Panorama device group"
+  type        = string
+}

@@ -46,7 +46,7 @@ variable "to_port" {
 variable "source_cidrs" {
   description = "Source CIDR block"
   type        = list(string)
-  default     = []
+  default     = [""]
 }
 
 variable "destination_cidrs" {
@@ -93,3 +93,7 @@ variable "url" {
   default     = ""
 }
 
+variable "region" {
+  description = "AWS region for the Panorama device group"
+  type        = string
+}
