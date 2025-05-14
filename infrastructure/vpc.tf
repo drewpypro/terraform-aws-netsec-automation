@@ -1,114 +1,49 @@
-provider "aws" {
-  region = "us-west-2"
+module "vpc_us_west_2" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.1.2"
+
+  providers = {
+    aws = aws.us-west-2
+  }
+
+  name = "netsec-vpc-west"
+  cidr = "10.10.0.0/16"
+
+  azs             = ["us-west-2a", "us-west-2b"]
+  private_subnets = ["10.10.1.0/24", "10.10.2.0/24"]
+  public_subnets  = ["10.10.11.0/24", "10.10.12.0/24"]
+
+  enable_nat_gateway     = false
+  enable_dns_hostnames   = true
+  enable_dns_support     = true
+  
+  tags = {
+    Project = "netsec-automation"
+  }
 }
 
-resource "aws_vpc" "test_vpc" {
-  cidr_block = "192.168.0.0/22"
+module "vpc_us_east_1" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.1.2"
 
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-}
+  providers = {
+    aws = aws.us-east-1
+  }
 
+  name = "netsec-vpc-east"
+  cidr = "10.20.0.0/16"
 
-resource "aws_vpc_ipv4_cidr_block_association" "secondary" {
-  vpc_id     = aws_vpc.test_vpc.id
-  cidr_block = "100.64.0.0/23"
-}
+  azs             = ["us-east-1a", "us-east-1b"]
+  private_subnets = ["10.20.1.0/24", "10.20.2.0/24"]
+  public_subnets  = ["10.20.11.0/24", "10.20.12.0/24"]
 
-resource "aws_subnet" "ec2_subnet" {
-  vpc_id                  = aws_vpc.test_vpc.id
-  cidr_block              = "192.168.1.0/24"
-  availability_zone       = "us-west-2a"
-}
-
-resource "aws_subnet" "vpce_subnet" {
-  vpc_id                  = aws_vpc.test_vpc.id
-  cidr_block              = "192.168.2.0/24"
-  availability_zone       = "us-west-2a"
-}
-
-resource "aws_subnet" "firewall_subnet" {
-  vpc_id                  = aws_vpc.test_vpc.id
-  cidr_block              = "192.168.3.0/24"
-  availability_zone       = "us-west-2a"
-}
-
-resource "aws_subnet" "thirdparty_subnet" {
-  vpc_id                  = aws_vpc.test_vpc.id
-  cidr_block              = "100.64.0.0/24"
-  availability_zone       = "us-west-2a"
-
-  depends_on = [aws_vpc_ipv4_cidr_block_association.secondary]
-}
-
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.test_vpc.id
+  enable_nat_gateway     = false
+  enable_dns_hostnames   = true
+  enable_dns_support     = true
+  map_public_ip_on_launch = true
 
   tags = {
-    Name = "Test-IGW"
+    Project = "netsec-automation"
   }
 }
 
-resource "aws_route_table" "general_rt" {
-  vpc_id = aws_vpc.test_vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
-  }
-
-  route {
-    cidr_block = "100.64.0.0/24"
-    network_interface_id = aws_network_interface.palo_dataplane.id
-  }
-
-  tags = {
-    Name = "general-rt"
-  }
-
-  depends_on = [aws_instance.palo_firewall]
-
-}
-
-resource "aws_route_table_association" "ec2_rt_assoc" {
-  subnet_id      = aws_subnet.ec2_subnet.id
-  route_table_id = aws_route_table.general_rt.id
-}
-
-resource "aws_route_table_association" "vpce_rt_assoc" {
-  subnet_id      = aws_subnet.vpce_subnet.id
-  route_table_id = aws_route_table.general_rt.id
-}
-
-# Firewall RT (locals only)
-resource "aws_route_table" "firewall_rt" {
-  vpc_id = aws_vpc.test_vpc.id
-
-  tags = {
-    Name = "firewall-rt"
-  }
-}
-
-resource "aws_route_table_association" "firewall_rt_assoc" {
-  subnet_id      = aws_subnet.firewall_subnet.id
-  route_table_id = aws_route_table.firewall_rt.id
-}
-
-# Thirdparty RT
-resource "aws_route_table" "thirdparty_rt" {
-  vpc_id = aws_vpc.test_vpc.id
-
-  route {
-    cidr_block = "192.168.1.0/24"
-    network_interface_id = aws_network_interface.palo_dataplane.id
-  }
-
-  tags = {
-    Name = "thirdparty-rt"
-  }
-}
-
-resource "aws_route_table_association" "thirdparty_rt_assoc" {
-  subnet_id      = aws_subnet.thirdparty_subnet.id
-  route_table_id = aws_route_table.thirdparty_rt.id
-}
