@@ -4,7 +4,7 @@ import sys
 import os
 import re
 import traceback
-import yaml  # Add this import
+import yaml
 
 def setup_logging():
     """Set up logging to write debug information to a file"""
@@ -76,10 +76,10 @@ def main():
             if match:
                 with open("/tmp/issue.yaml", "w") as f:
                     f.write(match.group(1))
+                log_debug("YAML extracted from code block")
                 print(f"request_type={request_type}")
                 print("YAML extracted directly from code block")
-                log_debug("YAML extracted from code block")
-                return
+                sys.exit(0)
         
         # Otherwise, treat as a form and convert to YAML
         # Extract common fields
@@ -123,8 +123,10 @@ def main():
                 'security_group': {
                     'request_id': request_id,
                     'business_justification': business_justification,
+                    'accountId': '6666666',
                     'region': region,
                     'vpc_id': vpc_id,
+                    'serviceType': 'privatelink-consumer',
                     'serviceName': service_name,
                     'thirdpartyName': third_party_name,
                     'thirdPartyID': third_party_id
@@ -146,20 +148,58 @@ def main():
                 }]
             }
             
+            # Write the YAML to /tmp/issue.yaml
             with open("/tmp/issue.yaml", "w") as f:
-                yaml.safe_dump_all([yaml_doc], f, 
+                yaml.dump(yaml_doc, f, 
                     default_flow_style=False, 
-                    width=float("inf"),  # Prevent line wrapping
-                    line_break=True)  # Ensure proper line breaks
-
-            # Ensure a newline at the end of the file
-            with open("/tmp/issue.yaml", "a") as f:
-                f.write("\n")
-            
+                    sort_keys=False)
+                
         elif request_type == "provider":
-            # Similar structure for provider, with appropriate fields
-            # ... (provider-specific logic)
-            pass
+            # Extract provider-specific fields
+            internal_app_id = extract_field(body, "Internal App ID")
+            service_name = extract_field(body, "Service Name")
+            
+            # Extract IPs (one per line)
+            destination_ips = extract_field(body, "Destination IP Addresses")
+            ips = [ip.strip() for ip in destination_ips.split("\n") if ip.strip()]
+            
+            protocol = extract_field(body, "Protocol")
+            port = extract_field(body, "Port Number")
+            appid = extract_field(body, "Application ID")
+            url = extract_field(body, "Service URL")
+            enable_palo = extract_field(body, "Enable Palo Alto Inspection")
+            
+            # Generate YAML structure
+            yaml_doc = {
+                'security_group': {
+                    'request_id': request_id,
+                    'business_justification': business_justification,
+                    'accountId': '6666666',
+                    'region': region,
+                    'vpc_id': vpc_id,
+                    'serviceType': 'privatelink-provider',
+                    'serviceName': service_name,
+                    'internalAppID': internal_app_id
+                },
+                'rules': [{
+                    'request_id': request_id,
+                    'business_justification': business_justification,
+                    'destination': {
+                        'ips': ips
+                    },
+                    'protocol': protocol,
+                    'port': port,
+                    'appid': appid,
+                    'url': url,
+                    'enable_palo_inspection': enable_palo
+                }]
+            }
+            
+            # Write the YAML to /tmp/issue.yaml
+            with open("/tmp/issue.yaml", "w") as f:
+                yaml.dump(yaml_doc, f, 
+                    default_flow_style=False, 
+                    sort_keys=False)
         
         log_debug("YAML file generated successfully")
         print(f"request_type={request_type}")
