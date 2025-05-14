@@ -1,0 +1,57 @@
+rules:
+- appid: ssl
+  business_justification: "Create access from acct-1 intranet nat gateway to dumpydog api vpc-endpoint. \n"
+  enable_palo_inspection: true
+  port: 443
+  protocol: tcp
+  request_id: RQ-001
+  source:
+    account_id: 111122223333
+    ips:
+    - 10.11.1.1/32
+    - 10.12.1.1/32
+    - 10.13.1.1/32
+    region: us-east-1
+    vpc_id: vpc-aaa
+  url: https://api.dumpydoghq.com
+security_group:
+  accountId: 6666666
+  business_justification: 'Create security-group for dumpydog API us-east-1 privatelink in us-east-1
+
+    '
+  region: us-east-1
+  request_id: RQ-001
+  serviceName: com.amazonaws.vpce.us-east-1.vpce-svc-064ea718f8d0ead77
+  serviceType: privatelink-consumer
+  thirdPartyID: 123456
+  thirdpartyName: dumpydog
+  vpc_id: vpc-0f0330876868cc9d2
+---
+rules:
+- appid: ssl
+  business_justification: "Create access from acct-1 intranet nat gateway to dumpydog api vpc-endpoint. \n"
+  enable_palo_inspection: true
+  port: 443
+  protocol: tcp
+  request_id: RQ-002
+  source:
+    account_id: 111122223333
+    ips:
+    - 10.1.1.1/32
+    - 10.2.1.1/32
+    - 10.3.1.1/32
+    region: us-west-2
+    vpc_id: vpc-bbb
+  url: https://api.dumpydoghq.com
+security_group:
+  accountId: 6666666
+  business_justification: 'Create security-group for dumpydog API us-east-1 privatelink in us-west-2
+
+    '
+  region: us-west-2
+  request_id: RQ-002
+  serviceName: com.amazonaws.vpce.us-east-1.vpce-svc-064ea718f8d0ead77
+  serviceType: privatelink-consumer
+  thirdPartyID: 123456
+  thirdpartyName: dumpydog
+  vpc_id: vpc-014a623d564aa2524
