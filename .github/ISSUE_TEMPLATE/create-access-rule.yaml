@@ -1,0 +1,103 @@
+name: Add Access Rule to Existing Security Group
+description: Request to add a new access rule to an existing security group
+title: "[Rule] Add Access Rule for: "
+labels: ["access-request"]
+assignees:
+  - netops-team
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Access Rule Request
+        Use this template to request a new access rule for an existing security group.
+        
+  - type: dropdown
+    id: region
+    attributes:
+      label: AWS Region
+      description: Select the AWS region for this request
+      options:
+        - us-east-1
+        - us-west-2
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: rule_type
+    attributes:
+      label: Rule Type
+      description: Select the type of rule to create
+      options:
+        - privatelink-consumer
+        - privatelink-provider
+    validations:
+      required: true
+      
+  - type: input
+    id: sg_id
+    attributes:
+      label: Security Group ID
+      description: ID of the existing security group
+      placeholder: "e.g., sg-0123456789abcdef"
+    validations:
+      required: true
+      
+  - type: input
+    id: request_id
+    attributes:
+      label: Request ID
+      description: Tracking ID for this request
+      placeholder: "e.g., RQ-007"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: business_justification
+    attributes:
+      label: Business Justification
+      description: Explain why this access rule is needed
+      placeholder: "e.g., Need additional access from a new IP range"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: yaml_config
+    attributes:
+      label: Access Rule YAML
+      description: Complete the appropriate YAML template based on your rule type
+      value: |
+        ```yaml
+        # For Consumer Rule
+        - request_id: YOUR-REQUEST-ID
+          business_justification: >
+              YOUR RULE JUSTIFICATION HERE
+          source:
+            account_id: YOUR-SOURCE-ACCOUNT-ID
+            vpc_id: YOUR-SOURCE-VPC-ID
+            region: YOUR-SOURCE-REGION
+            ips:
+              - 10.0.0.1/32
+              - 10.0.0.2/32
+          protocol: tcp
+          port: 443
+          appid: ssl
+          url: https://your-service-url.com
+          enable_palo_inspection: true
+
+        # OR for Provider Rule
+        - request_id: YOUR-REQUEST-ID
+          business_justification: >
+            YOUR RULE JUSTIFICATION HERE
+          destination:
+            ips:
+              - 172.16.1.1/32
+              - 172.17.1.1/32
+          protocol: tcp
+          port: 443
+          url: your-app-url.mycompany.com
+          appid: ssl
+          enable_palo_inspection: true
+        ```
+    validations:
+      required: true

@@ -1,11 +1,11 @@
-name: Issue Workflow
+name: Network Access Issue Handler
 
 on:
   issues:
     types: [opened]
 
 jobs:
-  validate_issue:
+  process_access_request:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -18,162 +18,228 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Collect and set issues_vars
-        id: issues_vars
-        run: |
-          ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
-          
-          REGION=$(echo "$ISSUE_BODY" | grep -E '^\s*region:' | head -n1 | sed -E 's/.*region:[[:space:]]*"?([^"]+)"?/\1/')
-          if [ -z "$REGION" ]; then
-            echo "❌ Region not found in issue. Failing."
-            exit 1
-          fi
-          echo "region=$REGION" >> "$GITHUB_OUTPUT"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-          AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
-          echo "author=$AUTHOR" >> "$GITHUB_OUTPUT"
-          echo "🔎 Detected issue author: $AUTHOR"
-
-          LABELS=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH")
-          if echo "$LABELS" | grep -q 'sg-request'; then
-            echo "file_type=sgs" >> "$GITHUB_OUTPUT"
-          elif echo "$LABELS" | grep -q 'access-request'; then
-            echo "file_type=rules" >> "$GITHUB_OUTPUT"
-          else
-            echo "❌ No recognized label found on issue. Exiting."
-            exit 1
-          fi
-
-      - name: Lint and schema validate
-        env:
-          GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
+      - name: Install dependencies
         run: |
           pip install --quiet yamllint PyYAML jsonschema
 
-          jq -r '.issue.body' "$GITHUB_EVENT_PATH" \
-            | sed -n '/```yaml/,/```/p' \
-            | sed '/^```/d' \
-            > /tmp/issue.yaml
-
-          raw_output=$(yamllint --format standard -c .yamllint /tmp/issue.yaml 2>&1 || true)
-
-          echo "::group::🧪 /tmp/issue.yaml visible chars"
-          cat -A /tmp/issue.yaml || echo "File missing or empty"
-          echo "::endgroup::"
-
-          # Strip the path and format to be cleaner
-          yamllint_output=$(echo "$raw_output" | sed 's|/tmp/issue.yaml:|line |')
-
-          if [ -n "$yamllint_output" ]; then
-            {
-              echo "### ⚠️ yamllint found issues in your submitted YAML"
-              echo '```yaml'
-              echo "$yamllint_output"
-              echo '```'
-            } > /tmp/lint_comment.txt
-          else
-            echo "### ✅ yamllint passed" > /tmp/lint_comment.txt
-            echo "" >> /tmp/lint_comment.txt
-            echo "No linting issues found in your YAML." >> /tmp/lint_comment.txt
-          fi
-
-          if [ "${{ steps.issues_vars.outputs.file_type }}" = "sgs" ]; then
-            SCHEMA=".github/schemas/sg-request-schema.json"
-          else
-            SCHEMA=".github/schemas/access-request-schema.json"
-          fi
-
-          set +e
-          python3 scripts/validate_schema.py /tmp/issue.yaml "$SCHEMA" > /tmp/schema_output.txt 2>&1
-          exit_code=$?
-          set -e
-
-          if [ $exit_code -ne 0 ]; then
-            {
-              echo "### ❌ Schema validation failed"
-              echo ""
-              echo '```txt'
-              cat /tmp/schema_output.txt
-              echo '```'
-            } >> /tmp/lint_comment.txt
-            gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/lint_comment.txt
-            exit 1
-          else
-            echo "### ✅ Schema validation passed" >> /tmp/lint_comment.txt
-            echo "No schema issues found in your YAML." >> /tmp/lint_comment.txt
-            gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/lint_comment.txt
-          fi
-
-      - name: Append request to correct file
+      - name: Extract issue data
+        id: issue_data
         run: |
-          FILE="infrastructure/policies/${{ steps.issues_vars.outputs.region }}/${{ steps.issues_vars.outputs.file_type }}.yaml"
           ISSUE_BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
           ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
+          ISSUE_AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
+          ISSUE_TITLE=$(jq -r '.issue.title' "$GITHUB_EVENT_PATH")
+          ISSUE_LABELS=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH" | tr '\n' ' ')
+          
+          # Extract YAML content
+          echo "$ISSUE_BODY" | sed -n '/```yaml/,/```/p' | sed '/^```/d' > /tmp/issue.yaml
+          
+          # Extract region from YAML
+          REGION=$(grep -o 'region: [a-z0-9-]*' /tmp/issue.yaml | head -1 | cut -d ' ' -f 2)
+          echo "region=$REGION" >> $GITHUB_OUTPUT
+          
+          # Determine request type
+          if echo "$ISSUE_LABELS" | grep -q "privatelink-consumer"; then
+            echo "request_type=consumer" >> $GITHUB_OUTPUT
+            echo "schema_file=.github/schemas/privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
+          elif echo "$ISSUE_LABELS" | grep -q "privatelink-provider"; then
+            echo "request_type=provider" >> $GITHUB_OUTPUT
+            echo "schema_file=.github/schemas/privatelink-provider-schema.json" >> $GITHUB_OUTPUT
+          elif echo "$ISSUE_LABELS" | grep -q "access-request"; then
+            echo "request_type=access" >> $GITHUB_OUTPUT
+            # For access requests, we need additional logic to determine the schema
+            TYPE=$(grep -o 'serviceType: [a-z-]*' /tmp/issue.yaml | head -1 | cut -d ' ' -f 2)
+            if [ "$TYPE" = "privatelink-consumer" ]; then
+              echo "schema_file=.github/schemas/privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
+            else
+              echo "schema_file=.github/schemas/privatelink-provider-schema.json" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "No recognized label found on issue. Will validate against both schemas."
+            echo "request_type=unknown" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+          echo "issue_author=$ISSUE_AUTHOR" >> $GITHUB_OUTPUT
+          echo "issue_title=$ISSUE_TITLE" >> $GITHUB_OUTPUT
 
-          if [ ! -f "$FILE" ]; then
-            echo "❌ ERROR: Expected file '$FILE' not found for region '${{ steps.issues_vars.outputs.region }}'."
-            echo "This may be due to unsupported region or cross-region mismatch. Exiting."
+      - name: YAML Validation
+        id: yaml_validation
+        run: |
+          yamllint --format standard -c .yamllint /tmp/issue.yaml > /tmp/yamllint_output.txt || true
+          
+          if [ -s /tmp/yamllint_output.txt ]; then
+            echo "yamllint_error=true" >> $GITHUB_OUTPUT
+            cat /tmp/yamllint_output.txt
+          else
+            echo "yamllint_error=false" >> $GITHUB_OUTPUT
+            echo "YAML format validation passed"
+          fi
+
+      - name: Schema Validation
+        id: schema_validation
+        run: |
+          if [ "${{ steps.issue_data.outputs.request_type }}" != "unknown" ]; then
+            python3 scripts/validate_schema.py /tmp/issue.yaml "${{ steps.issue_data.outputs.schema_file }}" > /tmp/schema_output.txt 2>&1 || echo "schema_error=true" >> $GITHUB_OUTPUT
+            
+            if [ -s /tmp/schema_output.txt ]; then
+              cat /tmp/schema_output.txt
+              if grep -q "❌" /tmp/schema_output.txt; then
+                echo "schema_error=true" >> $GITHUB_OUTPUT
+              else
+                echo "schema_error=false" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "schema_error=false" >> $GITHUB_OUTPUT
+              echo "Schema validation passed"
+            fi
+          else
+            # Try both schemas
+            CONSUMER_RESULT=$(python3 scripts/validate_schema.py /tmp/issue.yaml .github/schemas/privatelink-consumer-schema.json 2>&1 || echo "Failed")
+            PROVIDER_RESULT=$(python3 scripts/validate_schema.py /tmp/issue.yaml .github/schemas/privatelink-provider-schema.json 2>&1 || echo "Failed")
+            
+            if echo "$CONSUMER_RESULT" | grep -q "✅"; then
+              echo "schema_file=.github/schemas/privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
+              echo "schema_error=false" >> $GITHUB_OUTPUT
+              echo "Schema validation passed (consumer schema)"
+            elif echo "$PROVIDER_RESULT" | grep -q "✅"; then
+              echo "schema_file=.github/schemas/privatelink-provider-schema.json" >> $GITHUB_OUTPUT
+              echo "schema_error=false" >> $GITHUB_OUTPUT
+              echo "Schema validation passed (provider schema)"
+            else
+              echo "schema_error=true" >> $GITHUB_OUTPUT
+              echo "Failed to validate against any schema:"
+              echo "$CONSUMER_RESULT"
+              echo "$PROVIDER_RESULT"
+            fi
+          fi
+
+      - name: Create validation comment
+        if: steps.yaml_validation.outputs.yamllint_error == 'true' || steps.schema_validation.outputs.schema_error == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo "### ⚠️ Validation Results"
+            echo ""
+            
+            if [ "${{ steps.yaml_validation.outputs.yamllint_error }}" == "true" ]; then
+              echo "#### YAML Formatting Issues:"
+              echo '```yaml'
+              cat /tmp/yamllint_output.txt
+              echo '```'
+              echo ""
+            else
+              echo "#### ✅ YAML Format Validation: Passed"
+              echo ""
+            fi
+            
+            if [ "${{ steps.schema_validation.outputs.schema_error }}" == "true" ]; then
+              echo "#### Schema Validation Issues:"
+              echo '```'
+              cat /tmp/schema_output.txt
+              echo '```'
+            else
+              echo "#### ✅ Schema Validation: Passed"
+            fi
+          } > /tmp/validation_comment.txt
+          
+          gh issue comment "${{ steps.issue_data.outputs.issue_number }}" --body-file /tmp/validation_comment.txt
+          
+          if [ "${{ steps.yaml_validation.outputs.yamllint_error }}" == "true" ] || [ "${{ steps.schema_validation.outputs.schema_error }}" == "true" ]; then
+            echo "Validation errors found. Exiting workflow."
             exit 1
           fi
 
-          # Remove template headers like '### SG Request YAML' or '### Access Rule YAML'
-          CLEANED_BODY=$(echo "$ISSUE_BODY" | sed -n '/```yaml/,/```/p' | sed '/^```/d')
+      - name: Generate policy file
+        id: policy_file
+        run: |
+          REGION="${{ steps.issue_data.outputs.region }}"
+          REQUEST_TYPE="${{ steps.issue_data.outputs.request_type }}"
+          
+          # Make sure the policies directory exists
+          mkdir -p infrastructure/policies
+          
+          # Read the YAML content
+          YAML_CONTENT=$(cat /tmp/issue.yaml)
+          
+          if [ "$REQUEST_TYPE" = "consumer" ] || [ "$REQUEST_TYPE" = "provider" ]; then
+            # Extract key information for filename
+            if [ "$REQUEST_TYPE" = "consumer" ]; then
+              THIRD_PARTY_ID=$(echo "$YAML_CONTENT" | grep -o 'thirdPartyID: [a-zA-Z0-9]*' | head -1 | cut -d ' ' -f 2)
+              THIRD_PARTY_NAME=$(echo "$YAML_CONTENT" | grep -o 'thirdpartyName: [a-zA-Z0-9]*' | head -1 | cut -d ' ' -f 2)
+              SERVICE_NAME=$(echo "$YAML_CONTENT" | grep -o 'serviceName: [^ ]*' | head -1 | cut -d ' ' -f 2 | tr -d '"')
+              SERVICE_NAME_SHORT=$(echo "$SERVICE_NAME" | sed 's/com\.amazonaws\.vpce\.[^.]*\.//' | cut -d '.' -f 1)
+              
+              FILENAME="${THIRD_PARTY_NAME,,}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
+            else
+              APP_ID=$(echo "$YAML_CONTENT" | grep -o 'internalAppID: [a-zA-Z0-9-]*' | head -1 | cut -d ' ' -f 2)
+              SERVICE_NAME=$(echo "$YAML_CONTENT" | grep -o 'serviceName: [^ ]*' | head -1 | cut -d ' ' -f 2 | tr -d '"')
+              
+              FILENAME="provider-${APP_ID}-${REGION}-policy.yaml"
+            fi
+            
+            # Create the policy file
+            echo "$YAML_CONTENT" > "infrastructure/policies/${FILENAME}"
+            echo "policy_file=infrastructure/policies/${FILENAME}" >> $GITHUB_OUTPUT
+            echo "Created policy file: ${FILENAME}"
+          else
+            # For access rules, we need to find the existing policy file and append
+            # This logic would need to be expanded based on your specific needs
+            echo "Access rule handling not implemented yet"
+            exit 1
+          fi
 
-          # Ensure file ends with newline
-          tail -c1 "$FILE" | read -r _ || echo >> "$FILE"
-
-          {
-            echo ""
-            echo "  # From issue #${ISSUE_NUMBER}"
-            echo "$CLEANED_BODY" | sed 's/^/  /'
-          } >> "$FILE"
-
-
-      - name: Commit Changes and Create PR
+      - name: Create Pull Request
         id: create_pr
         env:
-          GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ISSUE_ID=${{ github.event.issue.number }}
-          BRANCH="issue-${ISSUE_ID}"
-          FILE="infrastructure/policies/${{ steps.issues_vars.outputs.region }}/${{ steps.issues_vars.outputs.file_type }}.yaml"
-          LABEL=$(jq -r '.issue.labels[0].name' "$GITHUB_EVENT_PATH")
-          AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
-
+          ISSUE_NUMBER="${{ steps.issue_data.outputs.issue_number }}"
+          BRANCH="issue-${ISSUE_NUMBER}"
+          
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-
+          
           git checkout -b "$BRANCH"
-          git add "$FILE"
-          git commit -m "Append request from issue #${ISSUE_ID}"
+          git add infrastructure/policies/
+          git commit -m "Add network access policy from issue #${ISSUE_NUMBER}"
+          
+          # Push the branch
           git push origin "$BRANCH"
-
+          
+          # Create PR
           PR_URL=$(gh pr create \
-            --title "[Auto] Add request from issue #${ISSUE_ID}" \
-            --label "$LABEL" \
-            --body "This PR adds a new request submitted in issue #${ISSUE_ID}." \
-            --head "$BRANCH" \
-            --base main)
+            --title "Add network access policy from issue #${ISSUE_NUMBER}" \
+            --body "This PR adds the network access policy requested in issue #${ISSUE_NUMBER}." \
+            --base main \
+            --head "$BRANCH")
+          
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          
+          # Comment on the issue
+          {
+            echo "### ✅ Request Processed Successfully"
+            echo ""
+            echo "Your request has been processed and a pull request has been created:"
+            echo "- [View Pull Request](${PR_URL})"
+            echo ""
+            echo "The policy file will be deployed once the PR is approved and merged."
+          } > /tmp/success_comment.txt
+          
+          gh issue comment "${{ steps.issue_data.outputs.issue_number }}" --body-file /tmp/success_comment.txt
 
-          echo "🔍 PR created at $PR_URL"
-          echo "author=$AUTHOR" >> "$GITHUB_OUTPUT"
-          echo "🔎 Detected issue author: $AUTHOR"
-          
-          if [ "$AUTHOR" = "blahsadfawerwa3r23rwerwe" ]; then
-            echo "✅ Auto-approving PR since author is $AUTHOR"
-            gh pr merge "$PR_URL" --merge --delete-branch
-            gh pr comment "$PR_URL" --body "✅ Auto-merged since this request was submitted by @$AUTHOR"
-          else
-            echo "ℹ️ PR created but not auto-approved. Submitted by @$AUTHOR"
-          fi
-          
-      - name: Save issue number artifact for terraform apply workflow
-        run: |
-          echo "${{ github.event.issue.number }}" > issue_number.txt
-        # Upload it for the next workflow
-      - name: Upload issue number
+      - name: Upload policy file for terraform workflow
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: issue-metadata
-          path: issue_number.txt
+          name: policy-file
+          path: ${{ steps.policy_file.outputs.policy_file }}

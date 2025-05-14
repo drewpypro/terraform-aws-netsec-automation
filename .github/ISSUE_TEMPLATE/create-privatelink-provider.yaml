@@ -1,0 +1,105 @@
+name: Create PrivateLink Provider Security Group
+description: Request to create a new security group for exposing a service via AWS PrivateLink
+title: "[SG] Create PrivateLink Provider for: "
+labels: ["sg-request", "privatelink-provider"]
+assignees:
+  - netops-team
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## PrivateLink Provider Request
+        Use this template to request a new security group for exposing your service via AWS PrivateLink.
+        
+  - type: dropdown
+    id: region
+    attributes:
+      label: AWS Region
+      description: Select the AWS region for this request
+      options:
+        - us-east-1
+        - us-west-2
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: vpc_id
+    attributes:
+      label: VPC ID
+      description: Select the VPC where the security group will be created
+      options:
+        - vpc-0f0330876868cc9d2 (us-east-1)
+        - vpc-014a623d564aa2524 (us-west-2)
+    validations:
+      required: true
+      
+  - type: input
+    id: internal_app_id
+    attributes:
+      label: Internal App ID
+      description: The internal application identifier
+      placeholder: "e.g., app-zyx"
+    validations:
+      required: true
+      
+  - type: input
+    id: service_name
+    attributes:
+      label: Service Name
+      description: The service or namespace
+      placeholder: "e.g., my-service"
+    validations:
+      required: true
+      
+  - type: input
+    id: request_id
+    attributes:
+      label: Request ID
+      description: Tracking ID for this request
+      placeholder: "e.g., RQ-006"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: business_justification
+    attributes:
+      label: Business Justification
+      description: Explain why this service needs to be exposed
+      placeholder: "e.g., Need to expose app-zyx service via PrivateLink for partner access"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: yaml_config
+    attributes:
+      label: PrivateLink Provider YAML
+      description: Complete this YAML template with your request details
+      value: |
+        ```yaml
+        security_group:
+          request_id: YOUR-REQUEST-ID
+          business_justification: >
+            YOUR BUSINESS JUSTIFICATION HERE
+          accountId: 6666666
+          region: us-east-1  # or us-west-2
+          vpc_id: vpc-0f0330876868cc9d2  # or vpc-014a623d564aa2524
+          serviceType: privatelink-provider
+          serviceName: YOUR-SERVICE-NAME
+          internalAppID: YOUR-INTERNAL-APP-ID
+        rules:
+          - request_id: YOUR-REQUEST-ID
+            business_justification: >
+              YOUR RULE JUSTIFICATION HERE
+            destination:
+              ips:
+                - 172.16.1.1/32
+                - 172.17.1.1/32
+            protocol: tcp
+            port: 443
+            url: your-app-url.mycompany.com
+            appid: ssl
+            enable_palo_inspection: true
+        ```
+    validations:
+      required: true
