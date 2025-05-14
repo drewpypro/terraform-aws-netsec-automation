@@ -15,5 +15,5 @@ output "rule_id" {
 
 output "palo_rule_name" {
   description = "Name of the Palo Alto rule, if created"
-  value       = var.enable_palo_inspection ? panos_security_policy.rule[0].rule[0].name : ""
+  value       = length(panos_security_policy.rule) > 0 ? panos_security_policy.rule[0].rule[0].name : ""
 }
