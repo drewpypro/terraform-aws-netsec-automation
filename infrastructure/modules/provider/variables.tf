@@ -46,11 +46,13 @@ variable "to_port" {
 variable "source_cidr" {
   description = "Source CIDR block"
   type        = string
+  default     = ""
 }
 
 variable "destination_cidr" {
   description = "Destination CIDR block"
   type        = string
+  default     = ""
 }
 
 

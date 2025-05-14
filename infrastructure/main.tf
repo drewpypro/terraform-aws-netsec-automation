@@ -21,6 +21,7 @@ module "consumer_sg_us_east_1" {
   from_port = each.value[0].rule.port
   to_port = each.value[0].rule.port
   source_cidr = each.value[0].cidr
+  destination_cidr = ""
   description = "Allow access from ${each.value[0].rule.source.account_id} (${each.value[0].rule.request_id})"
   rule_tags = each.value[0].rule_tags
   
@@ -56,6 +57,7 @@ module "provider_sg_us_east_1" {
   from_port = each.value[0].rule.port
   to_port = each.value[0].rule.port
   destination_cidr = each.value[0].cidr
+  source_cidr = ""
   description = "Allow access to backend (${each.value[0].rule.request_id})"
   rule_tags = each.value[0].rule_tags
   
@@ -65,6 +67,7 @@ module "provider_sg_us_east_1" {
   request_id = each.value[0].rule.request_id
   appid = each.value[0].rule.appid
   url = each.value[0].rule.url
+  source_info = each.value[0].rule.source
 }
 
 # Create consumer security groups for us-west-2 region
@@ -90,6 +93,7 @@ module "consumer_sg_us_west_2" {
   from_port = each.value[0].rule.port
   to_port = each.value[0].rule.port
   source_cidr = each.value[0].cidr
+  destination_cidr = ""
   description = "Allow access from ${each.value[0].rule.source.account_id} (${each.value[0].rule.request_id})"
   rule_tags = each.value[0].rule_tags
   
@@ -125,6 +129,7 @@ module "provider_sg_us_west_2" {
   from_port = each.value[0].rule.port
   to_port = each.value[0].rule.port
   destination_cidr = each.value[0].cidr
+  source_cidr = ""
   description = "Allow access to backend (${each.value[0].rule.request_id})"
   rule_tags = each.value[0].rule_tags
   
@@ -134,4 +139,5 @@ module "provider_sg_us_west_2" {
   request_id = each.value[0].rule.request_id
   appid = each.value[0].rule.appid
   url = each.value[0].rule.url
+  source_info = each.value[0].rule.source
 }
