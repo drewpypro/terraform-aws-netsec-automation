@@ -46,7 +46,7 @@ def validate_yaml_structure(yaml_docs):
     return True
 
 def process_yaml_documents(yaml_docs):
-    """Process multiple YAML documents"""
+    """Process multiple YAML documents with consistent indentation"""
     processed_docs = []
     
     for doc in yaml_docs:
@@ -59,7 +59,7 @@ def process_yaml_documents(yaml_docs):
             log_debug("Skipping invalid document")
             continue
         
-        # Extract common fields
+        # Extract common fields with consistent structure
         processed_doc = {
             'security_group': {
                 'request_id': security_group.get('request_id', ''),
@@ -75,7 +75,7 @@ def process_yaml_documents(yaml_docs):
             'rules': []
         }
         
-        # Process rules
+        # Process rules with consistent structure
         for rule in rules:
             processed_rule = {
                 'request_id': rule.get('request_id', ''),
@@ -158,14 +158,14 @@ def main():
         # Process YAML documents
         processed_docs = process_yaml_documents(yaml_docs)
         
-        # Write processed documents to file
+        # Write processed documents to file with explicit indentation
         with open("/tmp/issue.yaml", "w") as f:
-            yaml.safe_dump_all(processed_docs, f, default_flow_style=False, indent=2)
-        
-        log_debug("YAML file generated successfully")
-        print(f"request_type={request_type}")
-        print(f"documents_count={len(processed_docs)}")
-        print("YAML processed from code block")
+            # Use safe_dump_all with specific indentation
+            yaml.safe_dump_all(processed_docs, f, 
+                default_flow_style=False, 
+                indent=2,  # Consistent 2-space indentation
+                width=float("inf"),  # Prevent line wrapping
+                allow_unicode=True)
 
     except Exception as e:
         log_debug(f"Unexpected error: {e}")
