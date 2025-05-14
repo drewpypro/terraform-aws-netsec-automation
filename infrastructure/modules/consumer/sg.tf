@@ -11,19 +11,14 @@ resource "aws_security_group" "this" {
   }
 }
 
-# Create ingress rules for the consumer security group
-resource "aws_vpc_security_group_ingress_rule" "rule" {
-  for_each = {
-    for idx, rule in var.ingress_rules :
-    rule.key => rule
-  }
-  
+# Create ingress rule for the consumer security group
+resource "aws_vpc_security_group_ingress_rule" "this" {
   security_group_id = aws_security_group.this.id
-  ip_protocol       = each.value.protocol
-  from_port         = each.value.port
-  to_port           = each.value.port
-  cidr_ipv4         = each.value.cidr
-  description       = each.value.description
+  ip_protocol       = var.protocol
+  from_port         = var.from_port
+  to_port           = var.to_port
+  cidr_ipv4         = var.source_cidr
+  description       = var.description
   
-  tags = each.value.rule_tags
+  tags = var.rule_tags
 }
