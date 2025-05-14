@@ -98,7 +98,6 @@ jobs:
         id: issue_data
         if: "!contains(github.event.issue.labels.*.name, 'skip-form-processing')"
         run: |
-
           pip install --quiet yamllint PyYAML jsonschema
 
           # Make scripts executable
@@ -111,8 +110,52 @@ jobs:
             cat /tmp/form_to_yaml_debug.log
             exit 1
           }
+          
+          # Extract YAML from the temporary file
+          echo "Processing YAML from form submission"
+          cat /tmp/issue.yaml
+          
+          # Create policy file
+          mkdir -p infrastructure/policies
+          
+          # Extract relevant fields from the YAML to generate the filename
+          REGION=$(grep 'region:' /tmp/issue.yaml | head -1 | awk '{print $2}' | tr -d '\n')
+          
+          if grep -q 'thirdpartyName:' /tmp/issue.yaml; then
+            # Consumer policy
+            THIRD_PARTY_NAME=$(grep 'thirdpartyName:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
+            THIRD_PARTY_ID=$(grep 'thirdPartyID:' /tmp/issue.yaml | awk '{print $2}' | tr -d '\n')
+            FILENAME="${THIRD_PARTY_NAME}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
+          else
+            # Provider policy
+            INTERNAL_APP_ID=$(grep 'internalAppID:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
+            SERVICE_NAME=$(grep 'serviceName:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
+            FILENAME="${INTERNAL_APP_ID}-${SERVICE_NAME}-${REGION}-policy.yaml"
+          fi
+          
+          # Use safe defaults if extraction fails
+          if [ -z "$FILENAME" ]; then
+            FILENAME="unknown-policy-${REGION}.yaml"
+          fi
+          
+          FILE="infrastructure/policies/${FILENAME}"
+          
+          # Copy the generated YAML to the policy file
+          cp /tmp/issue.yaml "$FILE"
+          
+          # Save filename and region for later steps
+          echo "$FILENAME" > /tmp/policy_filenames.txt
+          echo "$REGION" > /tmp/policy_regions.txt
+          
+          # Output variables for next steps
+          echo "filename=$FILENAME" >> "$GITHUB_OUTPUT"
+          echo "region=$REGION" >> "$GITHUB_OUTPUT"
+          
+          # Debug: Show created files
+          echo "Created policy file:"
+          ls -l infrastructure/policies/
 
-      # Set other outputs similar to form processing
+
       - name: Set Issue YAML Outputs
         id: yaml_outputs
         if: "contains(github.event.issue.labels.*.name, 'skip-form-processing')"
