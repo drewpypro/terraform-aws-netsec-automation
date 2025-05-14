@@ -3,7 +3,7 @@ module "vpc_us_west_2" {
   version = "5.1.2"
 
   providers = {
-    aws = aws.us-west-2
+    aws = aws.us_west_2
   }
 
   name = "netsec-vpc-west"
@@ -27,7 +27,7 @@ module "vpc_us_east_1" {
   version = "5.1.2"
 
   providers = {
-    aws = aws.us-east-1
+    aws = aws.us_east_1
   }
 
   name = "netsec-vpc-east"

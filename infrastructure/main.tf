@@ -1,15 +1,133 @@
-module "us_west_2" {
-  providers     = aws.us-west-2
-  source        = "./module"
-  region        = "us-west-2"
-  policies = "${path.module}/policies/us-west-2"
+# Create consumer security groups for use1 regions
+module "consumer_us_east_1" {
+  source = "./modules/consumer"
   
+  for_each = {
+    for rule in local.consumer_rules :
+    rule.key => rule
+  }
+  
+  providers = { aws = aws.us_east_1 }
+  
+  # Security group settings
+  security_group_name = each.value.sg_name
+  security_group_description = each.value.sg_description
+  vpc_id = each.value.policy.security_group.vpc_id
+  tags = each.value.tags
+  
+  # Rule settings
+  protocol = each.value.rule.protocol
+  from_port = each.value.rule.port
+  to_port = each.value.rule.port
+  source_cidr = each.value.cidr
+  description = "Allow access from ${each.value.rule.source.account_id} (${each.value.rule.request_id})"
+  rule_tags = each.value.rule_tags
+  
+  # Palo Alto settings
+  enable_palo_inspection = each.value.rule.enable_palo_inspection
+  name_prefix = each.value.policy.security_group.thirdpartyName
+  request_id = each.value.rule.request_id
+  appid = each.value.rule.appid
+  url = each.value.rule.url
+  source_info = each.value.rule.source
 }
 
-module "us_east_1" {
-  providers     = aws.us-east-1
-  source        = "./module"
-  region        = "us-east-1"
-  policies = "${path.module}/policies/us-east-1"
+# Create provider security groups for use1 regions
+module "provider_us_east_1" {
+  source = "./modules/provider"
+  
+  for_each = {
+    for rule in local.provider_rules :
+    rule.key => rule
+  }
+  
+  providers = { aws = aws.us_east_1 }
+  
+  # Security group settings
+  security_group_name = each.value.sg_name
+  security_group_description = each.value.sg_description
+  vpc_id = each.value.policy.security_group.vpc_id
+  tags = each.value.tags
+  
+  # Rule settings
+  protocol = each.value.rule.protocol
+  from_port = each.value.rule.port
+  to_port = each.value.rule.port
+  destination_cidr = each.value.cidr
+  description = "Allow access to backend (${each.value.rule.request_id})"
+  rule_tags = each.value.rule_tags
+  
+  # Palo Alto settings
+  enable_palo_inspection = each.value.rule.enable_palo_inspection
+  name_prefix = each.value.policy.security_group.internalAppID
+  request_id = each.value.rule.request_id
+  appid = each.value.rule.appid
+  url = each.value.rule.url
+}
 
+# Create consumer security groups for use1 regions
+module "consumer_us_west_2" {
+  source = "./modules/consumer"
+  
+  for_each = {
+    for rule in local.consumer_rules :
+    rule.key => rule
+  }
+  
+  providers = { aws = aws.us_west_2 }
+  
+  # Security group settings
+  security_group_name = each.value.sg_name
+  security_group_description = each.value.sg_description
+  vpc_id = each.value.policy.security_group.vpc_id
+  tags = each.value.tags
+  
+  # Rule settings
+  protocol = each.value.rule.protocol
+  from_port = each.value.rule.port
+  to_port = each.value.rule.port
+  source_cidr = each.value.cidr
+  description = "Allow access from ${each.value.rule.source.account_id} (${each.value.rule.request_id})"
+  rule_tags = each.value.rule_tags
+  
+  # Palo Alto settings
+  enable_palo_inspection = each.value.rule.enable_palo_inspection
+  name_prefix = each.value.policy.security_group.thirdpartyName
+  request_id = each.value.rule.request_id
+  appid = each.value.rule.appid
+  url = each.value.rule.url
+  source_info = each.value.rule.source
+}
+
+# Create provider security groups for use1 regions
+module "provider_us_west_2" {
+  source = "./modules/provider"
+  
+  for_each = {
+    for rule in local.provider_rules :
+    rule.key => rule
+  }
+  
+  providers = { aws = aws.us_west_2 }
+  
+  # Security group settings
+  security_group_name = each.value.sg_name
+  security_group_description = each.value.sg_description
+  vpc_id = each.value.policy.security_group.vpc_id
+  tags = each.value.tags
+  
+  # Rule settings
+  protocol = each.value.rule.protocol
+  from_port = each.value.rule.port
+  to_port = each.value.rule.port
+  destination_cidr = each.value.cidr
+  description = "Allow access to backend (${each.value.rule.request_id})"
+  rule_tags = each.value.rule_tags
+  
+  # Palo Alto settings
+  enable_palo_inspection = each.value.rule.enable_palo_inspection
+  name_prefix = each.value.policy.security_group.internalAppID
+  request_id = each.value.rule.request_id
+  appid = each.value.rule.appid
+  url = each.value.rule.url
 }
