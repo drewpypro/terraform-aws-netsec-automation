@@ -2,10 +2,9 @@ name: Network Access Issue Handler
 
 on:
   issues:
-    types: [
-      opened
-      edited
-      ]
+    types: 
+      - opened
+      - edited
 
 jobs:
   process_access_request:
