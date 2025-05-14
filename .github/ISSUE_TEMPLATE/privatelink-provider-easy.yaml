@@ -1,7 +1,7 @@
-name: Create PrivateLink Provider (Guided)
-description: Step-by-step guide to create a security group for exposing a service via AWS PrivateLink
+name: Create PrivateLink Provider
+description: Create a security group for exposing a service via AWS PrivateLink
 title: "[SG] Create PrivateLink Provider for: "
-labels: ["sg-request", "privatelink-provider", "guided"]
+labels: ["sg-request", "privatelink-provider"]
 assignees:
   - netops-team
 
@@ -9,8 +9,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## PrivateLink Provider Request (Guided)
-        This template will guide you through creating a security group for exposing your service via AWS PrivateLink.
+        ## PrivateLink Provider Request
+        Fill out this form to create a security group for exposing your service via AWS PrivateLink.
         
   - type: dropdown
     id: region
@@ -35,24 +35,6 @@ body:
       required: true
       
   - type: input
-    id: internal_app_id
-    attributes:
-      label: Internal App ID
-      description: The internal application identifier
-      placeholder: "e.g., app-zyx"
-    validations:
-      required: true
-      
-  - type: input
-    id: service_name
-    attributes:
-      label: Service Name
-      description: The service or namespace
-      placeholder: "e.g., my-service"
-    validations:
-      required: true
-      
-  - type: input
     id: request_id
     attributes:
       label: Request ID
@@ -67,6 +49,24 @@ body:
       label: Business Justification
       description: Explain why this service needs to be exposed
       placeholder: "e.g., Need to expose app-zyx service via PrivateLink for partner access"
+    validations:
+      required: true
+      
+  - type: input
+    id: internal_app_id
+    attributes:
+      label: Internal App ID
+      description: The internal application identifier
+      placeholder: "e.g., app-zyx"
+    validations:
+      required: true
+      
+  - type: input
+    id: service_name
+    attributes:
+      label: Service Name
+      description: The service or namespace
+      placeholder: "e.g., my-service"
     validations:
       required: true
       
@@ -132,8 +132,3 @@ body:
       default: 0
     validations:
       required: true
-      
-  - type: markdown
-    attributes:
-      value: |
-        This form will automatically generate the required YAML configuration for your request.
