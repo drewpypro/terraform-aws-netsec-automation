@@ -1,6 +1,9 @@
-# Create Palo Alto rule for consumer (ingress) traffic if enabled
-resource "panos_security_policy" "rule" {
+# Create Panorama rule for consumer (ingress) traffic in the appropriate device group
+resource "panos_panorama_security_rule_group" "rule" {
   count = var.enable_palo_inspection ? 1 : 0
+  
+  device_group = "${var.region}-fw-dg"  # Regional device group
+  position_keyword = "bottom"
   
   rule {
     name                  = "pl-consumer-${var.name_prefix}-${var.request_id}"
@@ -8,7 +11,7 @@ resource "panos_security_policy" "rule" {
     source_addresses      = var.source_cidrs
     source_users          = ["any"]
     destination_zones     = ["any"]
-    destination_addresses = ["SG-${var.security_group_name}"]  # Using a naming convention for SG
+    destination_addresses = ["SG-${var.security_group_name}"]
     applications          = [var.appid]
     services              = ["application-default"]
     categories            = ["any"]

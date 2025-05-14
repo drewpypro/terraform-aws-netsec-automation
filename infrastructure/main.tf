@@ -11,6 +11,7 @@ module "consumer_sg_us_east_1" {
   
   # Take values from the first rule in the group
   # Security group settings
+  region = "us-east-1"
   security_group_name = each.key  # This is the sg_name
   security_group_description = each.value[0].sg_description
   vpc_id = each.value[0].policy.security_group.vpc_id
@@ -26,7 +27,7 @@ module "consumer_sg_us_east_1" {
   rule_tags = each.value[0].rule_tags
   
   # Palo Alto settings
-  enable_palo_inspection = false
+  enable_palo_inspection = true
   name_prefix = each.value[0].policy.security_group.thirdpartyName
   request_id = each.value[0].rule.request_id
   appid = each.value[0].rule.appid
@@ -47,6 +48,7 @@ module "provider_sg_us_east_1" {
   
   # Take values from the first rule in the group
   # Security group settings
+  region = "us-east-1"
   security_group_name = each.key  # This is the sg_name
   security_group_description = each.value[0].sg_description
   vpc_id = each.value[0].policy.security_group.vpc_id
@@ -62,7 +64,7 @@ module "provider_sg_us_east_1" {
   rule_tags = each.value[0].rule_tags
   
   # Palo Alto settings
-  enable_palo_inspection = false
+  enable_palo_inspection = true
   name_prefix = each.value[0].policy.security_group.internalAppID
   request_id = each.value[0].rule.request_id
   appid = each.value[0].rule.appid
@@ -83,6 +85,7 @@ module "consumer_sg_us_west_2" {
   
   # Take values from the first rule in the group
   # Security group settings
+  region = "us-west-2"
   security_group_name = each.key  # This is the sg_name
   security_group_description = each.value[0].sg_description
   vpc_id = each.value[0].policy.security_group.vpc_id
@@ -98,7 +101,7 @@ module "consumer_sg_us_west_2" {
   rule_tags = each.value[0].rule_tags
   
   # Palo Alto settings
-  enable_palo_inspection = false
+  enable_palo_inspection = true
   name_prefix = each.value[0].policy.security_group.thirdpartyName
   request_id = each.value[0].rule.request_id
   appid = each.value[0].rule.appid
@@ -119,6 +122,7 @@ module "provider_sg_us_west_2" {
   
   # Take values from the first rule in the group
   # Security group settings
+  region = "us-west-2"
   security_group_name = each.key  # This is the sg_name
   security_group_description = each.value[0].sg_description
   vpc_id = each.value[0].policy.security_group.vpc_id
@@ -134,7 +138,7 @@ module "provider_sg_us_west_2" {
   rule_tags = each.value[0].rule_tags
   
   # Palo Alto settings
-  enable_palo_inspection = false
+  enable_palo_inspection = true
   name_prefix = each.value[0].policy.security_group.internalAppID
   request_id = each.value[0].rule.request_id
   appid = each.value[0].rule.appid

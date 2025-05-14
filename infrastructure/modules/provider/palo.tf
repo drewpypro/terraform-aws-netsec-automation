@@ -1,11 +1,14 @@
-# Create Palo Alto rule for provider (egress) traffic if enabled
-resource "panos_security_policy" "rule" {
+# Create Panorama rule for provider (egress) traffic in the appropriate device group
+resource "panos_panorama_security_rule_group" "rule" {
   count = var.enable_palo_inspection ? 1 : 0
+  
+  device_group = "${var.region}-fw-dg"  # Regional device group
+  position_keyword = "bottom"
   
   rule {
     name                  = "pl-provider-${var.name_prefix}-${var.request_id}"
     source_zones          = ["any"]
-    source_addresses      = ["SG-${var.security_group_name}"]  # Using a naming convention for SG
+    source_addresses      = ["SG-${var.security_group_name}"]
     source_users          = ["any"]
     destination_zones     = ["any"]
     destination_addresses = var.destination_cidrs
