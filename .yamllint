@@ -4,7 +4,7 @@ rules:
   line-length: disable
   document-start: disable
   trailing-spaces:
-    level: warning
+    level: off
   indentation:
     spaces: 2
     level: warning
