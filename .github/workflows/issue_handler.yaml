@@ -38,10 +38,15 @@ jobs:
         id: issue_data
         run: |
           # Run the script to process the form data
-          DATA=$(./scripts/form_to_yaml.py)
+          set -x  # Enable verbose output
+          python3 ./scripts/form_to_yaml.py || {
+            echo "Script failed. Checking debug log..."
+            cat /tmp/form_to_yaml_debug.log
+            exit 1
+          }
           
           # Extract and set outputs
-          REQUEST_TYPE=$(echo "$DATA" | grep "request_type=" | cut -d= -f2)
+          REQUEST_TYPE=$(grep "request_type=" /tmp/form_to_yaml_debug.log | cut -d= -f2)
           echo "request_type=$REQUEST_TYPE" >> $GITHUB_OUTPUT
           
           # Extract region from the generated YAML
@@ -67,6 +72,10 @@ jobs:
           # Display generated YAML for debugging
           echo "Generated YAML content:"
           cat /tmp/issue.yaml
+          
+          # Display debug log
+          echo "Debug Log:"
+          cat /tmp/form_to_yaml_debug.log
 
       - name: YAML Validation
         id: yaml_validation
