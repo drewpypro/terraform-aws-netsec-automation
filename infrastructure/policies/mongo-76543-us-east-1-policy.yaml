@@ -4,7 +4,7 @@ security_group:
     Create security-group for MongoDB online archive privatelink in us-east-1
   accountId: 6666666
   region: us-east-1
-  vpc_id: vpc-ccc
+  vpc_id: vpc-0f0330876868cc9d2
   serviceType: privatelink-consumer
   serviceName: com.amazonaws.vpce.us-east-1.vpce-svc-mongodb09345034
   thirdpartyName: MongoDB
