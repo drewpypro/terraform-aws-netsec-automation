@@ -28,7 +28,7 @@ jobs:
       - name: Convert line endings and make scripts executable
         run: |
           # Make scripts executable
-          chmod +x form_to_yaml.py validate_schema.py
+          chmod +x ./scripts/form_to_yaml.py ./scripts/validate_schema.py
 
       - name: Install dependencies
         run: |
@@ -38,7 +38,7 @@ jobs:
         id: issue_data
         run: |
           # Run the script to process the form data
-          DATA=$(./form_to_yaml.py)
+          DATA=$(./scripts/form_to_yaml.py)
           
           # Extract and set outputs
           REQUEST_TYPE=$(echo "$DATA" | grep "request_type=" | cut -d= -f2)
@@ -85,7 +85,7 @@ jobs:
         id: schema_validation
         run: |
           if [ "${{ steps.issue_data.outputs.request_type }}" != "unknown" ]; then
-            ./validate_schema.py /tmp/issue.yaml "${{ steps.issue_data.outputs.schema_file }}" > /tmp/schema_output.txt 2>&1 || echo "schema_error=true" >> $GITHUB_OUTPUT
+            ./scripts/validate_schema.py /tmp/issue.yaml "${{ steps.issue_data.outputs.schema_file }}" > /tmp/schema_output.txt 2>&1 || echo "schema_error=true" >> $GITHUB_OUTPUT
             
             if [ -s /tmp/schema_output.txt ]; then
               cat /tmp/schema_output.txt
@@ -100,8 +100,8 @@ jobs:
             fi
           else
             # Try both schemas
-            CONSUMER_RESULT=$(./validate_schema.py /tmp/issue.yaml privatelink-consumer-schema.json 2>&1 || echo "Failed")
-            PROVIDER_RESULT=$(./validate_schema.py /tmp/issue.yaml privatelink-provider-schema.json 2>&1 || echo "Failed")
+            CONSUMER_RESULT=$(./scripts/validate_schema.py /tmp/issue.yaml privatelink-consumer-schema.json 2>&1 || echo "Failed")
+            PROVIDER_RESULT=$(./scripts/validate_schema.py /tmp/issue.yaml privatelink-provider-schema.json 2>&1 || echo "Failed")
             
             if echo "$CONSUMER_RESULT" | grep -q "✅"; then
               echo "schema_file=privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
