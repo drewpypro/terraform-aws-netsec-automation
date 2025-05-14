@@ -25,6 +25,81 @@ jobs:
         with:
           python-version: '3.10'
 
+
+      - name: Process Issue YAML
+        id: issue_yaml
+        if: "contains(github.event.issue.labels.*.name, 'skip-form-processing')"
+        run: |
+          # Ensure policies directory exists
+          mkdir -p infrastructure/policies
+          
+          # Extract YAML from issue body
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" \
+            | sed -n '/```yaml/,/```/p' \
+            | sed '/^```/d' \
+            > /tmp/issue.yaml
+          
+          # Split YAML documents
+          csplit -z /tmp/issue.yaml '/---/' '{*}'
+          
+          # Initialize tracking variables
+          FILENAMES=()
+          REGIONS=()
+          
+          # Process each document
+          for file in xx*; do
+            # Extract region
+            REGION=$(grep -o 'region: [a-z0-9-]*' "$file" | head -1 | cut -d ' ' -f 2)
+            THIRD_PARTY_NAME=$(grep 'thirdpartyName:' "$file" | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
+            THIRD_PARTY_ID=$(grep 'thirdPartyID:' "$file" | awk '{print $2}' | tr -d '\n')
+            
+            # Fallback to safe naming if extraction fails
+            if [ -z "$THIRD_PARTY_NAME" ] || [ -z "$THIRD_PARTY_ID" ]; then
+              THIRD_PARTY_NAME="unknown"
+              THIRD_PARTY_ID="policy"
+            fi
+            
+            FILENAME="${THIRD_PARTY_NAME}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
+            FILE="infrastructure/policies/${FILENAME}"
+            
+            # Copy the specific document to its file
+            cp "$file" "$FILE"
+            
+            # Store filename and region
+            FILENAMES+=("$FILENAME")
+            REGIONS+=("$REGION")
+          done
+          
+          # Clean up temporary files
+          rm xx*
+          
+          # Output first filename and region for workflow compatibility
+          echo "filename=${FILENAMES[0]}" >> "$GITHUB_OUTPUT"
+          echo "region=${REGIONS[0]}" >> "$GITHUB_OUTPUT"
+          
+          # Save all filenames for later steps if needed
+          printf '%s\n' "${FILENAMES[@]}" > /tmp/policy_filenames.txt
+          printf '%s\n' "${REGIONS[@]}" > /tmp/policy_regions.txt
+
+      # Set other outputs similar to form processing
+      - name: Set Issue YAML Outputs
+        id: yaml_outputs
+        if: "contains(github.event.issue.labels.*.name, 'skip-form-processing')"
+        run: |
+          # Determine request type from labels
+          if [ "$(grep -c 'privatelink-consumer' <<< "${{ join(github.event.issue.labels.*.name, '\n') }}")" -gt 0 ]; then
+            echo "request_type=consumer" >> $GITHUB_OUTPUT
+            echo "schema_file=privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
+          elif [ "$(grep -c 'privatelink-provider' <<< "${{ join(github.event.issue.labels.*.name, '\n') }}")" -gt 0 ]; then
+            echo "request_type=provider" >> $GITHUB_OUTPUT
+            echo "schema_file=privatelink-provider-schema.json" >> $GITHUB_OUTPUT
+          fi
+          
+          # Set other issue details
+          echo "issue_number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
+          echo "issue_author=${{ github.event.issue.user.login }}" >> $GITHUB_OUTPUT
+          echo "issue_title=${{ github.event.issue.title }}" >> $GITHUB_OUTPUT
+            
       - name: Process Issue Form
         id: issue_data
         if: "!contains(github.event.issue.labels.*.name, 'skip-form-processing')"
@@ -94,7 +169,6 @@ jobs:
           else
             echo "yamllint_error=false" >> $GITHUB_OUTPUT
           fi
-
 
       - name: Create validation comment
         if: steps.yaml_validation.outputs.yamllint_error == 'true' || steps.schema_validation.outputs.schema_error == 'true'
