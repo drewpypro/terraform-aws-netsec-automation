@@ -76,63 +76,101 @@ jobs:
       - name: YAML Validation
         id: yaml_validation
         run: |
-          # Print the contents of the YAML file for debugging
-          echo "YAML File Contents:"
+          # Print comprehensive debugging information
+          echo "🔍 Debugging YAML Validation Process 🔍"
+          echo "Current working directory: $(pwd)"
+          echo "Contents of current directory:"
+          ls -la
+
+          echo -e "\n📄 Full YAML File Contents:"
           cat /tmp/issue.yaml
+
+          echo -e "\n🔬 File details:"
+          file /tmp/issue.yaml
+          wc -l /tmp/issue.yaml
           
-          # Use verbose yamllint to understand the issue
-          yamllint -d "{extends: default, rules: {indentation: {spaces: 2, level: warning}, document-start: disable, line-length: disable}}" --format parsable /tmp/issue.yaml > /tmp/yamllint_output.txt || true
+          echo -e "\n🧐 Checking file encoding:"
+          file -i /tmp/issue.yaml
+
+          # Install dependencies if not already present
+          pip install yamllint
+
+          echo -e "\n🚦 Running yamllint with verbose output:"
+          yamllint -d "{extends: default, rules: {indentation: {spaces: 2, level: warning}, document-start: disable, line-length: disable}}" --format parsable /tmp/issue.yaml
+
+          echo -e "\n🔍 Running yamllint with standard format:"
+          yamllint --format standard -c .yamllint /tmp/issue.yaml > /tmp/yamllint_output.txt || true
           
-          # Add more verbose debugging
-          echo "Yamllint Output:"
+          echo -e "\n📋 Yamllint Output:"
           cat /tmp/yamllint_output.txt
-          
-          if [ -s /tmp/yamllint_output.txt ]; then
+
+          # Check if the output file is empty
+          if [ ! -s /tmp/yamllint_output.txt ]; then
+            echo "✅ No yamllint issues found"
+            echo "yamllint_error=false" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Yamllint found issues"
             echo "yamllint_error=true" >> $GITHUB_OUTPUT
             cat /tmp/yamllint_output.txt
-          else
-            echo "yamllint_error=false" >> $GITHUB_OUTPUT
-            echo "YAML format validation passed"
           fi
 
-      - name: Schema Validation
-        id: schema_validation
+      - name: Create validation comment
+        if: steps.yaml_validation.outputs.yamllint_error == 'true' || steps.schema_validation.outputs.schema_error == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ steps.issue_data.outputs.request_type }}" != "unknown" ]; then
-            ./scripts/validate_schema.py /tmp/issue.yaml "${{ steps.issue_data.outputs.schema_file }}" > /tmp/schema_output.txt 2>&1 || echo "schema_error=true" >> $GITHUB_OUTPUT
-            
-            if [ -s /tmp/schema_output.txt ]; then
-              cat /tmp/schema_output.txt
-              if grep -q "❌" /tmp/schema_output.txt; then
-                echo "schema_error=true" >> $GITHUB_OUTPUT
-              else
-                echo "schema_error=false" >> $GITHUB_OUTPUT
-              fi
-            else
-              echo "schema_error=false" >> $GITHUB_OUTPUT
-              echo "Schema validation passed"
-            fi
-          else
-            # Try both schemas
-            CONSUMER_RESULT=$(./scripts/validate_schema.py /tmp/issue.yaml privatelink-consumer-schema.json 2>&1 || echo "Failed")
-            PROVIDER_RESULT=$(./scripts/validate_schema.py /tmp/issue.yaml privatelink-provider-schema.json 2>&1 || echo "Failed")
-            
-            if echo "$CONSUMER_RESULT" | grep -q "✅"; then
-              echo "schema_file=privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
-              echo "schema_error=false" >> $GITHUB_OUTPUT
-              echo "Schema validation passed (consumer schema)"
-            elif echo "$PROVIDER_RESULT" | grep -q "✅"; then
-              echo "schema_file=privatelink-provider-schema.json" >> $GITHUB_OUTPUT
-              echo "schema_error=false" >> $GITHUB_OUTPUT
-              echo "Schema validation passed (provider schema)"
-            else
-              echo "schema_error=true" >> $GITHUB_OUTPUT
-              echo "Failed to validate against any schema:"
-              echo "$CONSUMER_RESULT"
-              echo "$PROVIDER_RESULT"
-            fi
-          fi
+          # Comprehensive debugging for validation comment
+          echo "🔍 Validation Comment Debug 🔍"
+          
+          echo "Yamllint Error: ${{ steps.yaml_validation.outputs.yamllint_error }}"
+          echo "Schema Error: ${{ steps.schema_validation.outputs.schema_error }}"
 
+          {
+            echo "### ⚠️ Validation Results"
+            echo ""
+            
+            if [ "${{ steps.yaml_validation.outputs.yamllint_error }}" == "true" ]; then
+              echo "#### 🚨 YAML Formatting Issues:"
+              echo '```yaml'
+              cat /tmp/yamllint_output.txt
+              echo '```'
+              echo ""
+            else
+              echo "#### ✅ YAML Format Validation: Passed"
+              echo ""
+            fi
+            
+            if [ "${{ steps.schema_validation.outputs.schema_error }}" == "true" ]; then
+              echo "#### 🚨 Schema Validation Issues:"
+              echo '```'
+              cat /tmp/schema_output.txt
+              echo '```'
+            else
+              echo "#### ✅ Schema Validation: Passed"
+            fi
+
+            # Additional context
+            echo -e "\n### 🔍 Debugging Information"
+            echo "- Workflow Run ID: ${{ github.run_id }}"
+            echo "- Workflow Run Number: ${{ github.run_number }}"
+            echo "- Repository: ${{ github.repository }}"
+          } > /tmp/validation_comment.txt
+          
+          # Print the comment content for additional debugging
+          echo "📝 Validation Comment Contents:"
+          cat /tmp/validation_comment.txt
+
+          # Attempt to comment on the issue
+          gh issue comment "${{ steps.issue_data.outputs.issue_number }}" --body-file /tmp/validation_comment.txt || {
+            echo "❌ Failed to post comment on issue"
+            exit 1
+          }
+          
+          # Exit with error if validation failed
+          if [ "${{ steps.yaml_validation.outputs.yamllint_error }}" == "true" ] || [ "${{ steps.schema_validation.outputs.schema_error }}" == "true" ]; then
+            echo "❌ Validation errors found. Exiting workflow."
+            exit 1
+          fi
       - name: Create validation comment
         if: steps.yaml_validation.outputs.yamllint_error == 'true' || steps.schema_validation.outputs.schema_error == 'true'
         env:
