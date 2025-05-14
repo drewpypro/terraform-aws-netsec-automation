@@ -8,7 +8,7 @@ resource "panos_security_policy" "rule" {
     source_addresses      = ["SG-${var.security_group_name}"]  # Using a naming convention for SG
     source_users          = ["any"]
     destination_zones     = ["any"]
-    destination_addresses = [var.destination_cidr]
+    destination_addresses = var.destination_cidrs
     applications          = [var.appid]
     services              = ["application-default"]
     categories            = ["any"]
