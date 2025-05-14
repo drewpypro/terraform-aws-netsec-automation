@@ -241,8 +241,6 @@ jobs:
         run: |
           ISSUE_ID=${{ github.event.issue.number }}
           BRANCH="issue-${ISSUE_ID}"
-          FILE="${{ steps.policy_file.outputs.file }}"
-          FILENAME="${{ steps.policy_file.outputs.filename }}"
           LABEL=$(jq -r '.issue.labels[0].name' "$GITHUB_EVENT_PATH")
           AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
 
@@ -257,16 +255,22 @@ jobs:
 
           # Create and switch to the branch
           git checkout -b "$BRANCH"
-          git add "$FILE"
-          git commit -m "Append request from issue #${ISSUE_ID}"
+
+          # Add all policy files from the previous step
+          while IFS= read -r FILENAME; do
+            FILE="infrastructure/policies/${FILENAME}"
+            git add "$FILE"
+          done < /tmp/policy_filenames.txt
+
+          git commit -m "Add network access policies from issue #${ISSUE_ID}"
           
           # Force push or push with lease to handle potential conflicts
           git push -f origin "$BRANCH"
 
           PR_URL=$(gh pr create \
-            --title "[Auto] Add request from issue #${ISSUE_ID}" \
+            --title "[Auto] Add network access policies from issue #${ISSUE_ID}" \
             --label "$LABEL" \
-            --body "This PR adds a new request submitted in issue #${ISSUE_ID}." \
+            --body "This PR adds multiple network access policies from issue #${ISSUE_ID}." \
             --head "$BRANCH" \
             --base main)
 
