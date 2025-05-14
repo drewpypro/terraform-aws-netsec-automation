@@ -53,8 +53,9 @@ jobs:
           
           # Split YAML documents at the '---' markers
           echo "Splitting YAML documents..."
-          csplit -z -f "/tmp/yaml-doc-" /tmp/issue.yaml '/^---$/' '{*}' 2>/dev/null || true
-          
+          cp /tmp/issue.yaml /tmp/issue-with-marker.yaml
+          csplit -z -f "/tmp/yaml-doc-" /tmp/issue-with-marker.yaml '/^---$/' '{*}' 2>/dev/null || true
+           
           # Initialize tracking variables
           FILENAMES=()
           REGIONS=()
@@ -65,9 +66,9 @@ jobs:
             
             # Extract key fields from document
             REGION=$(grep -o 'region: [a-z0-9-]*' "$file" | head -1 | cut -d ' ' -f 2)
-            THIRD_PARTY_NAME=$(grep 'thirdpartyName:' "$file" | head -1 | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
-            THIRD_PARTY_ID=$(grep 'thirdPartyID:' "$file" | head -1 | awk '{print $2}' | tr -d '\n')
-            
+            THIRD_PARTY_NAME=$(grep -m 1 'thirdpartyName:' "$file" | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
+            THIRD_PARTY_ID=$(grep -m 1 'thirdPartyID:' "$file" | awk '{print $2}' | tr -d '\n')
+       
             echo "Found region: $REGION, thirdpartyName: $THIRD_PARTY_NAME, thirdPartyID: $THIRD_PARTY_ID"
             
             # Fallback to safe naming if extraction fails
