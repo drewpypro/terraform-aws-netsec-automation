@@ -1,0 +1,26 @@
+security_group:
+  request_id: RQ-006
+  business_justification: >
+    drewdogeasy connectivity
+  accountId: 6666666
+  region: us-east-1
+  vpc_id: vpc-0f0330876868cc9d2
+  serviceType: privatelink-consumer
+  serviceName: com.amazonaws.vpce.us-east-1.vpce-svc-064ea71swedf32342
+  thirdpartyName: drewdogeasy
+  thirdPartyID: 12321321
+rules:
+  - request_id: RQ-006
+    business_justification: >
+      drewdogeasy connectivity
+    source:
+      account_id: 1231231231
+      vpc_id: vpc-ddd
+      region: us-east-1
+      ips:
+        - 10.11.1.1/32
+    protocol: tcp
+    port: 334
+    appid: ssl
+    url: https://drewdogeasy.com
+    enable_palo_inspection: true
