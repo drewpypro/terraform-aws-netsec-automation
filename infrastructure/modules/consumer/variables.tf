@@ -52,7 +52,7 @@ variable "source_cidrs" {
 variable "destination_cidrs" {
   description = "Destination CIDR block"
   type        = list(string)
-  default     = []
+  default     = [""]
 }
 
 variable "description" {
