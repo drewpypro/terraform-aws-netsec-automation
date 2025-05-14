@@ -25,9 +25,6 @@ jobs:
 
       - name: Convert line endings and make scripts executable
         run: |
-          # Convert line endings from CRLF to LF
-          find . -type f \( -name "*.py" -o -name "*.sh" \) -exec dos2unix {} \;
-          
           # Make scripts executable
           chmod +x form_to_yaml.py validate_schema.py
 
@@ -119,7 +116,7 @@ jobs:
               echo "$PROVIDER_RESULT"
             fi
           fi
-          
+
       - name: Create validation comment
         if: steps.yaml_validation.outputs.yamllint_error == 'true' || steps.schema_validation.outputs.schema_error == 'true'
         env:
