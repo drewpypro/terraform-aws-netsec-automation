@@ -93,11 +93,3 @@ variable "url" {
   default     = ""
 }
 
-variable "source_info" {
-  description = "Source information for the rule"
-  type = object({
-    account_id = string
-    vpc_id     = string
-    region     = string
-  })
-}

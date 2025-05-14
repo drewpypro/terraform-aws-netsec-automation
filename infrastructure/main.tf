@@ -31,7 +31,7 @@ module "consumer_sg_us_east_1" {
   request_id = each.value[0].rule.request_id
   appid = each.value[0].rule.appid
   url = each.value[0].rule.url
-  source_info = each.value[0].rule.source
+  
 }
 
 # Create provider security groups for us-east-1 region
@@ -67,7 +67,7 @@ module "provider_sg_us_east_1" {
   request_id = each.value[0].rule.request_id
   appid = each.value[0].rule.appid
   url = each.value[0].rule.url
-  source_info = each.value[0].rule.source
+
 }
 
 # Create consumer security groups for us-west-2 region
@@ -103,7 +103,7 @@ module "consumer_sg_us_west_2" {
   request_id = each.value[0].rule.request_id
   appid = each.value[0].rule.appid
   url = each.value[0].rule.url
-  source_info = each.value[0].rule.source
+  
 }
 
 # Create provider security groups for us-west-2 region
@@ -139,5 +139,5 @@ module "provider_sg_us_west_2" {
   request_id = each.value[0].rule.request_id
   appid = each.value[0].rule.appid
   url = each.value[0].rule.url
-  source_info = each.value[0].rule.source
+  
 }
