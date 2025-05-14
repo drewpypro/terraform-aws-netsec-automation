@@ -146,9 +146,15 @@ def main():
                 }]
             }
             
-            # Write YAML to file
             with open("/tmp/issue.yaml", "w") as f:
-                yaml.safe_dump_all([yaml_doc], f, default_flow_style=False)
+                yaml.safe_dump_all([yaml_doc], f, 
+                    default_flow_style=False, 
+                    width=float("inf"),  # Prevent line wrapping
+                    line_break=True)  # Ensure proper line breaks
+
+            # Ensure a newline at the end of the file
+            with open("/tmp/issue.yaml", "a") as f:
+                f.write("\n")
             
         elif request_type == "provider":
             # Similar structure for provider, with appropriate fields
