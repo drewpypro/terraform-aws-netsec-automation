@@ -1,7 +1,7 @@
 name: Create PrivateLink Consumer
 description: Create a security group for a PrivateLink consumer service
 title: "[SG] Create PrivateLink Consumer for: "
-labels: ["sg-request", "privatelink-consumer"]
+labels: ["privatelink-consumer"]
 assignees:
   - netops-team
 

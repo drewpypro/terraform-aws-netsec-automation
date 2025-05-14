@@ -1,7 +1,7 @@
 name: Create PrivateLink Provider (YAML)
 description: Create a security group for exposing a service via AWS PrivateLink using YAML
 title: "[SG] Create PrivateLink Provider for: "
-labels: ["sg-request", "privatelink-provider", "yaml"]
+labels: ["privatelink-provider"]
 assignees:
   - netops-team
 
