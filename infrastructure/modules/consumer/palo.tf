@@ -11,7 +11,7 @@ resource "panos_panorama_security_rule_group" "rule" {
     source_addresses      = var.source_cidrs
     source_users          = ["any"]
     destination_zones     = ["any"]
-    destination_addresses = ["SG-${var.security_group_name}"]
+    destination_addresses = ["100.64.0.0/24"]  # Privatelink Endpoint Subnet
     applications          = [var.appid]
     services              = ["application-default"]
     categories            = ["any"]

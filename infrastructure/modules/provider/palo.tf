@@ -8,7 +8,7 @@ resource "panos_panorama_security_rule_group" "rule" {
   rule {
     name                  = "pl-provider-${var.name_prefix}-${var.request_id}"
     source_zones          = ["any"]
-    source_addresses      = ["SG-${var.security_group_name}"]
+    source_addresses      = ["100.65.0.0/24"]  # Frontend Subnet
     source_users          = ["any"]
     destination_zones     = ["any"]
     destination_addresses = var.destination_cidrs
