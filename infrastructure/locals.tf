@@ -103,4 +103,34 @@ locals {
       if rule.region == region
     ]
   }
+  
+  # NEW: Group consumer rules by security group name and region
+  consumer_sg_rules = {
+    for region in local.regions : region => {
+      for sg_name in distinct([
+        for rule in local.consumer_rules:
+        rule.sg_name
+        if rule.region == region
+      ]) : sg_name => [
+        for rule in local.consumer_rules:
+        rule
+        if rule.sg_name == sg_name && rule.region == region
+      ]
+    }
+  }
+  
+  # NEW: Group provider rules by security group name and region
+  provider_sg_rules = {
+    for region in local.regions : region => {
+      for sg_name in distinct([
+        for rule in local.provider_rules:
+        rule.sg_name
+        if rule.region == region
+      ]) : sg_name => [
+        for rule in local.provider_rules:
+        rule
+        if rule.sg_name == sg_name && rule.region == region
+      ]
+    }
+  }
 }
