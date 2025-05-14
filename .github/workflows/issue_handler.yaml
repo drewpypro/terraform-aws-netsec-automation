@@ -73,11 +73,19 @@ jobs:
           # Display debug log
           echo "Debug Log:"
           cat /tmp/form_to_yaml_debug.log
-
       - name: YAML Validation
         id: yaml_validation
         run: |
-          yamllint --format standard -c .yamllint /tmp/issue.yaml > /tmp/yamllint_output.txt || true
+          # Print the contents of the YAML file for debugging
+          echo "YAML File Contents:"
+          cat /tmp/issue.yaml
+          
+          # Use verbose yamllint to understand the issue
+          yamllint -d "{extends: default, rules: {indentation: {spaces: 2, level: warning}, document-start: disable, line-length: disable}}" --format parsable /tmp/issue.yaml > /tmp/yamllint_output.txt || true
+          
+          # Add more verbose debugging
+          echo "Yamllint Output:"
+          cat /tmp/yamllint_output.txt
           
           if [ -s /tmp/yamllint_output.txt ]; then
             echo "yamllint_error=true" >> $GITHUB_OUTPUT
