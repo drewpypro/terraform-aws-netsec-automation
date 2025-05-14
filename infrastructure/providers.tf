@@ -34,5 +34,4 @@ provider "panos" {
   username = var.panos_username
   password = var.panos_password
 
-
 }
