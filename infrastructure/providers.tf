@@ -33,6 +33,6 @@ provider "panos" {
   hostname = var.panos_hostname
   username = var.panos_username
   password = var.panos_password
-  # Or use API key
-  # api_key  = var.panos_api_key
+
+
 }
