@@ -6,7 +6,7 @@ module "consumer_sg_us_east_1" {
   
   providers = { 
     aws = aws.us_east_1
-    panos = panos
+    # panos = panos
   }
   
   # Take values from the first rule in the group
@@ -43,7 +43,7 @@ module "provider_sg_us_east_1" {
   
   providers = { 
     aws = aws.us_east_1
-    panos = panos
+    # panos = panos
   }
   
   # Take values from the first rule in the group
@@ -80,7 +80,7 @@ module "consumer_sg_us_west_2" {
   
   providers = { 
     aws = aws.us_west_2
-    panos = panos
+    # panos = panos
   }
   
   # Take values from the first rule in the group
@@ -117,7 +117,7 @@ module "provider_sg_us_west_2" {
   
   providers = { 
     aws = aws.us_west_2
-    panos = panos
+    # panos = panos
   }
   
   # Take values from the first rule in the group
