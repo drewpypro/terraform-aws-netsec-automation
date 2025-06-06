@@ -1,7 +1,7 @@
 name: Create PrivateLink Provider
 description: Create a security group for exposing a service via AWS PrivateLink
 title: "[SG] Create PrivateLink Provider for: "
-labels: ["sg-request", "privatelink-provider"]
+labels: ["privatelink-provider"]
 assignees:
   - netops-team
 
