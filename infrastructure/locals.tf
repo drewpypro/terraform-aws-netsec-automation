@@ -26,18 +26,22 @@ locals {
     if policy.security_group.serviceType == "privatelink-provider"
   }
   
-  # Prepare individual rules for each CIDR in each consumer policy
-  consumer_rules = flatten([
+  # Flatten consumer rules by protocol/port/cidr - each combination gets its own entry
+  consumer_rule_combinations = flatten([
     for file, policy in local.consumer_policies : [
       for rule_idx, rule in policy.rules : [
-        for cidr_idx, cidr in rule.source.ips : {
-          key = "${file}-${rule_idx}-${cidr_idx}"
-          policy = policy
-          rule = rule
-          cidr = cidr
+        for cidr in rule.source.ips : {
+          key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}"
+          sg_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}"
           region = policy.security_group.region
-          sg_name = "pl-consumer-${policy.security_group.thirdpartyName}-${policy.security_group.thirdPartyID}-${policy.security_group.region}"
+          sg_name = "${lower(policy.security_group.thirdpartyName)}-${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}-${policy.security_group.region}-sg"
           sg_description = "Security group for ${policy.security_group.thirdpartyName} PrivateLink (${policy.security_group.serviceName})"
+          vpc_id = policy.security_group.vpc_id
+          protocol = rule.protocol
+          port = rule.port
+          cidr = cidr
+          rule = rule
+          policy = policy
           tags = {
             ThirdPartyID = policy.security_group.thirdPartyID
             ThirdPartyName = policy.security_group.thirdpartyName
@@ -59,18 +63,22 @@ locals {
     ]
   ])
   
-  # Prepare individual rules for each CIDR in each provider policy
-  provider_rules = flatten([
+  # Flatten provider rules by protocol/port/cidr - each combination gets its own entry
+  provider_rule_combinations = flatten([
     for file, policy in local.provider_policies : [
       for rule_idx, rule in policy.rules : [
-        for cidr_idx, cidr in rule.destination.ips : {
-          key = "${file}-${rule_idx}-${cidr_idx}"
-          policy = policy
-          rule = rule
-          cidr = cidr
+        for cidr in rule.destination.ips : {
+          key = "${policy.security_group.internalAppID}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}"
+          sg_key = "${policy.security_group.internalAppID}-${policy.security_group.region}"
           region = policy.security_group.region
           sg_name = "pl-provider-${policy.security_group.internalAppID}-${policy.security_group.region}"
           sg_description = "Security group for ${policy.security_group.internalAppID} PrivateLink provider"
+          vpc_id = policy.security_group.vpc_id
+          protocol = rule.protocol
+          port = rule.port
+          cidr = cidr
+          rule = rule
+          policy = policy
           tags = {
             InternalAppID = policy.security_group.internalAppID
             ServiceType = "privatelink-provider"
@@ -87,50 +95,117 @@ locals {
     ]
   ])
   
-  # Group rules by region for easier reference
-  consumer_rules_by_region = {
-    for region in local.regions : region => [
-      for rule in local.consumer_rules :
-      rule
-      if rule.region == region
-    ]
-  }
-  
-  provider_rules_by_region = {
-    for region in local.regions : region => [
-      for rule in local.provider_rules :
-      rule
-      if rule.region == region
-    ]
-  }
-  
-  # NEW: Group consumer rules by security group name and region
-  consumer_sg_rules = {
+  # Group consumer combinations by security group
+  consumer_sgs_by_region = {
     for region in local.regions : region => {
-      for sg_name in distinct([
-        for rule in local.consumer_rules:
-        rule.sg_name
-        if rule.region == region
-      ]) : sg_name => [
-        for rule in local.consumer_rules:
-        rule
-        if rule.sg_name == sg_name && rule.region == region
-      ]
+      for sg_key in distinct([
+        for combo in local.consumer_rule_combinations :
+        combo.sg_key
+        if combo.region == region
+      ]) : sg_key => {
+        # Get the first combo for this SG to extract common properties
+        first_combo = [
+          for combo in local.consumer_rule_combinations :
+          combo
+          if combo.sg_key == sg_key && combo.region == region
+        ][0]
+        
+        region = region
+        sg_name = first_combo.sg_name
+        sg_description = first_combo.sg_description
+        vpc_id = first_combo.vpc_id
+        tags = first_combo.tags
+        
+        # Create individual AWS security group rules (one per protocol/port/cidr)
+        aws_rules = {
+          for combo in local.consumer_rule_combinations :
+          combo.key => {
+            protocol = combo.protocol
+            port = combo.port
+            cidr = combo.cidr
+            description = "Allow access from ${combo.rule.source.account_id} (${combo.rule.request_id})"
+            rule_tags = combo.rule_tags
+          }
+          if combo.sg_key == sg_key && combo.region == region
+        }
+        
+        # Collect Palo Alto data (all unique protocols/ports and all source IPs)
+        palo_protocols_ports = distinct([
+          for combo in local.consumer_rule_combinations :
+          "${combo.protocol}-${combo.port}"
+          if combo.sg_key == sg_key && combo.region == region
+        ])
+        
+        palo_source_ips = distinct([
+          for combo in local.consumer_rule_combinations :
+          combo.cidr
+          if combo.sg_key == sg_key && combo.region == region
+        ])
+        
+        # Palo Alto common settings from first rule
+        enable_palo_inspection = first_combo.rule.enable_palo_inspection
+        name_prefix = first_combo.policy.security_group.thirdpartyName
+        request_id = first_combo.policy.security_group.request_id
+        appid = first_combo.rule.appid
+        url = first_combo.rule.url
+      }
     }
   }
   
-  # NEW: Group provider rules by security group name and region
-  provider_sg_rules = {
+  # Group provider combinations by security group
+  provider_sgs_by_region = {
     for region in local.regions : region => {
-      for sg_name in distinct([
-        for rule in local.provider_rules:
-        rule.sg_name
-        if rule.region == region
-      ]) : sg_name => [
-        for rule in local.provider_rules:
-        rule
-        if rule.sg_name == sg_name && rule.region == region
-      ]
+      for sg_key in distinct([
+        for combo in local.provider_rule_combinations :
+        combo.sg_key
+        if combo.region == region
+      ]) : sg_key => {
+        # Get the first combo for this SG to extract common properties
+        first_combo = [
+          for combo in local.provider_rule_combinations :
+          combo
+          if combo.sg_key == sg_key && combo.region == region
+        ][0]
+        
+        region = region
+        sg_name = first_combo.sg_name
+        sg_description = first_combo.sg_description
+        vpc_id = first_combo.vpc_id
+        tags = first_combo.tags
+        
+        # Create individual AWS security group rules (one per protocol/port/cidr)
+        aws_rules = {
+          for combo in local.provider_rule_combinations :
+          combo.key => {
+            protocol = combo.protocol
+            port = combo.port
+            cidr = combo.cidr
+            description = "Allow access to backend (${combo.rule.request_id})"
+            rule_tags = combo.rule_tags
+          }
+          if combo.sg_key == sg_key && combo.region == region
+        }
+        
+        # Collect Palo Alto data (all unique protocols/ports and all destination IPs)
+        palo_protocols_ports = distinct([
+          for combo in local.provider_rule_combinations :
+          "${combo.protocol}-${combo.port}"
+          if combo.sg_key == sg_key && combo.region == region
+        ])
+        
+        palo_destination_ips = distinct([
+          for combo in local.provider_rule_combinations :
+          combo.cidr
+          if combo.sg_key == sg_key && combo.region == region
+        ])
+        
+        # Palo Alto common settings from first rule
+        enable_palo_inspection = first_combo.rule.enable_palo_inspection
+        name_prefix = first_combo.policy.security_group.internalAppID
+        request_id = first_combo.policy.security_group.request_id
+        appid = first_combo.rule.appid
+        url = first_combo.rule.url
+      }
     }
   }
 }
