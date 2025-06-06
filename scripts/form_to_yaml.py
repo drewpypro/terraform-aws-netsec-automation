@@ -104,6 +104,7 @@ def main():
             third_party_name = extract_field(body, "Third-Party Name")
             third_party_id = extract_field(body, "Third-Party ID")
             service_name = extract_field(body, "VPC Endpoint Service Name")
+            service_name_short = service_name.split(".")[-1]
             source_account_id = extract_field(body, "Source Account ID")
             source_vpc_id = extract_field(body, "Source VPC ID")
             source_region = extract_field(body, "Source Region")
@@ -128,6 +129,7 @@ def main():
                     'vpc_id': vpc_id,
                     'serviceType': 'privatelink-consumer',
                     'serviceName': service_name,
+                    'serviceShortName': service_name_short,
                     'thirdpartyName': third_party_name,
                     'thirdPartyID': third_party_id
                 },
