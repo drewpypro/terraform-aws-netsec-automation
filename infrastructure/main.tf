@@ -14,7 +14,7 @@ module "consumer_sg_us_east_1" {
   region = "us-east-1"
   security_group_name = each.key  # This is the sg_name
   security_group_description = each.value[0].sg_description
-  vpc_id = each.value[0].policy.security_group.vpc_id
+  vpc_id = "vpc-0693779a6e3393666"
   tags = each.value[0].tags
   
   # Take the first rule's details
@@ -51,7 +51,7 @@ module "provider_sg_us_east_1" {
   region = "us-east-1"
   security_group_name = each.key  # This is the sg_name
   security_group_description = each.value[0].sg_description
-  vpc_id = each.value[0].policy.security_group.vpc_id
+  vpc_id = "vpc-0693779a6e3393666"
   tags = each.value[0].tags
   
   # Take the first rule's details
