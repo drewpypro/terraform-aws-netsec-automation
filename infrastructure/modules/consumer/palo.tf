@@ -6,17 +6,17 @@
 #   position_keyword = "bottom"
   
 #   rule {
-#     name                  = "pl-consumer-${var.name_prefix}-${var.request_id}"
+#     name                  = var.palo_rule_name
 #     source_zones          = ["any"]
-#     source_addresses      = var.source_cidrs
+#     source_addresses      = var.palo_source_cidrs
 #     source_users          = ["any"]
 #     destination_zones     = ["any"]
-#     destination_addresses = ["100.64.0.0/24"]  # Privatelink Endpoint Subnet
-#     applications          = [var.appid]
+#     destination_addresses = ["100.64.0.0/23"]  # Updated to /23 as per your requirements
+#     applications          = var.palo_appids
 #     services              = ["application-default"]
 #     categories            = ["any"]
 #     action                = "allow"
-#     description           = "${var.description} (${var.request_id})"
+#     description           = var.palo_description
     
 #     tags = [
 #       "managed-by-terraform",

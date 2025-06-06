@@ -1,3 +1,8 @@
+variable "region" {
+  description = "AWS region"
+  type        = string
+}
+
 variable "security_group_name" {
   description = "Name of the security group"
   type        = string
@@ -9,7 +14,7 @@ variable "security_group_description" {
 }
 
 variable "vpc_id" {
-  description = "ID of the VPC where the security group will be created"
+  description = "VPC ID where the security group will be created"
   type        = string
 }
 
@@ -19,80 +24,67 @@ variable "tags" {
   default     = {}
 }
 
-variable "rule_tags" {
-  description = "Tags to apply to the security group rules"
-  type        = map(string)
-  default     = {}
+variable "sg_rules" {
+  description = "Map of security group rules grouped by protocol-port"
+  type = map(object({
+    protocol                = string
+    port                   = number
+    appid                  = string
+    url                    = string
+    enable_palo_inspection = bool
+    request_ids            = list(string)
+    source_cidrs           = list(string)
+    source_account_id      = string
+    source_vpc_id          = string
+    source_region          = string
+    rule_tags              = map(string)
+  }))
 }
 
-variable "protocol" {
-  description = "Protocol for the security group rule"
-  type        = string
-  default     = "tcp"
-}
-
-variable "from_port" {
-  description = "Start port for the security group rule"
-  type        = number
-  default     = 0
-}
-
-variable "to_port" {
-  description = "End port for the security group rule"
-  type        = number
-  default     = 0
-}
-
-variable "source_cidrs" {
-  description = "Source CIDR block"
-  type        = list(string)
-  default     = []
-}
-
-variable "destination_cidrs" {
-  description = "Destination CIDR block"
-  type        = list(string)
-  default     = [""]
-}
-
-variable "description" {
-  description = "Description for the security group rule"
-  type        = string
-  default     = ""
-}
-
-# Palo Alto specific variables
+# Palo Alto variables
 variable "enable_palo_inspection" {
-  description = "Whether to enable Palo Alto inspection"
+  description = "Enable Palo Alto inspection for this security group"
   type        = bool
   default     = false
 }
 
+variable "palo_rule_name" {
+  description = "Name for the Palo Alto rule"
+  type        = string
+  default     = ""
+}
+
+variable "palo_source_cidrs" {
+  description = "All source CIDRs for Palo Alto rule"
+  type        = list(string)
+  default     = []
+}
+
+variable "palo_appids" {
+  description = "All application IDs for Palo Alto rule"
+  type        = list(string)
+  default     = []
+}
+
+variable "palo_urls" {
+  description = "All URLs for Palo Alto rule"
+  type        = list(string)
+  default     = []
+}
+
+variable "palo_description" {
+  description = "Description for Palo Alto rule"
+  type        = string
+  default     = ""
+}
+
 variable "name_prefix" {
-  description = "Prefix for Palo Alto rule names"
+  description = "Name prefix for resources"
   type        = string
-  default     = "rule"
 }
 
-variable "request_id" {
-  description = "Request ID for tracking"
-  type        = string
-  default     = ""
-}
-
-variable "appid" {
-  description = "Application ID for Palo Alto rule"
-  type        = string
-  default     = "any"
-}
-
-variable "url" {
-  description = "URL for the service"
-  type        = string
-  default     = ""
-}
-
-variable "region" {
-  description = "AWS region for the Panorama device group"
-  type        = string
+variable "request_ids" {
+  description = "All request IDs"
+  type        = list(string)
+  default     = []
 }

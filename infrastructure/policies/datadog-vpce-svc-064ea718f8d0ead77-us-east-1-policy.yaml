@@ -26,3 +26,19 @@ rules:
     appid: ssl
     url: https://api.datadoghq.com
     enable_palo_inspection: true
+  - request_id: RQ-002
+    business_justification: >
+        Add more access to existing SG for new sources
+    source:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-east-1
+      ips:
+        - 10.33.1.1/32
+        - 10.44.1.1/32
+        - 10.55.1.1/32
+    protocol: tcp
+    port: 27017
+    appid: ssl
+    url: https://api.datadoghq.com
+    enable_palo_inspection: true
