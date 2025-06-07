@@ -31,7 +31,7 @@ resource "panos_panorama_security_rule_group" "consumer_rule" {
   position_keyword = "bottom"
   
   rule {
-    name                  = "pl-consumer-${var.name_prefix}-${var.request_id}"
+    name                  = "pl-consumer-${var.name_prefix}-${var.region}"
     source_zones          = ["any"]
     source_addresses      = var.palo_source_ips
     source_users          = ["any"]
