@@ -124,7 +124,7 @@ locals {
         vpc_id = local.consumer_sg_first_combo[region][sg_key].vpc_id
         tags = local.consumer_sg_first_combo[region][sg_key].tags
         
-        # Create individual AWS security group rules (one per protocol/port/cidr)
+        # Create AWS security group rules (one per protocol/port/cidr combination)
         aws_rules = {
           for combo in local.consumer_rule_combinations :
           combo.key => {
@@ -189,7 +189,7 @@ locals {
         vpc_id = local.provider_sg_first_combo[region][sg_key].vpc_id
         tags = local.provider_sg_first_combo[region][sg_key].tags
         
-        # Create individual AWS security group rules (one per protocol/port/cidr)
+        # Create AWS security group rules (one per protocol/port/cidr combination)
         aws_rules = {
           for combo in local.provider_rule_combinations :
           combo.key => {
