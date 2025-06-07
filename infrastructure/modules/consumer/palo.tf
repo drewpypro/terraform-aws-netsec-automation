@@ -31,7 +31,7 @@ resource "panos_panorama_security_rule_group" "consumer_rule" {
   position_keyword = "bottom"
   
   rule {
-    name                  = "pl-consumer-${var.name_prefix}-${var.region}"
+    name = "pl-consumer-${var.name_prefix}-${regex("(vpce-svc-[a-zA-Z0-9]+)", var.service_name)[0]}-${var.region}"
     source_zones          = ["any"]
     source_addresses      = var.palo_source_ips
     source_users          = ["any"]
@@ -41,7 +41,7 @@ resource "panos_panorama_security_rule_group" "consumer_rule" {
     services              = [for service in panos_panorama_service_object.consumer_services : service.name]
     categories            = var.enable_palo_inspection ? [panos_custom_url_category.consumer_category[0].name] : []
     action                = "allow"
-    description           = "Allow PrivateLink consumer traffic (${var.request_id})"
+    description           = "Allow PrivateLink consumer traffic (${var.name_prefix}-${regex("(vpce-svc-[a-zA-Z0-9]+)", var.service_name)[0]}-${var.region})"
     
     tags = [
       "managed-by-terraform",

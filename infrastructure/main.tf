@@ -15,6 +15,7 @@ module "consumer_sg_us_east_1" {
   security_group_description = each.value.sg_description
   vpc_id = "vpc-01f1d91e68dfc051f"
   tags = each.value.tags
+  service_name = each.value.tags.ServiceName
   
   # AWS security group rules (pre-processed, no loops needed in module)
   aws_rules = each.value.aws_rules
@@ -77,6 +78,7 @@ module "consumer_sg_us_west_2" {
   security_group_description = each.value.sg_description
   vpc_id = each.value.vpc_id
   tags = each.value.tags
+  service_name = each.value.tags.ServiceName
   
   # AWS security group rules (pre-processed, no loops needed in module)
   aws_rules = each.value.aws_rules

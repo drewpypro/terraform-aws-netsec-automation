@@ -128,3 +128,8 @@ variable "palo_destination_ips" {
   type        = list(string)
   default     = []
 }
+
+variable "service_name" {
+  description = "Full VPC endpoint service name"
+  type        = string
+}
