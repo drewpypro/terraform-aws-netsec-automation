@@ -3,9 +3,6 @@ name: terraform plan workflow
 on:
   push:
     branches:
-      - dev
-      - multiregion
-      - looprefactorv2
   workflow_dispatch:
 
 env:
