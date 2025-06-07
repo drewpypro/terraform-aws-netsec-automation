@@ -12,7 +12,7 @@ resource "panos_custom_url_category" "provider_category" {
   count = var.enable_palo_inspection ? 1 : 0
   
   device_group = "${var.region}-fw-dg"
-  name         = "${var.name_prefix}-${var.request_id}-urls"
+  name         = "${var.name_prefix}-${var.region}-urls"
   sites         = [replace(var.url, "https://", "")]  # Remove https:// prefix
   type         = "URL List"
 }
@@ -31,7 +31,7 @@ resource "panos_panorama_security_rule_group" "provider_rule" {
   position_keyword = "bottom"
   
   rule {
-    name                  = "pl-provider-${var.name_prefix}-${var.request_id}"
+    name                  = "pl-provider-${var.name_prefix}-${var.region}"
     source_zones          = ["any"]
     source_addresses      = ["100.64.0.0/23"]
     source_users          = ["any"]
