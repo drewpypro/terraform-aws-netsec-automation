@@ -95,6 +95,21 @@ locals {
     ]
   ])
   
+  # First, create a map of consumer security groups with their first combo for reference
+  consumer_sg_first_combo = {
+    for region in local.regions : region => {
+      for sg_key in distinct([
+        for combo in local.consumer_rule_combinations :
+        combo.sg_key
+        if combo.region == region
+      ]) : sg_key => [
+        for combo in local.consumer_rule_combinations :
+        combo
+        if combo.sg_key == sg_key && combo.region == region
+      ][0]
+    }
+  }
+  
   # Group consumer combinations by security group
   consumer_sgs_by_region = {
     for region in local.regions : region => {
@@ -103,18 +118,11 @@ locals {
         combo.sg_key
         if combo.region == region
       ]) : sg_key => {
-        # Get the first combo for this SG to extract common properties
-        first_combo = [
-          for combo in local.consumer_rule_combinations :
-          combo
-          if combo.sg_key == sg_key && combo.region == region
-        ][0]
-        
         region = region
-        sg_name = first_combo.sg_name
-        sg_description = first_combo.sg_description
-        vpc_id = first_combo.vpc_id
-        tags = first_combo.tags
+        sg_name = local.consumer_sg_first_combo[region][sg_key].sg_name
+        sg_description = local.consumer_sg_first_combo[region][sg_key].sg_description
+        vpc_id = local.consumer_sg_first_combo[region][sg_key].vpc_id
+        tags = local.consumer_sg_first_combo[region][sg_key].tags
         
         # Create individual AWS security group rules (one per protocol/port/cidr)
         aws_rules = {
@@ -143,12 +151,27 @@ locals {
         ])
         
         # Palo Alto common settings from first rule
-        enable_palo_inspection = first_combo.rule.enable_palo_inspection
-        name_prefix = first_combo.policy.security_group.thirdpartyName
-        request_id = first_combo.policy.security_group.request_id
-        appid = first_combo.rule.appid
-        url = first_combo.rule.url
+        enable_palo_inspection = local.consumer_sg_first_combo[region][sg_key].rule.enable_palo_inspection
+        name_prefix = local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdpartyName
+        request_id = local.consumer_sg_first_combo[region][sg_key].policy.security_group.request_id
+        appid = local.consumer_sg_first_combo[region][sg_key].rule.appid
+        url = local.consumer_sg_first_combo[region][sg_key].rule.url
       }
+    }
+  }
+  
+  # First, create a map of provider security groups with their first combo for reference
+  provider_sg_first_combo = {
+    for region in local.regions : region => {
+      for sg_key in distinct([
+        for combo in local.provider_rule_combinations :
+        combo.sg_key
+        if combo.region == region
+      ]) : sg_key => [
+        for combo in local.provider_rule_combinations :
+        combo
+        if combo.sg_key == sg_key && combo.region == region
+      ][0]
     }
   }
   
@@ -160,18 +183,11 @@ locals {
         combo.sg_key
         if combo.region == region
       ]) : sg_key => {
-        # Get the first combo for this SG to extract common properties
-        first_combo = [
-          for combo in local.provider_rule_combinations :
-          combo
-          if combo.sg_key == sg_key && combo.region == region
-        ][0]
-        
         region = region
-        sg_name = first_combo.sg_name
-        sg_description = first_combo.sg_description
-        vpc_id = first_combo.vpc_id
-        tags = first_combo.tags
+        sg_name = local.provider_sg_first_combo[region][sg_key].sg_name
+        sg_description = local.provider_sg_first_combo[region][sg_key].sg_description
+        vpc_id = local.provider_sg_first_combo[region][sg_key].vpc_id
+        tags = local.provider_sg_first_combo[region][sg_key].tags
         
         # Create individual AWS security group rules (one per protocol/port/cidr)
         aws_rules = {
@@ -200,11 +216,11 @@ locals {
         ])
         
         # Palo Alto common settings from first rule
-        enable_palo_inspection = first_combo.rule.enable_palo_inspection
-        name_prefix = first_combo.policy.security_group.internalAppID
-        request_id = first_combo.policy.security_group.request_id
-        appid = first_combo.rule.appid
-        url = first_combo.rule.url
+        enable_palo_inspection = local.provider_sg_first_combo[region][sg_key].rule.enable_palo_inspection
+        name_prefix = local.provider_sg_first_combo[region][sg_key].policy.security_group.internalAppID
+        request_id = local.provider_sg_first_combo[region][sg_key].policy.security_group.request_id
+        appid = local.provider_sg_first_combo[region][sg_key].rule.appid
+        url = local.provider_sg_first_combo[region][sg_key].rule.url
       }
     }
   }
