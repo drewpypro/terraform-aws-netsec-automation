@@ -13,7 +13,7 @@ module "consumer_sg_us_east_1" {
   region = "us-east-1"
   security_group_name = each.value.sg_name
   security_group_description = each.value.sg_description
-  vpc_id = "vpc-0693779a6e3393666"
+  vpc_id = "vpc-01f1d91e68dfc051f"
   tags = each.value.tags
   
   # AWS security group rules (pre-processed, no loops needed in module)
