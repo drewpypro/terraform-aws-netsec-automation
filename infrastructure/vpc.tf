@@ -50,7 +50,7 @@ module "vpc_us_east_1" {
 resource "aws_security_group" "panorama" {
   name        = "allow_panorama_access"
   description = "Allow inbound traffic for testing automation"
-  vpc_id      = module.vpc_us_east_1.id
+  vpc_id      = module.vpc_us_east_1.vpc_id
 
   tags = {
     Name = "panorama_vm_sg"
