@@ -90,8 +90,6 @@ resource "aws_vpc_security_group_egress_rule" "allow_panorama_egress_all" {
   security_group_id = aws_security_group.panorama.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
-  from_port         = 0
-  to_port           = 0
 }
 
 resource "aws_instance" "panorama_vm_2" {
