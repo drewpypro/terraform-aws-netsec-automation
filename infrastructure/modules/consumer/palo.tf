@@ -8,12 +8,12 @@ resource "panos_panorama_service_object" "services" {
 }
 
 # Create URL category for the application
-resource "panos_panorama_url_category" "category" {
+resource "panos_custom_url_category" "category" {
   count = var.enable_palo_inspection ? 1 : 0
   
   device_group = "${var.region}-fw-dg"
   name         = "${var.name_prefix}-${var.request_id}-urls"
-  list         = [replace(var.url, "https://", "")]  # Remove https:// prefix
+  sites         = [replace(var.url, "https://", "")]  # Remove https:// prefix
   type         = "URL List"
 }
 
