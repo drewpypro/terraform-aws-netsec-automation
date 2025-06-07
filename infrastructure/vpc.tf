@@ -85,16 +85,27 @@ resource "aws_vpc_security_group_ingress_rule" "allow_panorama_ingress_icmp" {
   to_port           = "-1"
 }
 
-resource "aws_instance" "panorama_vm" {
+resource "aws_vpc_security_group_egress_rule" "allow_panorama_egress_all" {
+  provider          = aws.us_east_1
+  security_group_id = aws_security_group.panorama.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+  from_port         = 0
+  to_port           = 0
+}
+
+
+resource "aws_instance" "panorama_vm_1" {
   provider        = aws.us_east_1
+
   ami             = "ami-0d016c7e722bdf4a5"
   instance_type   = "c4.4xlarge"
   subnet_id       = module.vpc_us_east_1.public_subnets[0]
-  security_groups = [aws_security_group.panorama.id]
+  vpc_security_group_ids = [aws_security_group.panorama.id]
   associate_public_ip_address = "true"
 
   tags = {
-    Name = "panorama_vm"
+    Name = "panorama_vm_1"
   }
 
 
