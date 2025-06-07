@@ -515,7 +515,7 @@ rules:
     - Critical = Auto-Deny
     - Major = Require Manual Approval or Remediation
     - Minor = Allow with Warning, monitor
-
+<!-- 
 
 # Connectivity Pattern Classifier
 - Thirdparty
@@ -534,7 +534,7 @@ rules:
 | eks-app-pods | aws-service-privatelink | security-group, vpc-endpoint policy |  | 
 
 # Sample Requests
-
+ -->
 
 ## Context
 - ClientAccount1:
@@ -607,11 +607,6 @@ rules:
 3. Classify access and decide if firewall configuration is required. 
 4. Implement rules automatically or based on manual approval if required. 
 
-# Request Yaml
-```yaml
-
-
-```
 
 # Validation
 
