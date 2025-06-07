@@ -43,8 +43,8 @@ jobs:
 
       - name: Inject IPs into policy YAML
         run: |
-          sed -i "s|\\\$HOME_IP|${{ secrets.HOME_IP }}|g" policies/us-west-2/rules.yaml
-          sed -i "s|\\\$ALTERNATE_SOURCE|${{ secrets.ALTERNATE_SOURCE }}|g" policies/us-west-2/rules.yaml
+          # sed -i "s|\\\$HOME_IP|${{ secrets.HOME_IP }}|g" policies/us-west-2/rules.yaml
+          # sed -i "s|\\\$ALTERNATE_SOURCE|${{ secrets.ALTERNATE_SOURCE }}|g" policies/us-west-2/rules.yaml
           IP=$(curl -s ifconfig.me)
           echo "Runner public IP: $IP"
           aws ec2 authorize-security-group-ingress \
