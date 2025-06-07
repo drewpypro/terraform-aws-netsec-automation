@@ -82,7 +82,8 @@ resource "aws_instance" "panorama_vm" {
   instance_type   = "c4.4xlarge"
   subnet_id       = module.vpc_us_east_1.public_subnets[0]
   security_groups = [aws_security_group.panorama.id]
-
+  associate_public_ip_address = "true"
+  
   tags = {
     Name = "panorama_vm"
   }
