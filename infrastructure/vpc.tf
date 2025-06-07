@@ -81,6 +81,8 @@ resource "aws_vpc_security_group_ingress_rule" "allow_panorama_ingress_icmp" {
   security_group_id = aws_security_group.panorama.id
   cidr_ipv4         = var.HOME_IP
   ip_protocol       = "icmp"
+  from_port         = "-1"
+  to_port           = "-1"
 }
 
 resource "aws_instance" "panorama_vm" {
