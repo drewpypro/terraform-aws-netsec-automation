@@ -11,16 +11,16 @@ resource "aws_security_group" "this" {
   }
 }
 
-# Create ingress rule for the consumer security group
+# Create ingress rules - no for loops, just use the pre-processed rules
 resource "aws_vpc_security_group_ingress_rule" "this" {
-  for_each = toset(var.source_cidrs)
+  for_each = var.aws_rules
 
   security_group_id = aws_security_group.this.id
-  ip_protocol       = var.protocol
-  from_port         = var.from_port
-  to_port           = var.to_port
-  cidr_ipv4         = each.value
-  description       = var.description
+  ip_protocol       = each.value.protocol
+  from_port         = each.value.port
+  to_port           = each.value.port
+  cidr_ipv4         = each.value.cidr
+  description       = each.value.description
   
-  tags = var.rule_tags
+  tags = each.value.rule_tags
 }
