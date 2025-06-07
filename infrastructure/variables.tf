@@ -13,7 +13,7 @@ variable "palo_password" {
   type        = string
 }
 
-variable "public_ip" {
+variable "HOME_IP" {
   description = "Public IP for sourcing management connections"
   type        = string
 }
