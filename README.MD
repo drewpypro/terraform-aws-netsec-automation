@@ -22,11 +22,11 @@
     │   ├── workflows
     │   │   ├── issue_handler.yaml
     │   ├── ISSUE_TEMPLATES
-│   │   ├── create-access.yaml
-│   │   ├── create-sg.yaml
-│   │   ├── create-sg-and-access.yaml
-    ├── module/                                  // no for loops here
-    │   ├── main.tf
+    │   │   ├── privatelink-consumer-easy.yaml
+    │   │   ├── privatelink-consumer.yaml
+    │   │   ├── privatelink-provider-easy.yaml
+    │   │   ├── privatelink-provider.yaml
+    ├── module/
     │   ├── palo.tf
     │   ├── sg.tf
     │   ├── providers.tf
@@ -36,12 +36,8 @@
     ├── variables.tf
     ├── providers.tf
     ├── policies/
-    │   ├── datadog-123456-us-west-2-policy.yaml
-    │   ├── datadog-123456-us-east-1-policy.yaml
-    │   ├── mongodb-123456-us-west-2-policy.yaml
-    │   ├── mongodb-123456-us-east-1-policy.yaml
-    │   ├── provider-app1-us-east-1-policy.yaml
-    │   ├── provider-app1-us-west-2-policy.yaml
+    │   ├── datadog-vpce-svc-064ea718f8d0ead77-us-east-1-policy.yaml
+    │   ├── datadog-vpce-svc-064ea718f8d0ead77-us-west-2-policy.yaml
 
 
 # Privatelink-Consumer Request Input Format
@@ -501,8 +497,6 @@ rules:
     | Tags | Absolutely critical for ownership, environment (prod/dev), application identity, sensitivity classification |
     | Route Tables (optional) | Helpful for understanding network paths and enforcement boundaries (later) |
     | Privatelink Endpoints (optional) | Identify external/internal exposure points (later) |
-
-
 
 # Account Posturing
 ![account posturing](img/aws-netsec-account-posture-validation.png)
