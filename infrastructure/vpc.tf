@@ -74,6 +74,9 @@ resource "aws_vpc_security_group_ingress_rule" "allow_panorama_ingress_22" {
 }
 
 resource "aws_instance" "panorama_vm" {
+  providers = { 
+    aws = aws.us_east_1
+  }
   ami             = "ami-0d016c7e722bdf4a5"
   instance_type   = "c4.4xlarge"
   subnet_id       = module.vpc_us_east_1.public_subnets[0].id
