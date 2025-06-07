@@ -123,7 +123,8 @@ rules:
     - url → backend host domain
 
 # Tests
-![datadog-us-east-1-policy](img/datadog-vpce-svc-064ea718f8d0ead77-us-east-1-policy.yaml)
+![datadog-us-east-1-policy](img/us-east-1-policy.example.png)
+
 ```yaml
 security_group:
   request_id: RQ-001
@@ -171,7 +172,8 @@ rules:
     enable_palo_inspection: true
 ```
 
-![datadog-us-west-2-policy](img/datadog-vpce-svc-064ea718f8d0ead77-us-west-2-policy.yaml)
+![datadog-us-west-2-policy](img/us-west-2-policy.example.png)
+
 ```yaml
 security_group:
   request_id: RQ-003
