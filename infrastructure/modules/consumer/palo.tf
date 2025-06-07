@@ -12,7 +12,7 @@ resource "panos_custom_url_category" "consumer_category" {
   count = var.enable_palo_inspection ? 1 : 0
   
   device_group = "${var.region}-fw-dg"
-  name         = "${var.name_prefix}-${var.request_id}-urls"
+  name         = "${var.name_prefix}-${var.region}-urls"
   sites         = [replace(var.url, "https://", "")]  # Remove https:// prefix
   type         = "URL List"
 }
@@ -38,8 +38,8 @@ resource "panos_panorama_security_rule_group" "consumer_rule" {
     destination_zones     = ["any"]
     destination_addresses = ["100.64.0.0/23"]
     applications          = [var.appid]
-    services              = [for service in panos_panorama_service_object.consumer_services : service.name]  # Use created services
-    categories            = var.enable_palo_inspection ? [panos_custom_url_category.consumer_category[0].name] : []  # Use created category
+    services              = [for service in panos_panorama_service_object.consumer_services : service.name]
+    categories            = var.enable_palo_inspection ? [panos_custom_url_category.consumer_category[0].name] : []
     action                = "allow"
     description           = "Allow PrivateLink consumer traffic (${var.request_id})"
     
