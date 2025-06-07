@@ -149,7 +149,11 @@ locals {
           combo.cidr
           if combo.sg_key == sg_key && combo.region == region
         ])
+
         
+        
+
+
         # Palo Alto common settings from first rule
         enable_palo_inspection = local.consumer_sg_first_combo[region][sg_key].rule.enable_palo_inspection
         name_prefix = local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdpartyName
@@ -160,6 +164,26 @@ locals {
     }
   }
   
+  # Palo Alto service objects data (pre-processed)
+  palo_service_objects = {
+    for protocol_port in distinct([
+      for combo in local.consumer_rule_combinations :
+      "${combo.protocol}-${combo.port}"
+      if combo.sg_key == sg_key && combo.region == region
+    ]) : protocol_port => {
+      name = protocol_port
+      protocol = split("-", protocol_port)[0]
+      destination_port = split("-", protocol_port)[1]
+    }
+  }
+
+  # Palo Alto URL category data
+  palo_url_category = {
+    name = "${local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdpartyName}-${local.consumer_sg_first_combo[region][sg_key].policy.security_group.request_id}-urls"
+    urls = [replace(local.consumer_sg_first_combo[region][sg_key].rule.url, "https://", "")]
+  }
+
+
   # First, create a map of provider security groups with their first combo for reference
   provider_sg_first_combo = {
     for region in local.regions : region => {

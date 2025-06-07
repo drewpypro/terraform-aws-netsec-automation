@@ -97,3 +97,34 @@ variable "region" {
   description = "AWS region for the Panorama device group"
   type        = string
 }
+
+
+variable "aws_rules" {
+  description = "Pre-processed AWS security group rules"
+  type = map(object({
+    protocol = string
+    port = number
+    cidr = string
+    description = string
+    rule_tags = map(string)
+  }))
+}
+
+# Palo Alto variables
+variable "enable_palo_inspection" {
+  description = "Enable Palo Alto inspection"
+  type        = bool
+  default     = false
+}
+
+variable "palo_protocols_ports" {
+  description = "List of protocol-port combinations for Palo Alto (e.g., ['tcp-443', 'tcp-69'])"
+  type        = list(string)
+  default     = []
+}
+
+variable "palo_destination_ips" {
+  description = "List of all destination IPs for Palo Alto"
+  type        = list(string)
+  default     = []
+}

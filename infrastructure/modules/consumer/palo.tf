@@ -1,4 +1,4 @@
-resource "panos_panorama_service_object" "services" {
+resource "panos_panorama_service_object" "consumer_services" {
   for_each = var.enable_palo_inspection ? toset(var.palo_protocols_ports) : []
   
   device_group = "${var.region}-fw-dg"
@@ -8,7 +8,7 @@ resource "panos_panorama_service_object" "services" {
 }
 
 # Create URL category for the application
-resource "panos_custom_url_category" "category" {
+resource "panos_custom_url_category" "consumer_category" {
   count = var.enable_palo_inspection ? 1 : 0
   
   device_group = "${var.region}-fw-dg"
@@ -18,13 +18,13 @@ resource "panos_custom_url_category" "category" {
 }
 
 # Create Panorama rule for consumer (ingress) traffic
-resource "panos_panorama_security_rule_group" "rule" {
+resource "panos_panorama_security_rule_group" "consumer_rule" {
   count = var.enable_palo_inspection ? 1 : 0
   
   # Depend on the service and category objects being created first
   depends_on = [
-    panos_panorama_service_object.services,
-    panos_panorama_url_category.category
+    panos_panorama_service_object.consumer_services,
+    panos_custom_url_category.consumer_category
   ]
   
   device_group = "${var.region}-fw-dg"
@@ -38,8 +38,8 @@ resource "panos_panorama_security_rule_group" "rule" {
     destination_zones     = ["any"]
     destination_addresses = ["100.64.0.0/23"]
     applications          = [var.appid]
-    services              = [for service in panos_panorama_service_object.services : service.name]  # Use created services
-    categories            = var.enable_palo_inspection ? [panos_custom_url_category.category[0].name] : []  # Use created category
+    services              = [for service in panos_panorama_service_object.consumer_services : service.name]  # Use created services
+    categories            = var.enable_palo_inspection ? [panos_custom_url_category.consumer_category[0].name] : []  # Use created category
     action                = "allow"
     description           = "Allow PrivateLink consumer traffic (${var.request_id})"
     
