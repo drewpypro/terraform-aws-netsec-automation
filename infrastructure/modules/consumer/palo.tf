@@ -39,7 +39,7 @@ resource "panos_panorama_security_rule_group" "rule" {
     destination_addresses = ["100.64.0.0/23"]
     applications          = [var.appid]
     services              = [for service in panos_panorama_service_object.services : service.name]  # Use created services
-    categories            = var.enable_palo_inspection ? [panos_panorama_url_category.category[0].name] : []  # Use created category
+    categories            = var.enable_palo_inspection ? [panos_custom_url_category.category[0].name] : []  # Use created category
     action                = "allow"
     description           = "Allow PrivateLink consumer traffic (${var.request_id})"
     
