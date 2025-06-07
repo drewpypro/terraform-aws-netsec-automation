@@ -94,7 +94,6 @@ resource "aws_vpc_security_group_egress_rule" "allow_panorama_egress_all" {
   to_port           = 0
 }
 
-
 resource "aws_instance" "panorama_vm_2" {
   provider        = aws.us_east_1
 
@@ -108,6 +107,5 @@ resource "aws_instance" "panorama_vm_2" {
   tags = {
     Name = "panorama_vm_2"
   }
-
 
 }

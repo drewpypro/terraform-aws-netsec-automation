@@ -6,7 +6,7 @@ module "consumer_sg_us_east_1" {
   
   providers = { 
     aws = aws.us_east_1
-    # panos = panos
+    panos = panos
   }
   
   # Security group settings
