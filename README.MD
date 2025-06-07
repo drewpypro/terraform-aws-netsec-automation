@@ -122,6 +122,121 @@ rules:
     - serviceName → service or namespace
     - url → backend host domain
 
+# Tests
+![datadog-us-east-1-policy](img/datadog-vpce-svc-064ea718f8d0ead77-us-east-1-policy.yaml)
+```yaml
+security_group:
+  request_id: RQ-001
+  business_justification: >
+    Create security-group for datadog API us-east-1 privatelink in us-east-1
+  accountId: 6666666
+  region: us-east-1
+  vpc_id: vpc-01f1d91e68dfc051f
+  serviceType: privatelink-consumer
+  serviceName: com.amazonaws.vpce.us-east-1.vpce-svc-064ea718f8d0ead77
+  thirdpartyName: Datadog
+  thirdPartyID: 123456
+rules:
+  - request_id: RQ-001
+    business_justification: >
+        Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint. 
+    source:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-east-1
+      ips:
+        - 10.11.1.1/32
+        - 10.12.1.1/32
+        - 10.13.1.1/32
+    protocol: tcp
+    port: 443
+    appid: ssl
+    url: https://api.datadoghq.com
+    enable_palo_inspection: true
+  - request_id: RQ-001
+    business_justification: >
+        Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint. 
+    source:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-east-1
+      ips:
+        - 10.11.1.1/32
+        - 10.12.1.1/32
+        - 10.13.1.1/32
+    protocol: tcp
+    port: 69
+    appid: ssl
+    url: https://api.datadoghq.com
+    enable_palo_inspection: true
+```
+
+![datadog-us-west-2-policy](img/datadog-vpce-svc-064ea718f8d0ead77-us-west-2-policy.yaml)
+```yaml
+security_group:
+  request_id: RQ-003
+  business_justification: >
+    Create security-group for datadog API us-east-1 privatelink in us-east-1
+  accountId: 6666666
+  region: us-west-2
+  vpc_id: vpc-01eee972513145914
+  serviceType: privatelink-consumer
+  serviceName: com.amazonaws.vpce.us-east-1.vpce-svc-064ea718f8d0ead77
+  thirdpartyName: Datadog
+  thirdPartyID: 123456
+rules:
+  - request_id: RQ-003
+    business_justification: >
+        Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint. 
+    source:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-west-2
+      ips:
+        - 10.21.1.1/32
+        - 10.22.1.1/32
+        - 10.13.1.1/32
+    protocol: tcp
+    port: 443
+    appid: ssl
+    url: https://api.datadoghq.com
+    enable_palo_inspection: true
+  - request_id: RQ-003
+    business_justification: >
+        Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint. 
+    source:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-west-2
+      ips:
+        - 10.21.1.1/32
+        - 10.22.1.1/32
+        - 10.13.1.1/32
+    protocol: tcp
+    port: 666
+    appid: ssl
+    url: 
+      - https://logs.datadog.com
+      - https://api.datadoghq.com
+    enable_palo_inspection: true
+  - request_id: RQ-003
+    business_justification: >
+        Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint. 
+    source:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-west-2
+      ips:
+        - 10.33.1.1/32
+        - 10.22.1.1/32
+        - 10.13.1.1/32
+    protocol: udp
+    port: 27017
+    appid: mongodb
+    url: https://logs.datadog.com
+    enable_palo_inspection: true
+```
+
 # Logic
 
 ## Terraform
