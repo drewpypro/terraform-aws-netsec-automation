@@ -48,6 +48,7 @@ module "vpc_us_east_1" {
 }
 
 resource "aws_security_group" "panorama" {
+  provider = aws.us_east_1
   name        = "allow_panorama_access"
   description = "Allow inbound traffic for testing automation"
   vpc_id      = module.vpc_us_east_1.vpc_id
@@ -73,16 +74,16 @@ resource "aws_vpc_security_group_ingress_rule" "allow_panorama_ingress_22" {
   to_port           = 22
 }
 
-# resource "aws_instance" "panorama_vm" {
+resource "aws_instance" "panorama_vm" {
+  provider = aws.us_east_1
+  ami             = "ami-0d016c7e722bdf4a5"
+  instance_type   = "c4.4xlarge"
+  subnet_id       = module.vpc_us_east_1.public_subnets[0].id
+  security_groups = [aws_security_group.panorama.id]
 
-#   ami             = "ami-0d016c7e722bdf4a5"
-#   instance_type   = "c4.4xlarge"
-#   subnet_id       = module.vpc_us_east_1.public_subnets[0].id
-#   security_groups = [aws_security_group.panorama.id]
-
-#   tags = {
-#     Name = "panorama_vm"
-#   }
+  tags = {
+    Name = "panorama_vm"
+  }
 
 
-# }
+}
