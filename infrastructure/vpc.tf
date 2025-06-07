@@ -95,7 +95,7 @@ resource "aws_vpc_security_group_egress_rule" "allow_panorama_egress_all" {
 }
 
 
-resource "aws_instance" "panorama_vm_1" {
+resource "aws_instance" "panorama_vm_2" {
   provider        = aws.us_east_1
 
   ami             = "ami-0d016c7e722bdf4a5"
@@ -103,9 +103,10 @@ resource "aws_instance" "panorama_vm_1" {
   subnet_id       = module.vpc_us_east_1.public_subnets[0]
   vpc_security_group_ids = [aws_security_group.panorama.id]
   associate_public_ip_address = "true"
+  key_name = "panorama_key"
 
   tags = {
-    Name = "panorama_vm_1"
+    Name = "panorama_vm_2"
   }
 
 
