@@ -43,7 +43,7 @@ jobs:
           IP=$(curl -s ifconfig.me)
           echo "Runner public IP: $IP"
           aws ec2 authorize-security-group-ingress \
-            --region us-west-2 \
+            --region us-east-1 \
             --group-id "sg-0ab46ac1c9bfe7e7a" \
             --protocol tcp \
             --port "22-443" \
