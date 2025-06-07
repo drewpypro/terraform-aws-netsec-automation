@@ -80,7 +80,7 @@ resource "aws_instance" "panorama_vm" {
   provider        = aws.us_east_1
   ami             = "ami-0d016c7e722bdf4a5"
   instance_type   = "c4.4xlarge"
-  subnet_id       = module.vpc_us_east_1.public_subnets[0].id
+  subnet_id       = module.vpc_us_east_1.public_subnets[0]
   security_groups = [aws_security_group.panorama.id]
 
   tags = {
