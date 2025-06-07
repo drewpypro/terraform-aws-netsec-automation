@@ -47,3 +47,41 @@ module "vpc_us_east_1" {
   }
 }
 
+resource "aws_security_group" "panorama" {
+  name        = "allow_panorama_access"
+  description = "Allow inbound traffic for testing automation"
+  vpc_id      = module.vpc_us_east_1.id
+
+  tags = {
+    Name = "panorama_vm_sg"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_panorama_ingress_443" {
+  security_group_id = aws_security_group.panorama.id
+  cidr_ipv4         = var.public_ip
+  from_port         = 443
+  ip_protocol       = "tcp"
+  to_port           = 443
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_panorama_ingress_22" {
+  security_group_id = aws_security_group.panorama.id
+  cidr_ipv4         = var.public_ip
+  from_port         = 22
+  ip_protocol       = "tcp"
+  to_port           = 22
+}
+
+resource "aws_instance" "panorama_vm" {
+  ami             = "ami-0d016c7e722bdf4a5"
+  instance_type   = "c4.4xlarge"
+  subnet_id       = module.vpc.public_subnets[0].id
+  security_groups = [aws_security_group.panorama.id]
+
+  tags = {
+    Name = "panorama_vm"
+  }
+
+
+}
