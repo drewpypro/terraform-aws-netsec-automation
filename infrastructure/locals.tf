@@ -203,13 +203,10 @@ locals {
         # Palo Alto grouped rules
         palo_rules = try(local.consumer_palo_grouped_rules[region][sg_key].palo_rules, {})
         
-        # Get policy info from the first combo for this security group
-        first_combo = local.consumer_sg_first_combo[region][sg_key]
-        
         # Palo Alto common settings
-        service_name = first_combo.policy.security_group.serviceName
-        name_prefix = first_combo.policy.security_group.thirdpartyName
-        request_id = first_combo.policy.security_group.request_id
+        service_name = local.consumer_sg_first_combo[region][sg_key].policy.security_group.serviceName
+        name_prefix = local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdpartyName
+        request_id = local.consumer_sg_first_combo[region][sg_key].policy.security_group.request_id
       }
     }
   }
@@ -305,7 +302,7 @@ locals {
         # Palo Alto service objects data (pre-processed)
         palo_service_objects = {
           for protocol_port in distinct([
-            for combo in local.consumer_rule_combinations :
+            for combo in local.provider_rule_combinations :
             "${combo.protocol}-${combo.port}"
             if combo.sg_key == sg_key && combo.region == region
           ]) : protocol_port => {
