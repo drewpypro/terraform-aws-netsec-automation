@@ -21,7 +21,7 @@ resource "panos_custom_url_category" "consumer_categories" {
   ])
   
   device_group = "${var.region}-fw-dg"
-  name         = "${var.name_prefix}-${var.region}-${replace(each.key, ".", "-")}-urls"
+  name         = "${substr(var.name_prefix, 0, 8)}-${substr(var.region, -1, 1)}-${substr(replace(replace(each.key, ".", ""), "-", ""), 0, 15)}-url"
   sites        = [each.key]
   type         = "URL List"
 }
