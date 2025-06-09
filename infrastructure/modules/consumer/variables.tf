@@ -24,57 +24,44 @@ variable "tags" {
   default     = {}
 }
 
+variable "service_name" {
+  description = "AWS service name for the PrivateLink endpoint"
+  type        = string
+}
+
 variable "aws_rules" {
   description = "Pre-processed AWS security group rules"
   type = map(object({
-    protocol = string
-    port = number
-    cidr = string
+    protocol    = string
+    from_port   = number
+    to_port     = number
+    cidr        = string
     description = string
-    rule_tags = map(string)
+    rule_tags   = map(string)
   }))
 }
 
-# Palo Alto variables
-variable "enable_palo_inspection" {
-  description = "Enable Palo Alto inspection"
-  type        = bool
-  default     = false
-}
-
 variable "name_prefix" {
-  description = "Name prefix for Palo Alto rules"
+  description = "Prefix for Palo Alto rule names"
   type        = string
 }
 
 variable "request_id" {
-  description = "Request ID"
+  description = "Request ID for tracking"
   type        = string
 }
 
-variable "appid" {
-  description = "Application ID for Palo Alto"
-  type        = string
-}
-
-variable "url" {
-  description = "URL for Palo Alto"
-  type        = string
-}
-
-variable "palo_protocols_ports" {
-  description = "List of protocol-port combinations for Palo Alto (e.g., ['tcp-443', 'tcp-69'])"
-  type        = list(string)
-  default     = []
-}
-
-variable "palo_source_ips" {
-  description = "List of all source IPs for Palo Alto"
-  type        = list(string)
-  default     = []
-}
-
-variable "service_name" {
-  description = "Full VPC endpoint service name"
-  type        = string
+variable "palo_rules" {
+  description = "Pre-processed Palo Alto rules grouped by protocol/port/appid/url"
+  type = map(object({
+    protocol               = string
+    from_port             = number
+    to_port               = number
+    port_key              = string
+    appid                 = string
+    url                   = string
+    source_ips            = list(string)
+    enable_palo_inspection = bool
+  }))
+  default = {}
 }

@@ -15,19 +15,15 @@ module "consumer_sg_us_east_1" {
   security_group_description = each.value.sg_description
   vpc_id = "vpc-01f1d91e68dfc051f"
   tags = each.value.tags
-  service_name = each.value.tags.ServiceName
+  service_name = each.value.service_name
   
   # AWS security group rules (pre-processed, no loops needed in module)
   aws_rules = each.value.aws_rules
   
   # Palo Alto settings
-  enable_palo_inspection = each.value.enable_palo_inspection
   name_prefix = each.value.name_prefix
   request_id = each.value.request_id
-  appid = each.value.appid
-  url = each.value.url
-  palo_protocols_ports = each.value.palo_protocols_ports
-  palo_source_ips = each.value.palo_source_ips
+  palo_rules = each.value.palo_rules
 }
 
 # # Create provider security groups for us-east-1 region
@@ -78,19 +74,15 @@ module "consumer_sg_us_west_2" {
   security_group_description = each.value.sg_description
   vpc_id = each.value.vpc_id
   tags = each.value.tags
-  service_name = each.value.tags.ServiceName
+  service_name = each.value.service_name
   
   # AWS security group rules (pre-processed, no loops needed in module)
   aws_rules = each.value.aws_rules
   
   # Palo Alto settings
-  enable_palo_inspection = each.value.enable_palo_inspection
   name_prefix = each.value.name_prefix
   request_id = each.value.request_id
-  appid = each.value.appid
-  url = each.value.url
-  palo_protocols_ports = each.value.palo_protocols_ports
-  palo_source_ips = each.value.palo_source_ips
+  palo_rules = each.value.palo_rules
 }
 
 # # Create provider security groups for us-west-2 region
