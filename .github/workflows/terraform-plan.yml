@@ -40,7 +40,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.BUCKET_SECRET_ACCESS_KEY }}
         run: |
           aws --endpoint-url ${BUCKET_ENDPOINT} s3api head-object --bucket ${BUCKET_NAME} --key test/poop.txt || \
-      #     (echo "❌ Backend validation failed. Check credentials or filepath." && exit 1)
+          (echo "❌ Backend validation failed. Check credentials or filepath." && exit 1)
 
       # - name: Inject IPs into policy YAML
       #   run: |
