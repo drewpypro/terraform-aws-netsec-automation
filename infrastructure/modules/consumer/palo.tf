@@ -14,11 +14,11 @@ resource "panos_panorama_service_object" "consumer_services" {
 
 # Create URL categories for each unique URL
 resource "panos_custom_url_category" "consumer_categories" {
-  for_each = {
+  for_each = toset([
     for rule_key, rule in var.palo_rules : 
-    rule.url => rule
+    rule.url
     if rule.enable_palo_inspection && rule.url != "any"
-  }
+  ])
   
   device_group = "${var.region}-fw-dg"
   name         = "${var.name_prefix}-${var.region}-${replace(each.key, ".", "-")}-urls"
