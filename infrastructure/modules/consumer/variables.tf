@@ -28,7 +28,7 @@ variable "aws_rules" {
   description = "Pre-processed AWS security group rules"
   type = map(object({
     protocol = string
-    port = number
+    port = string
     from_port = number
     to_port = number
     cidr = string
@@ -86,7 +86,7 @@ variable "palo_rules" {
   description = "Pre-processed Palo Alto rules grouped by protocol/port/appid/url"
   type = map(object({
     protocol               = string
-    port                  = number
+    port                  = string
     appid                 = string
     url                   = string
     source_ips            = list(string)
