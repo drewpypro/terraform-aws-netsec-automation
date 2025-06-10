@@ -8,7 +8,7 @@ resource "panos_panorama_service_object" "consumer_services" {
 }
 
 resource "panos_custom_url_category" "consumer_category" {
-  count = var.enable_palo_inspection ? 1 : 0
+  count = var.enable_palo_inspection && var.url != null && var.url != "" ? 1 : 0
 
   device_group = "${var.region}-fw-dg"
   name         = "${var.name_prefix}-${var.region}-urls"
