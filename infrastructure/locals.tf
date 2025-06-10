@@ -65,17 +65,12 @@ locals {
   
   # Deduplicated AWS SG rules: group by sg_key + cidr + proto + port
   deduped_consumer_aws_rules = {
-    for combo in distinct([
-      for c in local.consumer_rule_combinations : {
-        sg_key   = c.sg_key
-        region   = c.region
-        protocol = c.protocol
-        port     = c.port
-        cidr     = c.cidr
-      }
-    ]) : 
-    "${combo.sg_key}-${combo.protocol}-${combo.port}-${combo.cidr}" => combo
+    for k, v in tomap({
+      for combo in local.consumer_rule_combinations :
+      "${combo.sg_key}-${combo.protocol}-${combo.port}-${combo.cidr}" => combo
+    }) : k => v
   }
+
 
 
   # Flatten provider rules by protocol/port/cidr - each combination gets its own entry
