@@ -215,7 +215,7 @@ rules:
     - #source_cidr, proto/port, appid, url
     1. {10.50.0.0/24, 10.58.1.1/32}, tcp/443, ssl, api.datadoghq.com
     2. {10.50.0.0/24, 10.58.1.1/32}, tcp/27017, any, any
-    3 {10.50.0.0/24, 10.58.1.1/32}, tcp/443, ssl, any
+    3. {10.50.0.0/24, 10.58.1.1/32}, tcp/443, ssl, any
 
 ## Port-Range-Rule Test Input
 ```yaml
@@ -272,7 +272,7 @@ rules:
     ![port-range-rule-aws-sg-example](../img/port-range-rule-palo-example.png)
     - #source_cidr, proto/port, appid, url
     1. 10.50.0.0/24, tcp/9000-10000, ssl, api.datadoghq.com
-	2. 10.58.1.1/32, tcp/8010-8020, ssl, api.datadoghq.com
+    2. 10.58.1.1/32, tcp/8010-8020, ssl, api.datadoghq.com
 
 
 # [V2](https://github.com/drewpypro/terraform-aws-netsec-automation/tree/v2) testing
