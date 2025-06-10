@@ -32,7 +32,7 @@ locals {
       for rule_idx, rule in policy.rules : [
         for cidr_idx, cidr in rule.source.ips : {
           key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}-${rule_idx}-${cidr_idx}"
-          dedup_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}-${rule_idx}"
+          dedup_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}"
           sg_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}"
           region = policy.security_group.region
           sg_name = "${lower(policy.security_group.thirdpartyName)}-${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}-${policy.security_group.region}-sg"
@@ -109,9 +109,13 @@ locals {
   }
 
   # Deduplicate AWS rules  
-  consumer_aws_rules_deduped = {
+  consumer_aws_rules_grouped = {
     for combo in local.consumer_rule_combinations :
-    combo.dedup_key => combo
+    combo.dedup_key => combo...
+  }
+  consumer_aws_rules_deduped = {
+    for key, combos in local.consumer_aws_rules_grouped :
+    key => combos[0]
   }
   
   # First, create a map of consumer security groups with their first combo for reference

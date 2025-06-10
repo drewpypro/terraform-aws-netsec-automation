@@ -6,6 +6,7 @@ on:
       - issue-*
       - dev
       - refactor*
+      - v*
   workflow_dispatch:
 
 env:
