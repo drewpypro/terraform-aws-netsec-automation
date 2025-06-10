@@ -41,8 +41,11 @@ locals {
   consumer_aws_rule_combinations = flatten([
     for file, policy in local.consumer_policies : [
       for rule_idx, rule in policy.rules : [
-        for cidr in rule.source.ips : {
-          key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}"
+        for cidr_idx, cidr in rule.source.ips : {
+          # Create a simple key for deduplication (protocol-port-cidr only)
+          dedup_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}"
+          # Create a unique key for terraform resource naming
+          key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}-${rule_idx}-${cidr_idx}"
           sg_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}"
           region = policy.security_group.region
           sg_name = "${lower(policy.security_group.thirdpartyName)}-${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}-${policy.security_group.region}-sg"
@@ -75,6 +78,12 @@ locals {
       ]
     ]
   ])
+
+  # Deduplicate AWS rules by protocol/port/cidr combination
+  consumer_aws_rule_combinations_deduped = {
+    for combo in local.consumer_aws_rule_combinations :
+    combo.dedup_key => combo
+  }
   
   # Flatten consumer rules for Palo Alto (by protocol/port/appid/url - each combination gets grouped)
   consumer_palo_rule_combinations = flatten([
@@ -161,11 +170,11 @@ locals {
   consumer_sg_first_combo = {
     for region in local.regions : region => {
       for sg_key in distinct([
-        for combo in local.consumer_aws_rule_combinations :
+        for combo in values(local.consumer_aws_rule_combinations_deduped) :
         combo.sg_key
         if combo.region == region
       ]) : sg_key => [
-        for combo in local.consumer_aws_rule_combinations :
+        for combo in values(local.consumer_aws_rule_combinations_deduped) :
         combo
         if combo.sg_key == sg_key && combo.region == region
       ][0]
@@ -176,7 +185,7 @@ locals {
   consumer_sgs_by_region = {
     for region in local.regions : region => {
       for sg_key in distinct([
-        for combo in local.consumer_aws_rule_combinations :
+        for combo in values(local.consumer_aws_rule_combinations_deduped) :
         combo.sg_key
         if combo.region == region
       ]) : sg_key => {
@@ -186,10 +195,10 @@ locals {
         vpc_id = local.consumer_sg_first_combo[region][sg_key].vpc_id
         tags = local.consumer_sg_first_combo[region][sg_key].tags
         
-        # Create individual AWS security group rules (one per protocol/port/cidr)
+        # Create individual AWS security group rules (deduplicated - one per unique protocol/port/cidr)
         aws_rules = {
-          for combo in local.consumer_aws_rule_combinations :
-          combo.key => {
+          for combo in values(local.consumer_aws_rule_combinations_deduped) :
+          combo.dedup_key => {
             protocol = combo.protocol
             from_port = combo.from_port
             to_port = combo.to_port
