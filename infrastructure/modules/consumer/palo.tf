@@ -44,7 +44,7 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
     categories = (
       length(panos_custom_url_category.consumer_category) > 0
       ? [panos_custom_url_category.consumer_category[0].name]
-      : []
+      : ["any"]
     )
     action      = "allow"
     description = "Allow ${var.name_prefix} ${each.value.protocol}/${each.value.port} ${each.value.appid} ${each.value.url}"
