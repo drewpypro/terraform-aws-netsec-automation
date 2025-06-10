@@ -28,7 +28,7 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
   position_keyword = "bottom"
 
   rule {
-    name = "pl-consumer-${var.name_prefix}-${regex("(vpce-svc-[a-zA-Z0-9]+)", var.service_name)[0]}-${each.key}"
+    name = "pl-${var.name_prefix}-${regex("(vpce-svc-[a-zA-Z0-9]+)", var.service_name)[0]}-${var.region}-r${index(keys(var.palo_rules), each.key)}"
     source_zones           = ["any"]
     source_addresses       = each.value.source_ips
     source_users           = ["any"]
