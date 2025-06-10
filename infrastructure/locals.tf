@@ -159,6 +159,8 @@ locals {
           combo.dedup_key => {
             protocol = combo.protocol
             port = combo.port
+            from_port   = can(regex("-", combo.port)) ? tonumber(split("-", combo.port)[0]) : tonumber(combo.port)
+            to_port     = can(regex("-", combo.port)) ? tonumber(split("-", combo.port)[1]) : tonumber(combo.port)
             cidr = combo.cidr
             description = "Allow access from ${combo.rule.source.account_id} (${combo.rule.request_id})"
             rule_tags = combo.rule_tags
