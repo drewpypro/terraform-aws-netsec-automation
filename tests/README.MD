@@ -1,4 +1,5 @@
 # [V2.2](https://github.com/drewpypro/terraform-aws-netsec-automation/tree/v2.2) testing
+## Multi-Rule-Testing1 Request
 ```yaml
 security_group:
   request_id: RQ-001
@@ -84,7 +85,7 @@ rules:
     enable_palo_inspection: true
 ```
 
-## Output
+## Multi-Rule-Testing1 Output
 - AWS SG (cannot support dupes, list is accepted but still writes rules as cidr, proto, port)
     ![multi-rule-testing1-aws-sg-example](../img/multi-rule-testing1-aws-sg-example.png)
     - #source_cidr, proto/port
@@ -101,7 +102,7 @@ rules:
     5. 10.58.1.1/32, tcp/27017, any, any
 
 
-## Test Input
+## Multi-Rule-Testing2 Request
 ```yaml
 security_group:
   request_id: RQ-001
@@ -201,8 +202,7 @@ rules:
     enable_palo_inspection: true
 ```
 
-## Expected Output (summarized)
-
+## Multi-Rule-Testing2 Output
 - AWS SG (cannot support dupes, list is accepted but still writes rules as cidr, proto, port)
     ![multi-rule-testing2-aws-sg-example](../img/multi-rule-testing2-aws-sg-example.png)
     - #source_cidr, proto/port
@@ -217,7 +217,7 @@ rules:
     2. {10.50.0.0/24, 10.58.1.1/32}, tcp/27017, any, any
     3 {10.50.0.0/24, 10.58.1.1/32}, tcp/443, ssl, any
 
-## Test Input
+## Port-Range-Rule Test Input
 ```yaml
 security_group:
   request_id: RQ-001
@@ -261,7 +261,7 @@ rules:
     enable_palo_inspection: true
 ```
 
-## Output
+## Port-Range-Rule Test Output
 
 - AWS SG (cannot support dupes, list is accepted but still writes rules as cidr, proto, port)
     ![port-range-rule-aws-sg-example](../img/port-range-rule-aws-sg-example.png)
@@ -275,7 +275,7 @@ rules:
 	2. 10.58.1.1/32, tcp/8010-8020, ssl, api.datadoghq.com
 
 
-# V2 testing
+# [V2](https://github.com/drewpypro/terraform-aws-netsec-automation/tree/v2) testing
 
 ## datadog-vpce-svc-064ea718f8d0ead77-us-east-1-policy.yaml
 ```yaml
