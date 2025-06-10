@@ -25,13 +25,13 @@ variable "tags" {
 }
 
 variable "aws_rules" {
-  description = "Pre-processed AWS security group rules"
+  description = "Pre-processed AWS security group rules with merged CIDRs"
   type = map(object({
-    protocol = string
-    port = number
-    cidr = string
+    protocol    = string
+    port        = number
+    cidrs       = list(string)  # Changed from 'cidr' to 'cidrs' (list)
     description = string
-    rule_tags = map(string)
+    rule_tags   = map(string)
   }))
 }
 

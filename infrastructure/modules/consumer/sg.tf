@@ -11,9 +11,28 @@ resource "aws_security_group" "this" {
   }
 }
 
-# Create ingress rules - no for loops, just use the pre-processed rules
+# Flatten aws_rules to create one rule per CIDR
+locals {
+  flattened_rules = flatten([
+    for rule_key, rule in var.aws_rules : [
+      for cidr_idx, cidr in rule.cidrs : {
+        key = "${rule_key}-${cidr_idx}"
+        protocol = rule.protocol
+        port = rule.port
+        cidr = cidr
+        description = rule.description
+        rule_tags = rule.rule_tags
+      }
+    ]
+  ])
+}
+
+# Create ingress rules - one per CIDR
 resource "aws_vpc_security_group_ingress_rule" "this" {
-  for_each = var.aws_rules
+  for_each = {
+    for rule in local.flattened_rules :
+    rule.key => rule
+  }
 
   security_group_id = aws_security_group.this.id
   ip_protocol       = each.value.protocol

@@ -32,7 +32,7 @@ locals {
       for rule_idx, rule in policy.rules : [
         for cidr_idx, cidr in rule.source.ips : {
           key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}-${rule_idx}-${cidr_idx}"
-          dedup_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}"
+          dedup_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}"  # ✅ REMOVED CIDR
           sg_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}"
           region = policy.security_group.region
           sg_name = "${lower(policy.security_group.thirdpartyName)}-${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}-${policy.security_group.region}-sg"
@@ -108,10 +108,26 @@ locals {
     }
   }
 
-  # Deduplicate AWS rules  
+  # ✅ Group AWS rules by protocol/port and collect all CIDRs
   consumer_aws_rules_deduped = {
     for combo in local.consumer_rule_combinations :
-    combo.dedup_key => combo
+    combo.dedup_key => {
+      protocol = combo.protocol
+      port = combo.port
+      # ✅ Collect all CIDRs for this protocol/port combination
+      cidrs = distinct([
+        for c in local.consumer_rule_combinations :
+        c.cidr
+        if c.dedup_key == combo.dedup_key
+      ])
+      description = "Allow access for ${combo.policy.security_group.thirdpartyName} ${combo.protocol}/${combo.port}"
+      rule_tags = combo.rule_tags
+      sg_key = combo.sg_key
+      region = combo.region
+      policy = combo.policy
+      rule = combo.rule
+    }
+    ... # ✅ Use ellipsis to handle duplicate keys
   }
   
   # First, create a map of consumer security groups with their first combo for reference
@@ -138,19 +154,25 @@ locals {
         if combo.region == region
       ]) : sg_key => {
         region = region
-        sg_name = local.consumer_sg_first_combo[region][sg_key].sg_name
-        sg_description = local.consumer_sg_first_combo[region][sg_key].sg_description
-        vpc_id = local.consumer_sg_first_combo[region][sg_key].vpc_id
-        tags = local.consumer_sg_first_combo[region][sg_key].tags
+        sg_name = local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdpartyName != null ? "${lower(local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdpartyName)}-${replace(local.consumer_sg_first_combo[region][sg_key].policy.security_group.serviceName, "com.amazonaws.vpce.", "")}-${region}-sg" : "default-sg"
+        sg_description = local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdpartyName != null ? "Security group for ${local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdpartyName} PrivateLink (${local.consumer_sg_first_combo[region][sg_key].policy.security_group.serviceName})" : "Default security group"
+        vpc_id = local.consumer_sg_first_combo[region][sg_key].policy.security_group.vpc_id
+        tags = {
+          ThirdPartyID = local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdPartyID
+          ThirdPartyName = local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdpartyName
+          ServiceType = "privatelink-consumer"
+          RequestID = local.consumer_sg_first_combo[region][sg_key].policy.security_group.request_id
+          ServiceName = local.consumer_sg_first_combo[region][sg_key].policy.security_group.serviceName
+        }
         
-        # AWS rules (deduplicated)
+        # ✅ AWS rules (grouped by protocol/port with merged CIDRs)
         aws_rules = {
           for combo in values(local.consumer_aws_rules_deduped) :
           combo.dedup_key => {
             protocol = combo.protocol
             port = combo.port
-            cidr = combo.cidr
-            description = "Allow access from ${combo.rule.source.account_id} (${combo.rule.request_id})"
+            cidrs = combo.cidrs  # ✅ Now this is a list of CIDRs
+            description = combo.description
             rule_tags = combo.rule_tags
           }
           if combo.sg_key == sg_key && combo.region == region
@@ -170,11 +192,11 @@ locals {
           "${combo.protocol}-${combo.port}"
           if combo.sg_key == sg_key && combo.region == region
         ])
-        palo_source_ips = distinct([
+        palo_source_ips = distinct(flatten([
           for combo in values(local.consumer_aws_rules_deduped) :
-          combo.cidr
+          combo.cidrs  # ✅ Updated to use cidrs (list) instead of cidr
           if combo.sg_key == sg_key && combo.region == region
-        ])
+        ]))
       }
     }
   }
