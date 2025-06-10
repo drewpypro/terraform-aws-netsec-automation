@@ -63,6 +63,21 @@ locals {
     ]
   ])
   
+  # Deduplicated AWS SG rules: group by sg_key + cidr + proto + port
+  deduped_consumer_aws_rules = {
+    for combo in distinct([
+      for c in local.consumer_rule_combinations : {
+        sg_key   = c.sg_key
+        region   = c.region
+        protocol = c.protocol
+        port     = c.port
+        cidr     = c.cidr
+      }
+    ]) : 
+    "${combo.sg_key}-${combo.protocol}-${combo.port}-${combo.cidr}" => combo
+  }
+
+
   # Flatten provider rules by protocol/port/cidr - each combination gets its own entry
   provider_rule_combinations = flatten([
     for file, policy in local.provider_policies : [
@@ -126,7 +141,7 @@ locals {
         
         # Create individual AWS security group rules (one per protocol/port/cidr)
         aws_rules = {
-          for combo in local.consumer_rule_combinations :
+          for key, combo in local.deduped_consumer_aws_rules :
           combo.key => {
             protocol = combo.protocol
             port = combo.port
@@ -266,4 +281,15 @@ locals {
       }
     }
   }
+}
+
+output "raw_combos" {
+  value = [for c in local.consumer_rule_combinations : {
+    sg_key = c.sg_key
+    proto = c.protocol
+    port = c.port
+    cidr = c.cidr
+    appid = c.rule.appid
+    url = c.rule.url
+  }]
 }
