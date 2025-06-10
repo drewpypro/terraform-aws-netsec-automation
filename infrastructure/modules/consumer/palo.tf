@@ -2,14 +2,14 @@
 resource "panos_panorama_service_object" "consumer_services" {
   for_each = {
     for rule_key, rule in var.palo_rules : 
-    "${rule.protocol}-${rule.port_key}" => rule
+    "${rule.protocol}-${rule.port}" => rule
     if rule.enable_palo_inspection
   }
   
   device_group = "${var.region}-fw-dg"
-  name         = "${each.value.protocol}-${each.value.port_key}"
+  name         = "${each.value.protocol}-${each.value.port}"
   protocol     = each.value.protocol
-  destination_port = each.value.from_port != each.value.to_port ? "${each.value.from_port}-${each.value.to_port}" : tostring(each.value.from_port)
+  destination_port = tostring(each.value.port)
 }
 
 # Create URL categories for each unique URL
@@ -51,10 +51,10 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
     destination_zones     = ["any"]
     destination_addresses = ["100.64.0.0/23"]
     applications          = [each.value.appid]
-    services              = [panos_panorama_service_object.consumer_services["${each.value.protocol}-${each.value.port_key}"].name]
+    services              = [panos_panorama_service_object.consumer_services["${each.value.protocol}-${each.value.port}"].name]
     categories            = each.value.url != "any" ? [panos_custom_url_category.consumer_categories[each.value.url].name] : []
     action                = "allow"
-    description           = "Allow PrivateLink consumer traffic (${var.name_prefix}-${regex("(vpce-svc-[a-zA-Z0-9]+)", var.service_name)[0]}-${var.region}) - ${each.value.protocol}/${each.value.port_key}/${each.value.appid}/${each.value.url}"
+    description           = "Allow PrivateLink consumer traffic - ${each.value.protocol}/${each.value.port}/${each.value.appid}/${each.value.url}"
     
     tags = [
       "managed-by-terraform",
