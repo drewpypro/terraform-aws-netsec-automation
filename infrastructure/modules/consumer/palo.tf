@@ -9,17 +9,19 @@ resource "panos_panorama_service_object" "consumer_services" {
 
 resource "panos_custom_url_category" "consumer_category" {
   for_each = {
-    for key, rule in var.palo_rules :
-    key => rule
-    if var.enable_palo_inspection && rule.url != "any"
+    for url_key in distinct([
+      for rule in var.palo_rules : replace(rule.url, "https://", "")
+      if var.enable_palo_inspection && rule.url != "any"
+    ]) : url_key => {
+      sites = ["https://${url_key}"]
+    }
   }
 
   device_group = "${var.region}-fw-dg"
-  name         = "${var.name_prefix}-${var.region}-${replace(each.value.url, ".", "-")}-urls"
-  sites        = [each.value.url]
+  name         = each.key
+  sites        = each.value.sites
   type         = "URL List"
 }
-
 
 resource "panos_panorama_security_rule_group" "consumer_rules" {
   for_each = var.enable_palo_inspection ? var.palo_rules : {}
@@ -45,7 +47,7 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
     ]
     categories = (
       each.value.url != "any"
-      ? [panos_custom_url_category.consumer_category[each.key].name]
+      ? [replace(each.value.url, "https://", "")]
       : ["any"]
     )
     action      = "allow"
@@ -56,4 +58,4 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
       "privatelink-consumer",
     ]
   }
-}
+} 

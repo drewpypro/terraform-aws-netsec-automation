@@ -75,8 +75,8 @@ locals {
           protocol = rule.protocol
           port = rule.port
           appid = rule.appid != null && rule.appid != "" ? rule.appid : "any"
-          url = rule.url != null && rule.url != "" ? replace(rule.url, "https://", "") : "any"
-          source_ips = [cidr] # <- individual CIDR per combo now
+          url = rule.url != null && rule.url != "" ? rule.url : "any"
+          source_ips = [cidr]
           enable_palo_inspection = rule.enable_palo_inspection
           policy = policy
         }
