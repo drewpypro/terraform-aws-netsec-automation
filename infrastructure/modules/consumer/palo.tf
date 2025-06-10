@@ -9,14 +9,17 @@ resource "panos_panorama_service_object" "consumer_services" {
 
 resource "panos_custom_url_category" "consumer_category" {
   for_each = {
-    for key, rule in var.palo_rules :
-    replace(rule.url, "https://", "") => rule
-    if var.enable_palo_inspection && rule.url != "any"
+    for url_key in distinct([
+      for rule in var.palo_rules : replace(rule.url, "https://", "")
+      if var.enable_palo_inspection && rule.url != "any"
+    ]) : url_key => {
+      sites = ["https://${url_key}"]
+    }
   }
 
   device_group = "${var.region}-fw-dg"
-  name         = each.key                               
-  sites        = [each.value.url]                       
+  name         = each.key
+  sites        = each.value.sites
   type         = "URL List"
 }
 
