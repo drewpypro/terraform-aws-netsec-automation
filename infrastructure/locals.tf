@@ -63,7 +63,7 @@ locals {
       ]
     ]
   ])
-
+ 
   # NEW: Group Palo Alto rules by protocol+port+appid+url
   consumer_palo_rule_combinations = flatten([
     for file, policy in local.consumer_policies : [
