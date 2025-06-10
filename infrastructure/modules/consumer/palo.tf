@@ -55,4 +55,4 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
       "privatelink-consumer",
     ]
   }
-}
+} 
