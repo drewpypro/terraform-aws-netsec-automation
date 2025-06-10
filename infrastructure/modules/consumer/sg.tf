@@ -17,8 +17,8 @@ resource "aws_vpc_security_group_ingress_rule" "this" {
 
   security_group_id = aws_security_group.this.id
   ip_protocol       = each.value.protocol
-  from_port         = each.value.from_port
-  to_port           = each.value.to_port
+  from_port         = each.value.port
+  to_port           = each.value.port
   cidr_ipv4         = each.value.cidr
   description       = each.value.description
   
