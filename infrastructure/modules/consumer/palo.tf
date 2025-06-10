@@ -2,7 +2,7 @@
 resource "panos_panorama_service_object" "consumer_services" {
   for_each = {
     for rule_key, rule in var.palo_rules : 
-    "${rule.protocol}-${rule.port}" => rule
+    rule_key => rule
     if rule.enable_palo_inspection
   }
   
