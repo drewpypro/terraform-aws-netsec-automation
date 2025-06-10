@@ -13,7 +13,7 @@ module "consumer_sg_us_east_1" {
   region = "us-east-1"
   security_group_name = each.value.sg_name
   security_group_description = each.value.sg_description
-  vpc_id = "vpc-01f1d91e68dfc051f"
+  vpc_id = each.value.vpc_id
   tags = each.value.tags
   service_name = each.value.service_name
   
