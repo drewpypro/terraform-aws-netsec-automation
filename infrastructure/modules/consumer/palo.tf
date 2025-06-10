@@ -33,7 +33,7 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
     rule_key => rule
     if rule.enable_palo_inspection
   }
-   
+  
   # Depend on the service and category objects being created first
   depends_on = [
     panos_panorama_service_object.consumer_services,
@@ -44,7 +44,7 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
   position_keyword = "bottom"
   
   rule {
-    name = "pl-consumer-${var.name_prefix}-${regex("(vpce-svc-[a-zA-Z0-9]+)", var.service_name)[0]}-${var.region}-${each.value.protocol}-${each.value.port_key}-${each.value.appid}-${replace(each.value.url, ".", "-")}"
+    name = "pl-${substr(var.name_prefix, 0, 6)}-${substr(var.region, -1, 1)}-${each.value.protocol}-${each.value.port_key}-${substr(each.value.appid, 0, 4)}-${substr(replace(each.value.url, ".", ""), 0, 10)}"
     source_zones          = ["any"]
     source_addresses      = each.value.source_ips
     source_users          = ["any"]
