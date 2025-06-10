@@ -78,3 +78,17 @@ variable "service_name" {
   description = "Full VPC endpoint service name"
   type        = string
 }
+
+# NEW: Grouped Palo Alto rules
+variable "palo_rules" {
+  description = "Pre-processed Palo Alto rules grouped by protocol/port/appid/url"
+  type = map(object({
+    protocol               = string
+    port                  = number
+    appid                 = string
+    url                   = string
+    source_ips            = list(string)
+    enable_palo_inspection = bool
+  }))
+  default = {}
+}

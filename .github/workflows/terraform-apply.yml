@@ -49,7 +49,7 @@ jobs:
           echo "Runner public IP: $IP"
           aws ec2 authorize-security-group-ingress \
             --region us-east-1 \
-            --group-id "sg-0ab46ac1c9bfe7e7a" \
+            --group-id "sg-055318658e69a8961" \
             --protocol tcp \
             --port "22-443" \
             --cidr "${IP}/32" > /dev/null
@@ -80,7 +80,7 @@ jobs:
             echo "Revoking IP: $IP"
             aws ec2 revoke-security-group-ingress \
               --region us-east-1 \
-              --group-id "sg-0ab46ac1c9bfe7e7a" \
+              --group-id "sg-055318658e69a8961" \
               --protocol tcp \
               --port "22-443" \
               --cidr "${IP}/32" || echo "⚠️ Failed to revoke IP, possibly already removed."
