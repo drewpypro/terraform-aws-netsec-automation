@@ -134,13 +134,13 @@ locals {
   consumer_sg_first_combo = {
     for region in local.regions : region => {
       for sg_key in distinct([
-        for combo in values(local.consumer_aws_rules_deduped) :
-        combo.sg_key
-        if combo.region == region
+        for combo_group in values(local.consumer_aws_rules_deduped) :
+        combo_group[0].sg_key  # ✅ Access first item in the group
+        if combo_group[0].region == region  # ✅ Access first item in the group
       ]) : sg_key => [
-        for combo in values(local.consumer_aws_rules_deduped) :
-        combo
-        if combo.sg_key == sg_key && combo.region == region
+        for combo_group in values(local.consumer_aws_rules_deduped) :
+        combo_group[0]  # ✅ Take first item from the group
+        if combo_group[0].sg_key == sg_key && combo_group[0].region == region
       ][0]
     }
   }
@@ -149,9 +149,9 @@ locals {
   consumer_sgs_by_region = {
     for region in local.regions : region => {
       for sg_key in distinct([
-        for combo in values(local.consumer_aws_rules_deduped) :
-        combo.sg_key
-        if combo.region == region
+        for combo_group in values(local.consumer_aws_rules_deduped) :
+        combo_group[0].sg_key  # ✅ Access first item in the group
+        if combo_group[0].region == region  # ✅ Access first item in the group
       ]) : sg_key => {
         region = region
         sg_name = local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdpartyName != null ? "${lower(local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdpartyName)}-${replace(local.consumer_sg_first_combo[region][sg_key].policy.security_group.serviceName, "com.amazonaws.vpce.", "")}-${region}-sg" : "default-sg"
@@ -167,15 +167,18 @@ locals {
         
         # ✅ AWS rules (grouped by protocol/port with merged CIDRs)
         aws_rules = {
-          for combo in values(local.consumer_aws_rules_deduped) :
-          combo.dedup_key => {
-            protocol = combo.protocol
-            port = combo.port
-            cidrs = combo.cidrs  # ✅ Now this is a list of CIDRs
-            description = combo.description
-            rule_tags = combo.rule_tags
+          for dedup_key, combo_group in local.consumer_aws_rules_deduped :
+          dedup_key => {
+            protocol = combo_group[0].protocol  # ✅ Take from first item in group
+            port = combo_group[0].port  # ✅ Take from first item in group
+            cidrs = distinct([
+              for combo in combo_group :
+              combo.cidr  # ✅ Collect all CIDRs from the group
+            ])
+            description = "Allow access for ${combo_group[0].policy.security_group.thirdpartyName} ${combo_group[0].protocol}/${combo_group[0].port}"
+            rule_tags = combo_group[0].rule_tags  # ✅ Take from first item in group
           }
-          if combo.sg_key == sg_key && combo.region == region
+          if combo_group[0].sg_key == sg_key && combo_group[0].region == region  # ✅ Filter using first item
         }
         
         # NEW: Palo Alto grouped rules
@@ -188,14 +191,16 @@ locals {
         appid = local.consumer_sg_first_combo[region][sg_key].rule.appid
         url = local.consumer_sg_first_combo[region][sg_key].rule.url
         palo_protocols_ports = distinct([
-          for combo in values(local.consumer_aws_rules_deduped) :
-          "${combo.protocol}-${combo.port}"
-          if combo.sg_key == sg_key && combo.region == region
+          for dedup_key, combo_group in local.consumer_aws_rules_deduped :
+          "${combo_group[0].protocol}-${combo_group[0].port}"  # ✅ Use first item in group
+          if combo_group[0].sg_key == sg_key && combo_group[0].region == region
         ])
         palo_source_ips = distinct(flatten([
-          for combo in values(local.consumer_aws_rules_deduped) :
-          combo.cidrs  # ✅ Updated to use cidrs (list) instead of cidr
-          if combo.sg_key == sg_key && combo.region == region
+          for dedup_key, combo_group in local.consumer_aws_rules_deduped : [
+            for combo in combo_group :
+            combo.cidr  # ✅ Collect all CIDRs from all groups
+          ]
+          if combo_group[0].sg_key == sg_key && combo_group[0].region == region
         ]))
       }
     }
