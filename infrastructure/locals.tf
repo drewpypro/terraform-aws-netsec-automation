@@ -111,7 +111,7 @@ locals {
   # Deduplicate AWS rules  
   consumer_aws_rules_deduped = {
     for combo in local.consumer_rule_combinations :
-    combo.dedup_key => combo
+    combo.dedup_key => combo...
   }
   
   # First, create a map of consumer security groups with their first combo for reference
