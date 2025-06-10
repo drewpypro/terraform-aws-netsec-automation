@@ -8,13 +8,15 @@ resource "panos_panorama_service_object" "consumer_services" {
 }
 
 resource "panos_custom_url_category" "consumer_category" {
-  count = (
-    var.enable_palo_inspection && var.url != null && var.url != "" && var.url != "any"
-  ) ? 1 : 0
+  for_each = {
+    for key, rule in var.palo_rules :
+    key => rule
+    if var.enable_palo_inspection && rule.url != "any"
+  }
 
   device_group = "${var.region}-fw-dg"
-  name         = "${var.name_prefix}-${var.region}-urls"
-  sites        = [replace(var.url, "https://", "")]
+  name         = "${var.name_prefix}-${var.region}-${replace(each.value.url, ".", "-")}-urls"
+  sites        = [each.value.url]
   type         = "URL List"
 }
 
@@ -42,8 +44,8 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
       panos_panorama_service_object.consumer_services["${each.value.protocol}-${each.value.port}"].name
     ]
     categories = (
-      length(panos_custom_url_category.consumer_category) > 0
-      ? [panos_custom_url_category.consumer_category[0].name]
+      each.value.url != "any"
+      ? [panos_custom_url_category.consumer_category[each.key].name]
       : ["any"]
     )
     action      = "allow"
