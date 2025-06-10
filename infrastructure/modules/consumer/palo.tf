@@ -33,7 +33,7 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
     rule_key => rule
     if rule.enable_palo_inspection
   }
-  
+   
   # Depend on the service and category objects being created first
   depends_on = [
     panos_panorama_service_object.consumer_services,
