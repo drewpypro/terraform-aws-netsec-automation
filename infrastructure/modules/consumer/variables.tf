@@ -29,6 +29,8 @@ variable "aws_rules" {
   type = map(object({
     protocol = string
     port = number
+    from_port = number
+    to_port = number
     cidr = string
     description = string
     rule_tags = map(string)
