@@ -13,7 +13,7 @@ module "consumer_sg_us_east_1" {
   region = "us-east-1"
   security_group_name = each.value.sg_name
   security_group_description = each.value.sg_description
-  vpc_id = each.value.vpc_id  # Use VPC from policy file
+  vpc_id = each.value.vpc_id
   tags = each.value.tags
   service_name = each.value.tags.ServiceName
   
