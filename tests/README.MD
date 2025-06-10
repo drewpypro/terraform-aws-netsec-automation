@@ -87,13 +87,13 @@ rules:
 ## Output
 - AWS SG (cannot support dupes, list is accepted but still writes rules as cidr, proto, port)
     ![multi-rule-testing1-aws-sg-example](../img/multi-rule-testing1-aws-sg-example.png)
-    # source_cidr, proto/port
+    - #source_cidr, proto/port
     1. 10.50.0.0/24, tcp/443
     2. 10.58.1.1/32, tcp/443
     3. 10.58.1.1/32, tcp/27017
 - Palo rules (separate by proto/port, appid (if null, then any) and url-category-object (if null, then any))
     ![multi-rule-testing1-palo-example](../img/multi-rule-testing1-palo-example.png)
-    # source_cidr, proto/port, appid, url
+    - #source_cidr, proto/port, appid, url
     1. 10.50.0.0/24, tcp/443, mongodb, api.datadoghq.com
     2. 10.58.1.1/32, tcp/443, ssl, api.datadoghq.com
     3. 10.50.0.0/24, tcp/443, ssl, logging.datadoghq.com
@@ -205,14 +205,14 @@ rules:
 
 - AWS SG (cannot support dupes, list is accepted but still writes rules as cidr, proto, port)
     ![multi-rule-testing2-aws-sg-example](../img/multi-rule-testing2-aws-sg-example.png)
-    # source_cidr, proto/port
+    - #source_cidr, proto/port
     1. 10.50.0.0/24, tcp/443
     2. 10.58.1.1/32, tcp/443
     3. 10.50.0.0/24, tcp/27017
     4. 10.58.1.1/32, tcp/27017
 - Palo rules (separate by proto/port, appid (if null, then any) and url-category-object (if null, then any)
     ![multi-rule-testing2-palo-example](../img/multi-rule-testing2-palo-example.png)
-    # source_cidr, proto/port, appid, url
+    - #source_cidr, proto/port, appid, url
     1. {10.50.0.0/24, 10.58.1.1/32}, tcp/443, ssl, api.datadoghq.com
     2. {10.50.0.0/24, 10.58.1.1/32}, tcp/27017, any, any
     3 {10.50.0.0/24, 10.58.1.1/32}, tcp/443, ssl, any
@@ -265,12 +265,12 @@ rules:
 
 - AWS SG (cannot support dupes, list is accepted but still writes rules as cidr, proto, port)
     ![port-range-rule-aws-sg-example](../img/port-range-rule-aws-sg-example.png)
-    # source_cidr, proto/port
+    - #source_cidr, proto/port
     1. 10.50.0.0/24, tcp/9000-10000 (from_port, to_port)
     2. 10.58.1.1/32, tcp/8010-8020 (from_port, to_port)
 - Palo rules (separate by proto/port, appid (if null, then any) and url-category-object (if null, then any)
     ![port-range-rule-aws-sg-example](../img/port-range-rule-palo-example.png)
-    # source_cidr, proto/port, appid, url
+    - #source_cidr, proto/port, appid, url
     1. 10.50.0.0/24, tcp/9000-10000, ssl, api.datadoghq.com
 	2. 10.58.1.1/32, tcp/8010-8020, ssl, api.datadoghq.com
 
