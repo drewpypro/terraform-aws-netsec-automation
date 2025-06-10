@@ -67,18 +67,20 @@ locals {
   # NEW: Group Palo Alto rules by protocol+port+appid+url
   consumer_palo_rule_combinations = flatten([
     for file, policy in local.consumer_policies : [
-      for rule_idx, rule in policy.rules : {
-        palo_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${rule.appid != null && rule.appid != "" ? rule.appid : "any"}-${rule.url != null && rule.url != "" ? replace(rule.url, "https://", "") : "any"}"
-        sg_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}"
-        region = policy.security_group.region
-        protocol = rule.protocol
-        port = rule.port
-        appid = rule.appid != null && rule.appid != "" ? rule.appid : "any"
-        url = rule.url != null && rule.url != "" ? replace(rule.url, "https://", "") : "any"
-        source_ips = rule.source.ips
-        enable_palo_inspection = rule.enable_palo_inspection
-        policy = policy
-      }
+      for rule_idx, rule in policy.rules : [
+        for cidr in rule.source.ips : {
+          palo_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${rule.appid != null && rule.appid != "" ? rule.appid : "any"}-${rule.url != null && rule.url != "" ? replace(rule.url, "https://", "") : "any"}"
+          sg_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}"
+          region = policy.security_group.region
+          protocol = rule.protocol
+          port = rule.port
+          appid = rule.appid != null && rule.appid != "" ? rule.appid : "any"
+          url = rule.url != null && rule.url != "" ? replace(rule.url, "https://", "") : "any"
+          source_ips = [cidr] # <- individual CIDR per combo now
+          enable_palo_inspection = rule.enable_palo_inspection
+          policy = policy
+        }
+      ]
     ]
   ])
 
@@ -100,7 +102,11 @@ locals {
             port = [for combo in local.consumer_palo_rule_combinations : combo.port if combo.palo_key == palo_key && combo.sg_key == sg_key && combo.region == region][0]
             appid = [for combo in local.consumer_palo_rule_combinations : combo.appid if combo.palo_key == palo_key && combo.sg_key == sg_key && combo.region == region][0]
             url = [for combo in local.consumer_palo_rule_combinations : combo.url if combo.palo_key == palo_key && combo.sg_key == sg_key && combo.region == region][0]
-            source_ips = distinct(flatten([for combo in local.consumer_palo_rule_combinations : combo.source_ips if combo.palo_key == palo_key && combo.sg_key == sg_key && combo.region == region]))
+            source_ips = [
+              for combo in local.consumer_palo_rule_combinations :
+              combo.source_ips[0] # only one item per combo now
+              if combo.palo_key == palo_key && combo.sg_key == sg_key && combo.region == region
+            ]
             enable_palo_inspection = [for combo in local.consumer_palo_rule_combinations : combo.enable_palo_inspection if combo.palo_key == palo_key && combo.sg_key == sg_key && combo.region == region][0]
           }
         }
