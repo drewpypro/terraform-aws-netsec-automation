@@ -227,7 +227,7 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           echo "🤖 Cloning AI reviewer..."
-          git clone https://${{ secrets.PAT_GITHUB_ACTIONS }}@github.com/drewpypro/drewpy-ai-actions.git
+          git clone https://x-access-token:${{ secrets.PAT_GITHUB_ACTIONS }}@github.com/drewpypro/drewpy-ai-actions.git
           pip install -r drewpy-ai-actions/aws-netsec-automation-review/requirements.txt
 
           echo "📊 Running AI rule reviewer..."
@@ -238,6 +238,7 @@ jobs:
           echo "📝 Posting AI review result..."
           ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
           gh issue comment "$ISSUE_NUMBER" --body-file /tmp/ai_review_output.md
+          
 
       # Commit Changes and Create PR (Always Runs)
       - name: Commit Changes and Create PR
