@@ -223,7 +223,7 @@ jobs:
       - name: AI Review
         env:
           DREWPYAI_API_KEY: ${{ secrets.DREWPYAI_API_KEY }}
-          DREWPY_PAT: ${{ secrets.DREWPY_PAT }}
+          GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           echo "🤖 Cloning AI reviewer..."
