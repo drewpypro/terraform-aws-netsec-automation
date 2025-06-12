@@ -4,7 +4,7 @@ import json
 import yaml
 import sys
 
-DB_PATH = 'thirdpartydb.json'
+DB_PATH = 'thirdpartyDBconfigName.json'
 YAML_PATH = 'request.yaml'
 
 def load_db():
@@ -17,7 +17,7 @@ def load_yaml():
 
 def validate_thirdparty(thirdparty_name, thirdparty_id, db):
     for entry in db:
-        if str(entry['thirdpartyID']) == str(thirdparty_id) and entry['thirdpartyName'].lower() == thirdparty_name.lower():
+        if str(entry['thirdpartyID']) == str(thirdparty_id) and entry['thirdpartyconfigname'].lower() == thirdparty_name.lower():
             return entry
     return None
 
@@ -41,8 +41,11 @@ def main():
 
     if result['contract_status'] != 'valid':
         print(f"❌ Contract status for '{name}' is '{result['contract_status']}'. Connectivity should not be granted.")
+        print("```json")
+        print(json.dumps(result, indent=2))
+        print("```")
         sys.exit(1)
-
+        
     if result['security_risk'] in ['high', 'critical']:
         print(f"⚠️ Security risk for '{name}' is '{result['security_risk']}'. Requires manual review before proceeding.")
         sys.exit(1)

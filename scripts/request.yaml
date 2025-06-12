@@ -7,8 +7,8 @@ security_group:
   vpc_id: vpc-0141944e897367945
   serviceType: privatelink-consumer
   serviceName: com.amazonaws.vpce.us-east-1.vpce-svc-064ea718f8d0ead77
-  thirdpartyName: Datadog
-  thirdPartyID: TP-0000
+  thirdpartyName: jira-cloud
+  thirdPartyID: TP-0003
 rules:
   - request_id: RQ-001
     business_justification: >
