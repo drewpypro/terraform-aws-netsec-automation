@@ -34,8 +34,7 @@ jobs:
           
           # Extract YAML from issue body
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" \
-            | sed -n '/```yaml/,/```/p' \
-            | sed '/^```/d' \
+            | sed '/^```yaml/,/^```/d' \
             > /tmp/issue.yaml
           
           # Split YAML documents at the '---' markers
