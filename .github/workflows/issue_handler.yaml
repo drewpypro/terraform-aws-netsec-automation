@@ -34,8 +34,7 @@ jobs:
           
           # Extract YAML from issue body
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" \
-            | sed -n '/```yaml/,/```/p' \
-            | sed '/^```/d' \
+            | sed '/^```yaml/,/^```/d' \
             > /tmp/issue.yaml
           
           # Split YAML documents at the '---' markers
@@ -207,7 +206,7 @@ jobs:
 
           echo "🔍 Validating third-party contract and risk..."
 
-          if ! python3 ./scripts/validate_thirdparty.py /tmp/issue.yaml ./scripts/thirdpartyDB.json > /tmp/thirdparty_validation.txt 2>&1; then
+          if ! python3 ./scripts/validate_thirdparty.py /tmp/issue.yaml ./thirdpartyDB.json > /tmp/thirdparty_validation.txt 2>&1; then
             echo "Third-party validation failed. Posting result to GitHub Issue."
 
             echo '### ❌ Third-party validation failed' > /tmp/comment.txt
