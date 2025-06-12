@@ -204,7 +204,7 @@ jobs:
           
           echo "🔍 Validating third-party contract and risk..."
 
-          if ! python3 ./scripts/validate_thirdparty.py /tmp/issue.yaml ./thirdpartyDBconfigName.json; then
+          if ! python3 ./scripts/validate_thirdparty.py /tmp/issue.yaml ./thirdpartyDB.json; then
             echo "### ❌ Third-party validation failed" > /tmp/thirdparty_validation.txt
             echo '```' >> /tmp/thirdparty_validation.txt
             python3 ./scripts/validate_thirdparty.py /tmp/issue.yaml ./thirdpartyDB.json >> /tmp/thirdparty_validation.txt 2>&1
