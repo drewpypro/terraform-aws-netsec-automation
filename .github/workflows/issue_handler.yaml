@@ -225,6 +225,7 @@ jobs:
           DREWPYAI_API_KEY: ${{ secrets.DREWPYAI_API_KEY }}
           PAT_GITHUB_ACTIONS: ${{ secrets.PAT_GITHUB_ACTIONS }}
           ISSUE_BODY: ${{ github.event.issue.body }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "🤖 Cloning AI reviewer..."
           git clone https://x-access-token:${{ secrets.PAT_GITHUB_ACTIONS }}@github.com/drewpypro/drewpy-ai-actions.git
