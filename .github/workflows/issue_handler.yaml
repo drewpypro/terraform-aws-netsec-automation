@@ -207,7 +207,7 @@ jobs:
 
           echo "🔍 Validating third-party contract and risk..."
 
-          if ! python3 ./scripts/validate_thirdparty.py /tmp/issue.yaml ./scripts/thirdpartyDBconfigName.json > /tmp/thirdparty_validation.txt 2>&1; then
+          if ! python3 ./scripts/validate_thirdparty.py /tmp/issue.yaml ./scripts/thirdpartyDB.json > /tmp/thirdparty_validation.txt 2>&1; then
             echo "Third-party validation failed. Posting result to GitHub Issue."
 
             echo '### ❌ Third-party validation failed' > /tmp/comment.txt
