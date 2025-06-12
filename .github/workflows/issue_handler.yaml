@@ -227,7 +227,7 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           echo "🤖 Cloning AI reviewer..."
-          git clone https://${{ secrets.PAT_GITHUB_ACTIONS }}@github.com/drewpypro/drewpy-ai-actions.git
+          git clone https://x-access-token:${{ secrets.PAT_GITHUB_ACTIONS }}@github.com/drewpypro/drewpy-ai-actions.git
           pip install -r drewpy-ai-actions/aws-netsec-automation-review/requirements.txt
 
           echo "📊 Running AI rule reviewer..."
