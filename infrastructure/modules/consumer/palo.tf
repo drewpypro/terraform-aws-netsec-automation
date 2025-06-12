@@ -1,3 +1,13 @@
+# resource "panos_panorama_administrative_tag" "tags" {
+#     for_each = var.enable_palo_inspection ? toset(var.palo_tags) : []
+
+#     name = each.key
+#     device_group = "${var.region}-fw-dg"
+#     color = "color6"
+#     comment = "Automated by TFE"
+
+# }
+
 resource "panos_panorama_service_object" "consumer_services" {
   for_each = var.enable_palo_inspection ? toset(var.palo_protocols_ports) : []
 

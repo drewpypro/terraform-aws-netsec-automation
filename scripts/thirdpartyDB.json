@@ -1,0 +1,252 @@
+[
+  {
+    "thirdpartyID": "TP-0000",
+    "thirdpartyName": "Datadog",
+    "contract_status": "valid",
+    "security_risk": "low",
+    "last_assessment_date": "2025-02-28",
+    "allow_connectivity": true,
+    "business_unit": "Marketing",
+    "notes": "Used for observability in prod."
+  },
+  {
+    "thirdpartyID": "TP-0001",
+    "thirdpartyName": "Splunk",
+    "contract_status": "valid",
+    "security_risk": "medium",
+    "last_assessment_date": "2025-05-31",
+    "allow_connectivity": true,
+    "business_unit": "Marketing",
+    "notes": "Pending full SOC2 Type 2 renewal."
+  },
+  {
+    "thirdpartyID": "TP-0002",
+    "thirdpartyName": "New Relic",
+    "contract_status": "valid",
+    "security_risk": "high",
+    "last_assessment_date": "2025-06-12",
+    "allow_connectivity": false,
+    "business_unit": "Finance",
+    "notes": "Elevated risk accepted by DevOps."
+  },
+  {
+    "thirdpartyID": "TP-0003",
+    "thirdpartyName": "Jira Cloud",
+    "contract_status": "expired",
+    "security_risk": "medium",
+    "last_assessment_date": "2025-04-24",
+    "allow_connectivity": false,
+    "business_unit": "ITOps",
+    "notes": "Contract expired May 2024."
+  },
+  {
+    "thirdpartyID": "TP-0004",
+    "thirdpartyName": "ZoomInfo",
+    "contract_status": "terminated",
+    "security_risk": "high",
+    "last_assessment_date": "2025-05-22",
+    "allow_connectivity": false,
+    "business_unit": "DevOps",
+    "notes": "Security incident in Q1 2023."
+  },
+  {
+    "thirdpartyID": "TP-0005",
+    "thirdpartyName": "Slack",
+    "contract_status": "valid",
+    "security_risk": "medium",
+    "last_assessment_date": "2025-01-20",
+    "allow_connectivity": true,
+    "business_unit": "InfraSec",
+    "notes": "Approved for internal messaging."
+  },
+  {
+    "thirdpartyID": "TP-0006",
+    "thirdpartyName": "ServiceNow",
+    "contract_status": "valid",
+    "security_risk": "low",
+    "last_assessment_date": "2025-06-12",
+    "allow_connectivity": true,
+    "business_unit": "ITOps",
+    "notes": "Approved enterprise-wide."
+  },
+  {
+    "thirdpartyID": "TP-0007",
+    "thirdpartyName": "PagerDuty",
+    "contract_status": "pending",
+    "security_risk": "low",
+    "last_assessment_date": "2025-02-12",
+    "allow_connectivity": false,
+    "business_unit": "DevOps",
+    "notes": "Contract under review."
+  },
+  {
+    "thirdpartyID": "TP-0008",
+    "thirdpartyName": "Snowflake",
+    "contract_status": "valid",
+    "security_risk": "low",
+    "last_assessment_date": "2024-12-31",
+    "allow_connectivity": true,
+    "business_unit": "Marketing",
+    "notes": "Approved for use with encrypted datasets."
+  },
+  {
+    "thirdpartyID": "TP-0009",
+    "thirdpartyName": "Okta",
+    "contract_status": "valid",
+    "security_risk": "medium",
+    "last_assessment_date": "2024-12-22",
+    "allow_connectivity": true,
+    "business_unit": "Finance",
+    "notes": "2FA provider, low concern."
+  },
+  {
+    "thirdpartyID": "TP-0010",
+    "thirdpartyName": "Workday",
+    "contract_status": "valid",
+    "security_risk": "medium",
+    "last_assessment_date": "2025-04-07",
+    "allow_connectivity": true,
+    "business_unit": "Finance",
+    "notes": "HR-related data exchange."
+  },
+  {
+    "thirdpartyID": "TP-0011",
+    "thirdpartyName": "Confluent",
+    "contract_status": "expired",
+    "security_risk": "high",
+    "last_assessment_date": "2025-01-09",
+    "allow_connectivity": false,
+    "business_unit": "Finance",
+    "notes": "Kafka hosting, contract lapsed."
+  },
+  {
+    "thirdpartyID": "TP-0012",
+    "thirdpartyName": "Tanium",
+    "contract_status": "terminated",
+    "security_risk": "critical",
+    "last_assessment_date": "2025-04-04",
+    "allow_connectivity": false,
+    "business_unit": "ITOps",
+    "notes": "Do not allow. Involved in data leakage."
+  },
+  {
+    "thirdpartyID": "TP-0013",
+    "thirdpartyName": "Miro",
+    "contract_status": "valid",
+    "security_risk": "low",
+    "last_assessment_date": "2025-03-05",
+    "allow_connectivity": true,
+    "business_unit": "Finance",
+    "notes": "Used by Product org only."
+  },
+  {
+    "thirdpartyID": "TP-0014",
+    "thirdpartyName": "Box",
+    "contract_status": "valid",
+    "security_risk": "medium",
+    "last_assessment_date": "2025-02-24",
+    "allow_connectivity": true,
+    "business_unit": "Marketing",
+    "notes": "Used for secure document sharing."
+  },
+  {
+    "thirdpartyID": "TP-0015",
+    "thirdpartyName": "Dropbox",
+    "contract_status": "expired",
+    "security_risk": "high",
+    "last_assessment_date": "2025-03-13",
+    "allow_connectivity": false,
+    "business_unit": "ITOps",
+    "notes": "Moved to Box."
+  },
+  {
+    "thirdpartyID": "TP-0016",
+    "thirdpartyName": "GitHub",
+    "contract_status": "valid",
+    "security_risk": "low",
+    "last_assessment_date": "2025-05-08",
+    "allow_connectivity": true,
+    "business_unit": "Finance",
+    "notes": "Enterprise contract in place."
+  },
+  {
+    "thirdpartyID": "TP-0017",
+    "thirdpartyName": "GitLab",
+    "contract_status": "valid",
+    "security_risk": "medium",
+    "last_assessment_date": "2025-02-03",
+    "allow_connectivity": true,
+    "business_unit": "ITOps",
+    "notes": "Used internally by ITOps."
+  },
+  {
+    "thirdpartyID": "TP-0018",
+    "thirdpartyName": "Zscaler",
+    "contract_status": "valid",
+    "security_risk": "low",
+    "last_assessment_date": "2025-01-15",
+    "allow_connectivity": true,
+    "business_unit": "Marketing",
+    "notes": "Network edge control provider."
+  },
+  {
+    "thirdpartyID": "TP-0019",
+    "thirdpartyName": "Cloudflare",
+    "contract_status": "valid",
+    "security_risk": "medium",
+    "last_assessment_date": "2025-03-22",
+    "allow_connectivity": true,
+    "business_unit": "ITOps",
+    "notes": "Used for WAF/CDN."
+  },
+  {
+    "thirdpartyID": "TP-0020",
+    "thirdpartyName": "Atlassian",
+    "contract_status": "valid",
+    "security_risk": "low",
+    "last_assessment_date": "2025-04-29",
+    "allow_connectivity": true,
+    "business_unit": "Marketing",
+    "notes": "Parent company of Jira/Confluence."
+  },
+  {
+    "thirdpartyID": "TP-0021",
+    "thirdpartyName": "Segment",
+    "contract_status": "pending",
+    "security_risk": "medium",
+    "last_assessment_date": "2025-02-24",
+    "allow_connectivity": false,
+    "business_unit": "Finance",
+    "notes": "Pending privacy team review."
+  },
+  {
+    "thirdpartyID": "TP-0022",
+    "thirdpartyName": "Databricks",
+    "contract_status": "valid",
+    "security_risk": "medium",
+    "last_assessment_date": "2025-01-20",
+    "allow_connectivity": true,
+    "business_unit": "Marketing",
+    "notes": "Approved for ML workflows."
+  },
+  {
+    "thirdpartyID": "TP-0023",
+    "thirdpartyName": "Fastly",
+    "contract_status": "terminated",
+    "security_risk": "high",
+    "last_assessment_date": "2024-12-22",
+    "allow_connectivity": false,
+    "business_unit": "DevOps",
+    "notes": "Incident in 2022, denied."
+  },
+  {
+    "thirdpartyID": "TP-0024",
+    "thirdpartyName": "SendGrid",
+    "contract_status": "valid",
+    "security_risk": "low",
+    "last_assessment_date": "2025-03-06",
+    "allow_connectivity": true,
+    "business_unit": "ITOps",
+    "notes": "Email provider reviewed Q2."
+  }
+]
