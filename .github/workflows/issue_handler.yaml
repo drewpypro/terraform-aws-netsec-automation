@@ -223,11 +223,11 @@ jobs:
       - name: AI Review
         env:
           DREWPYAI_API_KEY: ${{ secrets.DREWPYAI_API_KEY }}
-          GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
+          PAT_GITHUB_ACTIONS: ${{ secrets.PAT_GITHUB_ACTIONS }}
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           echo "🤖 Cloning AI reviewer..."
-          git clone https://x-access-token:${{ secrets.DREWPY_PAT }}@github.com/drewpypro/drewpy-ai-actions.git
+          git clone https://x-access-token:${{ secrets.PAT_GITHUB_ACTIONS }}@github.com/drewpypro/drewpy-ai-actions.git
           pip install -r drewpy-ai-actions/aws-netsec-automation-review/requirements.txt
 
           echo "📊 Running AI rule reviewer..."
