@@ -1,8 +1,8 @@
-name: Auto-Label and Close Stale Issues
+name: Auto-Close Stale Issues
 
 on:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 */6 * * *"  # every 6 hours
   workflow_dispatch:
 
 jobs:
@@ -12,29 +12,23 @@ jobs:
       issues: write
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        
-      - name: Label and close stale issues
+      - name: Close issues older than 24 hours
         env:
           GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
         run: |
           NOW=$(date -u +%s)
 
-          for LABEL in "rejected" "needs-fix" "completed"; do
-            gh issue list --label "$LABEL" --state open --json number,createdAt,title \
-            | jq -c '.[]' \
-            | while read -r issue; do
-                NUMBER=$(echo "$issue" | jq -r '.number')
-                CREATED=$(echo "$issue" | jq -r '.createdAt')
-                CREATED_TS=$(date -d "$CREATED" +%s)
-                AGE_MINUTES=$(( (NOW - CREATED_TS) / 60 ))
+          gh issue list --state open --json number,createdAt \
+          | jq -c '.[]' \
+          | while read -r issue; do
+              NUMBER=$(echo "$issue" | jq -r '.number')
+              CREATED=$(echo "$issue" | jq -r '.createdAt')
+              CREATED_TS=$(date -d "$CREATED" +%s)
+              AGE_MINUTES=$(( (NOW - CREATED_TS) / 60 ))
 
-                if [ "$AGE_MINUTES" -ge 15 ]; then
-                  echo "Closing stale issue #$NUMBER (created $AGE_MINUTES minutes ago)"
-                  gh issue edit "$NUMBER" --add-label "stale"
-                  gh issue comment "$NUMBER" --body "⚠️ This issue was automatically closed after being labeled \`$LABEL\`. Marked as \`stale\`. Please create a new request if still needed."
-                  gh issue close "$NUMBER"
-                fi
-              done
-          done
+              if [ "$AGE_MINUTES" -ge 1440 ]; then  # 24 hours
+                echo "Closing stale issue #$NUMBER (age: $AGE_MINUTES minutes)"
+                gh issue comment "$NUMBER" --body "🕓 Automatically closed after being open for more than 24 hours with no activity."
+                gh issue close "$NUMBER"
+              fi
+            done
