@@ -28,7 +28,7 @@ resource "panos_custom_url_category" "consumer_category" {
   }
 
   device_group = "${var.region}-fw-dg"
-  name         = each.key
+  name         = substr(each.key, 0, 31)
   sites        = each.value.sites
   type         = "URL List"
 }
@@ -57,7 +57,7 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
     ]
     categories = (
       each.value.url != "any"
-      ? [replace(each.value.url, "https://", "")]
+      ? [substr(replace(each.value.url, "https://", ""), 0, 31)]
       : ["any"]
     )
     action      = "allow"
