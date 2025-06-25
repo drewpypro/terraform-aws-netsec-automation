@@ -14,6 +14,31 @@
 - Create Palo Alto Panorama security rules, service objects, tags and URL categories. 
 - Pre-process and flatten rule data for each policy.rules entry, then deduplicate and group the rules based on key attributes, organized per AWS region. 
 
+## Logic constraints and Rationale
+- Uniqueness to ensure policies aren't combined to prevent unauthorized access. 
+    - Manage keys that segment policy per our requirements. 
+        - ```thirdpartyName``` + ```policy.region``` + ```serviceName``` create a unique and acceptable mapping to group access together. 
+- Palo Alto character limits
+    - ```panos_custom_url_category```, ```service_object``` and ```panos_panorama_security_rule_group``` have 31-63 character name limits. 
+    - Names must be truncated enough to maintain uniqueness otherwise duplicate failures and access sharing occurs. 
+    - vpce-svc names are too long which is why git issues adds serviceShortName (which removes the prefix)
+- Security group identity mapping
+    - Each AWS SG must map 1:1 with vpce-svc or provider-frontend-lb in a given region. 
+    ```
+    sg_key = "${thirdpartyName}-${serviceShortName}-${region}
+    ```
+- AWS vs. Palo Alto rule deduplication
+    - AWS Security-groups require unique ```protocol, port, CIDR``` combinations. 
+    - We deduplicate these via ```dedup_key``` to avoid; 
+        - Terraform duplicate ingress rule errors
+        - Unnecessary rule bloat
+    - Palo Alto rules are deduplicated based on ```protocol + port + appid + url```
+    - A rule is created for each key and aggregates all source_ips together. 
+- YAML request as source of truth
+    - Each ```*-policy.yaml``` is immutable input defining the access policy for a given scenario. 
+    - Ensures clear gitops-style auditability, traceability and makes it easy to reproduce. 
+
+
 ## Inputs
  - Each policy yaml file contains: 
     - security_group: Metadata for SG creation
