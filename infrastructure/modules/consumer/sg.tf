@@ -1,26 +1,17 @@
-# Create the consumer security group
-resource "aws_security_group" "this" {
-  name        = var.security_group_name
-  description = var.security_group_description
+
+resource "aws_security_group" "consumer_sg" {
+  name        = var.sg_name
   vpc_id      = var.vpc_id
-  
-  tags = var.tags
-  
-  lifecycle {
-    create_before_destroy = true
-  }
+  description = "Managed by Terraform"
+  tags        = var.tags
 }
 
-# Create ingress rules - no for loops, just use the pre-processed rules
 resource "aws_vpc_security_group_ingress_rule" "this" {
-  for_each = var.aws_rules
-
-  security_group_id = aws_security_group.this.id
-  ip_protocol       = each.value.protocol
-  from_port         = each.value.from_port
-  to_port           = each.value.to_port
-  cidr_ipv4         = each.value.cidr
-  description       = each.value.description
-  
-  tags = each.value.rule_tags
+  count                    = length(var.aws_rules)
+  security_group_id        = aws_security_group.consumer_sg.id
+  cidr_ipv4                = var.aws_rules[count.index].cidr
+  from_port                = var.aws_rules[count.index].from_port
+  to_port                  = var.aws_rules[count.index].to_port
+  ip_protocol              = var.aws_rules[count.index].protocol
+  description              = var.aws_rules[count.index].description
 }
