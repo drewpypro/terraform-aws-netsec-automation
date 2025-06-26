@@ -28,6 +28,5 @@ module "consumer_us_east_1" {
   aws_rules   = each.value.aws_rules
   palo_rules  = each.value.palo_rules
 
-  depends_on = [module.vpc_us_east_1]
 }
 
