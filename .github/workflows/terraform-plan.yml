@@ -2,11 +2,6 @@ name: terraform plan workflow
 
 on:
   push:
-    branches:
-      - issue-*
-      - dev
-      - refactor*
-      - v*
   workflow_dispatch:
 
 env:
