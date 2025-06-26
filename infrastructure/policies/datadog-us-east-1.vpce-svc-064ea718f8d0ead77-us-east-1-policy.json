@@ -1,0 +1,79 @@
+{
+  "security_group_name": "datadog-us-east-1.vpce-svc-064ea718f8d0ead77-us-east-1-sg",
+  "vpc_id": "vpc-0141944e897367945",
+  "region": "us-east-1",
+  "tags": {
+    "RequestID": "RQ-001",
+    "Thirdparty": "datadog",
+    "ThirdpartyID": "123456",
+    "ServiceType": "privatelink-consumer"
+  },
+  "aws_rules": [
+    {
+      "protocol": "tcp",
+      "from_port": 443,
+      "to_port": 443,
+      "cidr": "10.11.1.1/32",
+      "description": "Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint."
+    },
+    {
+      "protocol": "tcp",
+      "from_port": 443,
+      "to_port": 443,
+      "cidr": "10.12.1.1/32",
+      "description": "Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint."
+    },
+    {
+      "protocol": "tcp",
+      "from_port": 443,
+      "to_port": 443,
+      "cidr": "10.13.1.1/32",
+      "description": "Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint."
+    },
+    {
+      "protocol": "tcp",
+      "from_port": 69,
+      "to_port": 69,
+      "cidr": "10.11.1.1/32",
+      "description": "Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint."
+    },
+    {
+      "protocol": "tcp",
+      "from_port": 69,
+      "to_port": 69,
+      "cidr": "10.12.1.1/32",
+      "description": "Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint."
+    },
+    {
+      "protocol": "tcp",
+      "from_port": 69,
+      "to_port": 69,
+      "cidr": "10.13.1.1/32",
+      "description": "Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint."
+    }
+  ],
+  "palo_rules": [
+    {
+      "protocol": "tcp",
+      "port": "443",
+      "appid": "ssl",
+      "url": "https://api.datadoghq.com",
+      "source_ips": [
+        "10.11.1.1/32",
+        "10.12.1.1/32",
+        "10.13.1.1/32"
+      ]
+    },
+    {
+      "protocol": "tcp",
+      "port": "69",
+      "appid": "ssl",
+      "url": "https://api.datadoghq.com",
+      "source_ips": [
+        "10.11.1.1/32",
+        "10.12.1.1/32",
+        "10.13.1.1/32"
+      ]
+    }
+  ]
+}

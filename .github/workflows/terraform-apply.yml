@@ -22,7 +22,6 @@ env:
 
 jobs:
   terraform-apply:
-    if: false
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/drewpypro/kube-aws-istio:latest

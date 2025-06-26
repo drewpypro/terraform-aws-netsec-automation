@@ -23,21 +23,21 @@ resource "panos_custom_url_category" "consumer_category" {
 }
 
 resource "panos_panorama_security_rule_group" "consumer_group" {
-  for_each     = { for idx, rule in var.palo_rules : idx => rule }
+  count        = length(var.palo_rules)
   rulebase     = "pre-rulebase"
   device_group = "${var.region}-fw-dg"
+  name         = "grp-${count.index}"
 
-  rule {
-    name                  = "rule-${each.key}"
-    applications           = [each.value.appid]
+  rules {
+    name                  = "rule-${count.index}"
+    application           = [var.palo_rules[count.index].appid]
     source_zones          = ["trust"]
     destination_zones     = ["untrust"]
-    source_addresses      = each.value.source_ips
+    source_addresses      = var.palo_rules[count.index].source_ips
     destination_addresses = ["any"]
-    services               = [panos_panorama_service_object.consumer_services[each.key].name]
+    service               = [panos_panorama_service_object.consumer_services[count.index].name]
     action                = "allow"
-    categories              = [panos_custom_url_category.consumer_category[each.key].name]
-    tags                  = [panos_panorama_administrative_tag.consumer_tag[each.key].name]
-    source_users           = ["any"]
+    category              = [panos_custom_url_category.consumer_category[count.index].name]
+    tags                  = [panos_panorama_administrative_tag.consumer_tag[count.index].name]
   }
 }
