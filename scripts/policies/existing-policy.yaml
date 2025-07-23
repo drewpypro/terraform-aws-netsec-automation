@@ -1,18 +1,18 @@
 security_group:
   request_id: RQ-001
   business_justification: >
-    Create security-group for datadog API us-east-1 privatelink in us-east-1
+    Create security-group for bad-request-duplicates-within-existing-policy
   accountId: 6666666
   region: us-east-1
   vpc_id: vpc-0141944e897367945
   serviceType: privatelink-consumer
   serviceName: com.amazonaws.vpce.us-east-1.vpce-svc-064ea718f8d0ead77
-  thirdpartyName: slack
-  thirdPartyID: TP-0005
+  thirdpartyName: existing-policy
+  thirdPartyID: 123456
 rules:
   - request_id: RQ-001
     business_justification: >
-        Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint. 
+        existing-policy rule 1
     source:
       account_id: 111122223333
       vpc_id: vpc-aaa
@@ -28,7 +28,7 @@ rules:
     enable_palo_inspection: true
   - request_id: RQ-001
     business_justification: >
-        Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint. 
+        existing-policy rule 2
     source:
       account_id: 111122223333
       vpc_id: vpc-aaa
