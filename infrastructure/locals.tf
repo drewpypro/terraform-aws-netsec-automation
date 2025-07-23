@@ -31,9 +31,9 @@
 #     for file, policy in local.consumer_policies : [
 #       for rule_idx, rule in policy.rules : [
 #         for cidr_idx, cidr in rule.source.ips : {
-#           key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}-${rule_idx}-${cidr_idx}"
-#           dedup_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}"
-#           sg_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}"
+#           key = "${policy.security_group.thirdpartyName}-${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}-${rule_idx}-${cidr_idx}"
+#           dedup_key = "${policy.security_group.thirdpartyName}-${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${cidr}"
+#           sg_key = "${policy.security_group.thirdpartyName}-${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}-${policy.security_group.region}"
 #           region = policy.security_group.region
 #           sg_name = "${lower(policy.security_group.thirdpartyName)}-${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}-${policy.security_group.region}-sg"
 #           sg_description = "Security group for ${policy.security_group.thirdpartyName} PrivateLink (${policy.security_group.serviceName})"
@@ -69,8 +69,8 @@
 #     for file, policy in local.consumer_policies : [
 #       for rule_idx, rule in policy.rules : [
 #         for cidr in rule.source.ips : {
-#           palo_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${rule.appid != null && rule.appid != "" ? rule.appid : "any"}-${rule.url != null && rule.url != "" ? replace(rule.url, "https://", "") : "any"}"
-#           sg_key = "${policy.security_group.thirdpartyName}-${policy.security_group.region}"
+#           palo_key = "${policy.security_group.thirdpartyName}-${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}-${policy.security_group.region}-${rule.protocol}-${rule.port}-${rule.appid != null && rule.appid != "" ? rule.appid : "any"}-${rule.url != null && rule.url != "" ? replace(rule.url, "https://", "") : "any"}"
+#           sg_key = "${policy.security_group.thirdpartyName}-${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}-${policy.security_group.region}"
 #           region = policy.security_group.region
 #           protocol = rule.protocol
 #           port = rule.port
