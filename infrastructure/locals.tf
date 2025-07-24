@@ -1,9 +1,9 @@
 locals {
   # Load and parse all policy files
-  policy_files = fileset("${path.module}/policies", "*-policy.yaml")
+  policy_files = fileset("${path.module}/policies_old", "*-policy.yaml")
   policies = {
     for file in local.policy_files :
-    file => yamldecode(file("${path.module}/policies/${file}"))
+    file => yamldecode(file("${path.module}/policies_old/${file}"))
   }
   
   # Get unique regions
