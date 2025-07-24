@@ -8,7 +8,7 @@ locals {
 
   grouped_policies_v2 = {
     for key, policy_v2 in local.policies_v2 :
-    "${policy.tags.Thirdparty}-${policy.tags.ServiceType}-${policy.region}" => policy_v2
+    "${policy_v2.tags.Thirdparty}-${policy_v2.tags.ServiceType}-${policy_v2.region}" => policy_v2
   }
 }
 
