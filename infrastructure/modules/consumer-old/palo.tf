@@ -1,43 +1,61 @@
+resource "panos_panorama_service_object" "consumer_services" {
+  for_each = var.enable_palo_inspection ? toset(var.palo_protocols_ports) : []
 
-# resource "panos_panorama_service_object" "consumer_services" {
-#   count            = length(var.palo_rules)
-#   name             = "svc-${count.index}"
-#   device_group     = "${var.region}-fw-dg"
-#   protocol         = var.palo_rules[count.index].protocol
-#   destination_port = var.palo_rules[count.index].port
-# }
+  device_group     = "${var.region}-fw-dg"
+  name             = each.value
+  protocol         = split("-", each.value)[0]
+  destination_port = split("-", each.value)[1]
+}
 
-# resource "panos_panorama_administrative_tag" "consumer_tag" {
-#   count        = length(var.palo_rules)
-#   name         = "tag-${count.index}"
-#   device_group = "${var.region}-fw-dg"
-#   color        = "color6"
-#   comment      = "Auto-tag for rule ${count.index}"
-# }
+resource "panos_custom_url_category" "consumer_category" {
+  for_each = {
+    for url_key in distinct([
+      for rule in var.palo_rules : replace(rule.url, "https://", "")
+      if var.enable_palo_inspection && rule.url != "any"
+    ]) : url_key => {
+      sites = ["https://${url_key}"]
+    }
+  }
 
-# resource "panos_custom_url_category" "consumer_category" {
-#   count        = length(var.palo_rules)
-#   name         = substr(replace(replace(var.palo_rules[count.index].url, "https://", ""), "/", "-"), 0, 63)
-#   device_group = "${var.region}-fw-dg"
-#   sites        = [var.palo_rules[count.index].url]
-# }
+  device_group = "${var.region}-fw-dg"
+  name         = substr(each.key, 0, 31)
+  sites        = each.value.sites
+  type         = "URL List"
+}
 
-# resource "panos_panorama_security_rule_group" "consumer_group" {
-#   count        = length(var.palo_rules)
-#   rulebase     = "pre-rulebase"
-#   device_group = "${var.region}-fw-dg"
-#   name         = "grp-${count.index}"
+resource "panos_panorama_security_rule_group" "consumer_rules" {
+  for_each = var.enable_palo_inspection ? var.palo_rules : {}
 
-#   rules {
-#     name                  = "rule-${count.index}"
-#     application           = [var.palo_rules[count.index].appid]
-#     source_zones          = ["trust"]
-#     destination_zones     = ["untrust"]
-#     source_addresses      = var.palo_rules[count.index].source_ips
-#     destination_addresses = ["any"]
-#     service               = [panos_panorama_service_object.consumer_services[count.index].name]
-#     action                = "allow"
-#     category              = [panos_custom_url_category.consumer_category[count.index].name]
-#     tags                  = [panos_panorama_administrative_tag.consumer_tag[count.index].name]
-#   }
-# }
+  depends_on = [
+    panos_panorama_service_object.consumer_services,
+    panos_custom_url_category.consumer_category
+  ]
+
+  device_group     = "${var.region}-fw-dg"
+  position_keyword = "bottom"
+
+  rule {
+    name = "pl-${var.name_prefix}-${regex("(vpce-svc-[a-zA-Z0-9]+)", var.service_name)[0]}-${var.region}-r${index(keys(var.palo_rules), each.key)}"
+    source_zones           = ["any"]
+    source_addresses       = each.value.source_ips
+    source_users           = ["any"]
+    destination_zones      = ["any"]
+    destination_addresses  = ["100.64.0.0/23"]
+    applications           = [each.value.appid]
+    services               = [
+      panos_panorama_service_object.consumer_services["${each.value.protocol}-${each.value.port}"].name
+    ]
+    categories = (
+      each.value.url != "any"
+      ? [substr(replace(each.value.url, "https://", ""), 0, 31)]
+      : ["any"]
+    )
+    action      = "allow"
+    description = "Allow ${var.name_prefix} ${each.value.protocol}/${each.value.port} ${each.value.appid} ${each.value.url}"
+
+    tags = [
+      "managed-by-terraform",
+      "privatelink-consumer",
+    ]
+  }
+} 
