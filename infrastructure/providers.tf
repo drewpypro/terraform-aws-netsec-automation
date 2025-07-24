@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    panos = {
+      source  = "paloaltonetworks/panos"
+      version = "~> 1.11.0"
+    }
     }
   backend "s3" {
     skip_credentials_validation = true
@@ -25,4 +29,9 @@ provider "aws" {
   region = "us-east-1"
 }
 
+provider "panos" {
+  hostname = var.palo_hostname
+  username = var.palo_username
+  password = var.palo_password
+}
 
