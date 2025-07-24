@@ -7,13 +7,14 @@ resource "panos_panorama_service_object" "consumer_services" {
   destination_port = var.palo_rules[count.index].port
 }
 
-resource "panos_panorama_administrative_tag" "consumer_tag" {
-  count        = length(var.palo_rules)
-  name         = "tag-${count.index}"
-  device_group = "${var.region}-fw-dg"
-  color        = "color6"
-  comment      = "Auto-tag for rule ${count.index}"
-}
+# resource "panos_panorama_administrative_tag" "consumer_tag" {
+#   count        = length(var.palo_rules)
+#   name         = "tag-${count.index}"
+#   device_group = "${var.region}-fw-dg"
+#   color        = "color6"
+#   comment      = "Auto-tag for rule ${count.index}"
+# }
+
 
 resource "panos_custom_url_category" "consumer_category" {
   count        = length(var.palo_rules)
@@ -39,7 +40,10 @@ resource "panos_panorama_security_rule_group" "consumer_group" {
     services               = [panos_panorama_service_object.consumer_services[each.key].name]
     action                = "allow"
     categories              = [panos_custom_url_category.consumer_category[each.key].name]
-    tags                  = [panos_panorama_administrative_tag.consumer_tag[each.key].name]
     source_users           = ["any"]
+    tags = [
+      "managed-by-terraform",
+      "privatelink-consumer",
+    ]
   }
 }
