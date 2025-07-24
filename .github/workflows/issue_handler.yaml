@@ -199,7 +199,7 @@ jobs:
       - name: Third-Party Validation
         id: thirdparty_validation
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}          
         run: |
           pip install --quiet PyYAML
           chmod +x ./scripts/validate_thirdparty.py
@@ -240,6 +240,24 @@ jobs:
           ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
           gh issue comment "$ISSUE_NUMBER" --body-file /tmp/ai_review_output.md
           
+      - name: Duplicate Validation
+        uses: drewpypro/drewpy-actions/yaml-duplicate-validator/@v1
+        id: duplicate_validation
+        with:
+          created_yaml: /tmp/issue.yaml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repo: ${{ github.repository }}
+
+      - name: Comment on issue if dupes are found
+        if: ${{ steps.duplicate_validation.outputs.duplicates_detected == 'true' }}
+        run: |
+          echo "📎 **Fix Before Resubmitting**:" > comment.txt
+          echo "" >> comment.txt
+          echo "${{ steps.duplicate_validation.outputs.pretty_message }}" >> comment.txt
+
+          gh issue comment ${{ github.event.issue.number }} --body-file comment.txt
+          gh issue edit ${{ github.event.issue.number }} --add-label "fix-yaml"
+          exit 1
 
       # Commit Changes and Create PR (Always Runs)
       - name: Commit Changes and Create PR
