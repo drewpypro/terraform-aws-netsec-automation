@@ -20,7 +20,9 @@ resource "panos_custom_url_category" "consumer_category" {
   name         = substr(replace(replace(var.palo_rules[count.index].url, "https://", ""), "/", "-"), 0, 63)
   device_group = "${var.region}-fw-dg"
   sites        = [replace(var.palo_rules[count.index].url, "https://", "")]
+  type         = "URL List"
 }
+
 
 resource "panos_panorama_security_rule_group" "consumer_group" {
   for_each     = { for idx, rule in var.palo_rules : idx => rule }
