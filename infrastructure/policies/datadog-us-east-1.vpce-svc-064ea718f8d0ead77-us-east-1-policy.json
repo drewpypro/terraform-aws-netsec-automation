@@ -1,10 +1,10 @@
 {
-  "security_group_name": "datadog-us-east-1.vpce-svc-064ea718f8d0ead77-us-east-1-sg",
+  "security_group_name": "datadogv2-us-east-1.vpce-svc-064ea718f8d0ead77-us-east-1-sg",
   "vpc_id": "vpc-05ebefacb081c3018",
   "region": "us-east-1",
   "tags": {
     "RequestID": "RQ-001",
-    "Thirdparty": "datadog_v2",
+    "Thirdparty": "datadogv2",
     "ThirdpartyID": "123456",
     "ServiceType": "privatelink-consumer"
   },
