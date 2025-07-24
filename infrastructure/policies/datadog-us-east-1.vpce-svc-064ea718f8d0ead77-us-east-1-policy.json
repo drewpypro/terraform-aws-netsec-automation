@@ -4,7 +4,7 @@
   "region": "us-east-1",
   "tags": {
     "RequestID": "RQ-001",
-    "Thirdparty": "datadog",
+    "Thirdparty": "datadog_v2",
     "ThirdpartyID": "123456",
     "ServiceType": "privatelink-consumer"
   },

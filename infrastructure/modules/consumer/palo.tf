@@ -19,7 +19,7 @@ resource "panos_custom_url_category" "consumer_category" {
   count        = length(var.palo_rules)
   name         = substr(replace(replace(var.palo_rules[count.index].url, "https://", ""), "/", "-"), 0, 63)
   device_group = "${var.region}-fw-dg"
-  sites        = [var.palo_rules[count.index].url]
+  sites        = [(var.palo_rules[count.index].url, "https://", "")]
 }
 
 resource "panos_panorama_security_rule_group" "consumer_group" {
