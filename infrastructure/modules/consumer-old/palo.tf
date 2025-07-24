@@ -33,10 +33,10 @@ resource "panos_panorama_security_rule_group" "consumer_rule" {
   rule {
     name                  = "pl-consumer-${var.name_prefix}-${var.region}"
     source_zones          = ["any"]
-    source_addresses      = ["100.64.0.0/23"]
+    destination_addresses      = ["100.64.0.0/23"]
     source_users          = ["any"]
     destination_zones     = ["any"]
-    destination_addresses = var.palo_destination_ips
+    source_addresses      = var.palo_source_ips
     applications          = [var.appid]
     services              = [for service in panos_panorama_service_object.consumer_services : service.name]  # Use created services
     categories            = var.enable_palo_inspection ? [panos_custom_url_category.consumer_category[0].name] : []  # Use created category
