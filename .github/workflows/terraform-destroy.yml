@@ -64,3 +64,23 @@ jobs:
       - name: Terraform Destroy
         run: |
           terraform destroy -auto-approve
+
+      - name: Delete Orphaned EBS Volumes in us-east-1 and us-west-2
+        run: |
+          for REGION in us-east-1 us-west-2; do
+            echo "Checking for orphaned EBS volumes in $REGION..."
+            VOLUMES=$(aws ec2 describe-volumes \
+              --region $REGION \
+              --filters Name=status,Values=available \
+              --query "Volumes[*].VolumeId" --output text)
+            if [ -z "$VOLUMES" ]; then
+              echo "No orphaned EBS volumes found in $REGION."
+            else
+              echo "Deleting volumes in $REGION: $VOLUMES"
+              for vol in $VOLUMES; do
+                aws ec2 delete-volume --region $REGION --volume-id $vol
+                echo "Deleted volume: $vol in $REGION"
+              done
+            fi
+          done
+          
