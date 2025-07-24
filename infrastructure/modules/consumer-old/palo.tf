@@ -1,51 +1,61 @@
 resource "panos_panorama_service_object" "consumer_services" {
   for_each = var.enable_palo_inspection ? toset(var.palo_protocols_ports) : []
-  
-  device_group = "${var.region}-fw-dg"
-  name         = each.value  # e.g., "tcp-443", "tcp-69"
-  protocol     = split("-", each.value)[0]  # "tcp"
-  destination_port = split("-", each.value)[1]  # "443" or "69"
+
+  device_group     = "${var.region}-fw-dg"
+  name             = each.value
+  protocol         = split("-", each.value)[0]
+  destination_port = split("-", each.value)[1]
 }
 
-# Create URL category for the application
 resource "panos_custom_url_category" "consumer_category" {
-  count = var.enable_palo_inspection ? 1 : 0
-  
+  for_each = {
+    for url_key in distinct([
+      for rule in var.palo_rules : replace(rule.url, "https://", "")
+      if var.enable_palo_inspection && rule.url != "any"
+    ]) : url_key => {
+      sites = ["https://${url_key}"]
+    }
+  }
+
   device_group = "${var.region}-fw-dg"
-  name         = "${var.name_prefix}-${var.region}-urls"
-  sites         = [replace(var.url, "https://", "")]  # Remove https:// prefix
+  name         = substr(each.key, 0, 31)
+  sites        = each.value.sites
   type         = "URL List"
 }
 
-# Create Panorama rule for consumer (ingress) traffic
-resource "panos_panorama_security_rule_group" "consumer_rule" {
-  count = var.enable_palo_inspection ? 1 : 0
-  
-  # Depend on the service and category objects being created first
+resource "panos_panorama_security_rule_group" "consumer_rules" {
+  for_each = var.enable_palo_inspection ? var.palo_rules : {}
+
   depends_on = [
     panos_panorama_service_object.consumer_services,
     panos_custom_url_category.consumer_category
   ]
-  
-  device_group = "${var.region}-fw-dg"
+
+  device_group     = "${var.region}-fw-dg"
   position_keyword = "bottom"
-  
+
   rule {
-    name                  = "pl-consumer-${var.name_prefix}-${var.region}"
-    source_zones          = ["any"]
-    destination_addresses      = ["100.64.0.0/23"]
-    source_users          = ["any"]
-    destination_zones     = ["any"]
-    source_addresses      = var.palo_source_ips
-    applications          = [var.appid]
-    services              = [for service in panos_panorama_service_object.consumer_services : service.name]  # Use created services
-    categories            = var.enable_palo_inspection ? [panos_custom_url_category.consumer_category[0].name] : []  # Use created category
-    action                = "allow"
-    description           = "Allow PrivateLink consumer traffic (${var.name_prefix})"
-    
+    name = "pl-${var.name_prefix}-${regex("(vpce-svc-[a-zA-Z0-9]+)", var.service_name)[0]}-${var.region}-r${index(keys(var.palo_rules), each.key)}"
+    source_zones           = ["any"]
+    source_addresses       = each.value.source_ips
+    source_users           = ["any"]
+    destination_zones      = ["any"]
+    destination_addresses  = ["100.64.0.0/23"]
+    applications           = [each.value.appid]
+    services               = [
+      panos_panorama_service_object.consumer_services["${each.value.protocol}-${each.value.port}"].name
+    ]
+    categories = (
+      each.value.url != "any"
+      ? [substr(replace(each.value.url, "https://", ""), 0, 31)]
+      : ["any"]
+    )
+    action      = "allow"
+    description = "Allow ${var.name_prefix} ${each.value.protocol}/${each.value.port} ${each.value.appid} ${each.value.url}"
+
     tags = [
       "managed-by-terraform",
       "privatelink-consumer",
     ]
   }
-}
+} 
