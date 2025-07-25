@@ -241,7 +241,7 @@ jobs:
           gh issue comment "$ISSUE_NUMBER" --body-file /tmp/ai_review_output.md
           
       - name: Duplicate Validation
-        uses: drewpypro/drewpy-actions/yaml-duplicate-validator/@v1
+        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1
         id: duplicate_validation
         with:
           created_yaml: /tmp/issue.yaml
