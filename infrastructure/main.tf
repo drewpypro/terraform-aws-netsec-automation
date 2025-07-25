@@ -1,9 +1,9 @@
 locals {
-  policy_files_v2 = fileset("${path.module}/policies", "*-policy.json")
+  policy_files_v2 = fileset("${path.module}/policies_v2", "*-policy.json")
 
   policies_v2 = {
     for file in local.policy_files_v2 :
-    trimsuffix(file, "-policy.json") => jsondecode(file("${path.module}/policies/${file}"))
+    trimsuffix(file, "-policy.json") => jsondecode(file("${path.module}/policies_v2/${file}"))
   }
 
   grouped_policies_v2 = {
