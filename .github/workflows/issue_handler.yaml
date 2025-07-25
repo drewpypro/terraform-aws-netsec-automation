@@ -234,15 +234,23 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-            {
-              echo "**Fix Before Resubmitting:**"
-              echo ""
-              echo "${{ steps.duplicate_validation.outputs.pretty_message }}"
-            } > comment.txt
+          set -x  # Enable shell debugging (every command will be printed)
+          echo "DEBUG: Start writing comment.txt"
+          {
+            echo "**Fix Before Resubmitting:**"
+            echo ""
+            echo "${{ steps.duplicate_validation.outputs.pretty_message }}"
+          } > comment.txt
 
-            gh issue comment ${{ github.event.issue.number }} --body-file comment.txt
-            gh issue edit ${{ github.event.issue.number }} --add-label "fix-yaml" || echo "label already exists"
-            exit 1
+          echo "DEBUG: comment.txt content:"
+          cat comment.txt
+
+          echo "DEBUG: Running gh issue comment"
+          gh issue comment ${{ github.event.issue.number }} --body-file comment.txt
+
+          echo "DEBUG: Running gh issue edit"
+          gh issue edit ${{ github.event.issue.number }} --add-label "fix-yaml" || echo "label already exists"
+          exit 1
 
       - name: AI Review
         env:
