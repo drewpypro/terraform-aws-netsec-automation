@@ -230,16 +230,17 @@ jobs:
         continue-on-error: true
 
       - name: Comment on issue if dupes are found
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
         if: ${{ steps.duplicate_validation.outputs.duplicates_detected == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "📎 **Fix Before Resubmitting**:" > comment.txt
+          echo "**Fix Before Resubmitting:**" > comment.txt
           echo "" >> comment.txt
-          echo "${{ steps.duplicate_validation.outputs.pretty_message }}" >> comment.txt
+
+          printf "%s\n" "${{ steps.duplicate_validation.outputs.pretty_message }}" >> comment.txt
 
           gh issue comment ${{ github.event.issue.number }} --body-file comment.txt
-          gh issue edit ${{ github.event.issue.number }} --add-label "fix-yaml"
+          gh issue edit ${{ github.event.issue.number }} --add-label "fix-yaml" || echo "label already exists"
           exit 1
 
       - name: AI Review
