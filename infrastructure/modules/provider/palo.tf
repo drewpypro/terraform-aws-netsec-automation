@@ -28,7 +28,6 @@ resource "panos_panorama_security_rule_group" "provider_rule" {
   ]
   
   device_group = "${var.region}-fw-dg"
-  position_keyword = "bottom"
   
   rule {
     name                  = "pl-provider-${var.name_prefix}-${var.region}"
