@@ -221,7 +221,7 @@ jobs:
           fi
 
       - name: Duplicate Validation
-        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1.0.3
+        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1.0.4
         id: duplicate_validation
         with:
           created_yaml: /tmp/issue.yaml
