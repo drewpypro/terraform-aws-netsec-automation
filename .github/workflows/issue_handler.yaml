@@ -235,12 +235,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -x
-          {
-            echo "**Fix Before Resubmitting:**"
-            echo ""
-            # Write the pretty_message as-is, preserving all line breaks and special chars
-            printf "%s\n" "${{ steps.duplicate_validation.outputs.pretty_message }}"
-          } > comment.txt
+          echo "**Fix Before Resubmitting:**" > comment.txt
+          echo "" >> comment.txt
+          # Safely append pretty_message to the file
+          printf "%s\n" "${{ steps.duplicate_validation.outputs.pretty_message }}" >> comment.txt
 
           echo "DEBUG: comment.txt content:"
           cat comment.txt
