@@ -234,14 +234,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "**Fix Before Resubmitting:**" > comment.txt
-          echo "" >> comment.txt
+            {
+              echo "**Fix Before Resubmitting:**"
+              echo ""
+              echo "${{ steps.duplicate_validation.outputs.pretty_message }}"
+            } > comment.txt
 
-          printf "%s\n" "${{ steps.duplicate_validation.outputs.pretty_message }}" >> comment.txt
-
-          gh issue comment ${{ github.event.issue.number }} --body-file comment.txt
-          gh issue edit ${{ github.event.issue.number }} --add-label "fix-yaml" || echo "label already exists"
-          exit 1
+            gh issue comment ${{ github.event.issue.number }} --body-file comment.txt
+            gh issue edit ${{ github.event.issue.number }} --add-label "fix-yaml" || echo "label already exists"
+            exit 1
 
       - name: AI Review
         env:
