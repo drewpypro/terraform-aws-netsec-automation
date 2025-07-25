@@ -234,8 +234,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cat /tmp/dupe_output.txt
-          gh issue comment ${{ github.event.issue.number }} --body-file /tmp/dupe_output.txt
+          ls -lt 
+          cat dupe_output.txt
+          gh issue comment ${{ github.event.issue.number }} --body-file dupe_output.txt
 
       - name: AI Review
         env:
