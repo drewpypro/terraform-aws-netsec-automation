@@ -28,10 +28,12 @@ jobs:
       - name: Parse and validate request yaml
         id: issue_yaml
         run: |
+
           # Extract YAML between codefence blocks
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/issue.yaml
-
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/thirdparty_validator.yaml
+          
+          rm -f xx*
           csplit -z /tmp/issue.yaml '/---/' '{*}'
           FILES=$(ls xx* | tr '\n' ' ')
           echo "split_files=$FILES" >> $GITHUB_OUTPUT
