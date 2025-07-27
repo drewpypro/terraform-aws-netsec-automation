@@ -108,18 +108,25 @@ jobs:
 
           echo "🔍 Validating third-party contract and risk..."
 
-          if ! python3 ./scripts/validate_thirdparty.py /tmp/issue.yaml ./thirdpartyDB.json > /tmp/thirdparty_validation.txt 2>&1; then
-            echo "Third-party validation failed. Posting result to GitHub Issue."
+          FILES=$(ls xx*)
+          status=0
 
-            echo '### ❌ Third-party validation failed' > /tmp/comment.txt
-            cat /tmp/thirdparty_validation.txt >> /tmp/comment.txt  # ✅ no wrapping backticks here
+          for FILE in $FILES; do
+            if ! python3 ./scripts/validate_thirdparty.py "$FILE" ./thirdpartyDB.json > /tmp/thirdparty_validation.txt 2>&1; then
+              echo "Third-party validation failed for $FILE. Posting result to GitHub Issue."
+              echo '### ❌ Third-party validation failed' > /tmp/comment.txt
+              echo "**File:** $FILE" >> /tmp/comment.txt
+              cat /tmp/thirdparty_validation.txt >> /tmp/comment.txt
+              ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
+              gh issue comment "$ISSUE_NUMBER" --body-file /tmp/comment.txt
+              status=1
+            fi
+          done
 
-            ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
-            gh issue comment "$ISSUE_NUMBER" --body-file /tmp/comment.txt
-
+          if [ $status -ne 0 ]; then
             exit 1
           else
-            echo "✅ Third-party validation passed."
+            echo "✅ Third-party validation passed for all files."
           fi
 
       - name: Duplicate Validation
