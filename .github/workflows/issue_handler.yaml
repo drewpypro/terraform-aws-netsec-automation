@@ -120,8 +120,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          printf "%b" "${{ steps.duplicate_validation.outputs.pretty_message }}" > dupe_comment.md
-          gh issue comment ${{ github.event.issue.number }} --body-file dupe_comment.md
+          gh issue comment ${{ github.event.issue.number }} --body-file dupe_output.txt
           echo "Duplicate(s) found, failing pipeline."
           exit 1
 
