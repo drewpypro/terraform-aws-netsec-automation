@@ -192,25 +192,7 @@ jobs:
           for map in "${mappings[@]}"; do
             IFS=',' read -r src dest <<< "$map"
             if [ -f "$dest" ]; then
-              # 1. Extract rules from both files
-              yq '.rules' "$dest" > /tmp/existing_rules.yaml
-              yq '.rules' "$src" > /tmp/new_rules.yaml
-
-              # 2. Extract header (everything except .rules) from $dest
-              yq 'del(.rules)' "$dest" > /tmp/header.yaml
-
-              # 3. Merge rules (existing + new)
-              yq '.[0] + .[1]' -o=yaml <(yq '.' /tmp/existing_rules.yaml) <(yq '.' /tmp/new_rules.yaml) > /tmp/merged_rules.yaml
-
-              # 4. Compose final file
-              cat /tmp/header.yaml > "$dest"
-              echo "rules:" >> "$dest"
-              yq '.[]' /tmp/merged_rules.yaml | sed 's/^/  /' >> "$dest"
-
-              # Optionally: re-style justifications as block
-              yq -i '
-                .rules[].business_justification style="literal"
-              ' "$dest"
+              yq -i '.rules += (load("'"$src"'").rules)' "$dest"
             else
               cp "$src" "$dest"
             fi
