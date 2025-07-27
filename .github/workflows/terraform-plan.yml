@@ -1,10 +1,10 @@
 name: terraform plan workflow
 
 on:
-  pull_request:
+  push:
     branches:
       - 'issue*'
-      - 'Dev*'
+      - 'dev*'
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
