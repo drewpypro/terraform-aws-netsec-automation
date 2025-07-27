@@ -25,138 +25,40 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Process Issue YAML
+      - name: Parse and validate request yaml
         id: issue_yaml
-        if: "contains(github.event.issue.labels.*.name, 'skip-form-processing')"
         run: |
-          # Ensure policies directory exists
-          mkdir -p infrastructure/policies
-          
-          # Extract YAML from issue body
-          jq -r '.issue.body' "$GITHUB_EVENT_PATH" \
-            | sed '/^```yaml/,/^```/d' \
-            > /tmp/issue.yaml
-          
-          # Split YAML documents at the '---' markers
-          echo "Splitting YAML documents..."
+          # 1. Split Yaml if multi-line separator exists
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | sed '/^```yaml/,/^```/d' > /tmp/issue.yaml
           csplit -z /tmp/issue.yaml '/---/' '{*}'
-          
-          # Initialize tracking variables
-          FILENAMES=()
-          REGIONS=()
-          
-          # Process each document
-          for file in xx*; do
-            # Extract key fields from document
-            REGION=$(grep -o 'region: [a-z0-9-]*' "$file" | head -1 | cut -d ' ' -f 2)
-            THIRD_PARTY_NAME=$(grep -m 1 'thirdpartyName:' "$file" | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
-            THIRD_PARTY_ID=$(grep -m 1 'thirdPartyID:' "$file" | awk '{print $2}' | tr -d '\n')
-       
-            echo "Found region: $REGION, thirdpartyName: $THIRD_PARTY_NAME, thirdPartyID: $THIRD_PARTY_ID"
-            
-            # Fallback to safe naming if extraction fails
-            if [ -z "$THIRD_PARTY_NAME" ] || [ -z "$THIRD_PARTY_ID" ]; then
-              echo "Warning: Missing required fields, using default values"
-              THIRD_PARTY_NAME="unknown"
-              THIRD_PARTY_ID="policy"
+          FILES=$(ls xx* | tr '\n' ' ')
+          echo "split_files=$FILES" >> $GITHUB_OUTPUT
+
+          # 2. Generate policy mappings if existing policy exists
+          MAPPING=""
+          for FILE in $FILES; do
+            SERVICE_TYPE=$(yq '.security_group.serviceType' "$FILE")
+            REGION=$(yq '.security_group.region' "$FILE" | tr '[:upper:]' '[:lower:]')
+            if [ "$SERVICE_TYPE" = "privatelink-consumer" ]; then
+              THIRD_NAME=$(yq '.security_group.thirdpartyName' "$FILE" | tr '[:upper:]' '[:lower:]')
+              THIRD_ID=$(yq '.security_group.thirdPartyID' "$FILE")
+              SERVICE=$(yq '.security_group.serviceName' "$FILE" | sed 's/com\.amazonaws\.vpce\.//' | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]-')
+              FILENAME="${THIRD_NAME}-${THIRD_ID}-${SERVICE}-${REGION}-policy.yaml"
+            else
+              APPID=$(yq '.security_group.internalAppID' "$FILE" | tr '[:upper:]' '[:lower:]')
+              SERVICENAME=$(yq '.security_group.serviceName' "$FILE" | tr '[:upper:]' '[:lower:]')
+              FILENAME="${APPID}-${SERVICENAME}-${REGION}-policy.yaml"
             fi
-            
-            FILENAME="${THIRD_PARTY_NAME}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
-            FILE="infrastructure/policies/${FILENAME}"
 
-            # Copy the specific document to its file
-            # Use sed to remove any extra document separators
-            sed '/^---$/d' "$file" > "$FILE"
-                        
-            # Store filename and region
-            FILENAMES+=("$FILENAME")
-            REGIONS+=("$REGION")
+            POLICY_PATH="infrastructure/policies/$FILENAME"   # <--- ADD THIS LINE!
+
+            MAPPING="${MAPPING}${FILE},${POLICY_PATH}|"
+            echo "[$FILE] → [$FILENAME] → exists? $( [ -f "$POLICY_PATH" ] && echo yes || echo no )"
           done
-          
-          # Clean up temporary files
-          rm xx*
-          
-          # Debug: Check how many filenames we have
-          echo "Number of policy files created: ${#FILENAMES[@]}"
-          
-          # Output first filename and region for workflow compatibility (if any were created)
-          if [ ${#FILENAMES[@]} -gt 0 ]; then
-            echo "filename=${FILENAMES[0]}" >> "$GITHUB_OUTPUT"
-            echo "region=${REGIONS[0]}" >> "$GITHUB_OUTPUT"
-            
-            # Save all filenames for later steps if needed
-            printf '%s\n' "${FILENAMES[@]}" > /tmp/policy_filenames.txt
-            printf '%s\n' "${REGIONS[@]}" > /tmp/policy_regions.txt
-          else
-            echo "No policy files were created!"
-          fi
 
-          # Debug: Show created files
-          echo "Created policy files:"
-          ls -l infrastructure/policies/
-
-      - name: Process Issue Form
-        id: issue_data
-        if: "!contains(github.event.issue.labels.*.name, 'skip-form-processing')"
-        run: |
-          pip install --quiet yamllint PyYAML jsonschema
-
-          # Make scripts executable
-          chmod +x ./scripts/form_to_yaml.py ./scripts/validate_schema.py
-
-          # Run the script to process the form data
-          set -x  # Enable verbose output
-          python3 ./scripts/form_to_yaml.py || {
-            echo "Script failed. Checking debug log..."
-            cat /tmp/form_to_yaml_debug.log
-            exit 1
-          }
+          MAPPING="${MAPPING%|}"
+          echo "request_existing_mapping=$MAPPING" >> $GITHUB_OUTPUT
           
-          # Extract YAML from the temporary file
-          echo "Processing YAML from form submission"
-          cat /tmp/issue.yaml
-          
-          # Create policy file
-          mkdir -p infrastructure/policies
-          
-          # Extract relevant fields from the YAML to generate the filename
-          REGION=$(grep 'region:' /tmp/issue.yaml | head -1 | awk '{print $2}' | tr -d '\n')
-          
-          if grep -q 'thirdpartyName:' /tmp/issue.yaml; then
-            # Consumer policy
-            THIRD_PARTY_NAME=$(grep 'thirdpartyName:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
-            THIRD_PARTY_ID=$(grep 'thirdPartyID:' /tmp/issue.yaml | awk '{print $2}' | tr -d '\n')
-            FILENAME="${THIRD_PARTY_NAME}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
-          else
-            # Provider policy
-            INTERNAL_APP_ID=$(grep 'internalAppID:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
-            SERVICE_NAME=$(grep 'serviceName:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
-            FILENAME="${INTERNAL_APP_ID}-${SERVICE_NAME}-${REGION}-policy.yaml"
-          fi
-          
-          # Use safe defaults if extraction fails
-          if [ -z "$FILENAME" ]; then
-            FILENAME="unknown-policy-${REGION}.yaml"
-          fi
-          
-          FILE="infrastructure/policies/${FILENAME}"
-          
-          # Copy the generated YAML to the policy file
-          cp /tmp/issue.yaml "$FILE"
-          
-          # Save filename and region for later steps
-          echo "$FILENAME" > /tmp/policy_filenames.txt
-          echo "$REGION" > /tmp/policy_regions.txt
-          
-          # Output variables for next steps
-          echo "filename=$FILENAME" >> "$GITHUB_OUTPUT"
-          echo "region=$REGION" >> "$GITHUB_OUTPUT"
-          
-          # Debug: Show created files
-          echo "Created policy file:"
-          ls -l infrastructure/policies/
-
-
       - name: Set Issue YAML Outputs
         id: yaml_outputs
         if: "contains(github.event.issue.labels.*.name, 'skip-form-processing')"
@@ -221,13 +123,11 @@ jobs:
           fi
 
       - name: Duplicate Validation
-        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1.0.4
+        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1.0.6
         id: duplicate_validation
         with:
-          created_yaml: /tmp/issue.yaml
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repo: ${{ github.repository }}
-        continue-on-error: true
+          created_yaml: ${{ steps.issue_yaml.outputs.split_files }}
+          request_existing_mapping: ${{ steps.issue_yaml.outputs.request_existing_mapping }}
 
       - name: Comment on issue if dupes are found
         if: ${{ steps.duplicate_validation.outputs.duplicates_detected == 'true' }}
@@ -281,13 +181,14 @@ jobs:
           # Create and switch to the branch
           git checkout -b "$BRANCH"
 
-          # Add all policy files from the filenames file (which is always created)
-          while IFS= read -r FILENAME; do
-            if [ -n "$FILENAME" ]; then
-              FILE="infrastructure/policies/${FILENAME}"
-              git add "$FILE"
-            fi
-          done < /tmp/policy_filenames.txt
+          # Copy validated files to infra/policies and add
+          MAPPING="${{ steps.issue_yaml.outputs.request_existing_mapping }}"
+          IFS='|' read -ra mappings <<< "$MAPPING"
+          for map in "${mappings[@]}"; do
+            IFS=',' read -r src dest <<< "$map"
+            cp "$src" "$dest"
+            git add "$dest"
+          done
 
           # Commit only if there are changes
           if ! git diff --staged --quiet; then
