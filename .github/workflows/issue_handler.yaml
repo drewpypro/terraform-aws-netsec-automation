@@ -108,6 +108,23 @@ jobs:
             echo "yamllint_error=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Duplicate Validation
+        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1
+        id: duplicate_validation
+        with:
+          created_yaml: ${{ steps.issue_yaml.outputs.split_files }}
+          request_existing_mapping: ${{ steps.issue_yaml.outputs.request_existing_mapping }}
+
+      - name: Comment on issue if dupes are found
+        if: ${{ steps.duplicate_validation.outputs.duplicates_detected == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf "%b" "${{ steps.duplicate_validation.outputs.pretty_message }}" > dupe_comment.md
+          gh issue comment ${{ github.event.issue.number }} --body-file dupe_comment.md
+          echo "Duplicate(s) found, failing pipeline."
+          exit 1
+
       - name: Third-Party Validation
         id: thirdparty_validation
         env:
@@ -124,21 +141,6 @@ jobs:
             gh issue comment "$ISSUE_NUMBER" --body-file /tmp/comment.txt
             exit 1
           )
-
-      - name: Duplicate Validation
-        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1
-        id: duplicate_validation
-        with:
-          created_yaml: ${{ steps.issue_yaml.outputs.split_files }}
-          request_existing_mapping: ${{ steps.issue_yaml.outputs.request_existing_mapping }}
-
-      - name: Comment on issue if dupes are found
-        if: ${{ steps.duplicate_validation.outputs.duplicates_detected == 'true' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "${{ steps.duplicate_validation.outputs.pretty_message }}" > dupe_comment.md
-          gh issue comment ${{ github.event.issue.number }} --body-file dupe_comment.md
 
       - name: AI Review
         env:
