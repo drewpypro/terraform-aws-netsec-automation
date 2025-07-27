@@ -10,9 +10,9 @@ security_group:
   thirdpartyName: miro
   thirdPartyID: TP-0013
 rules:
-  - request_id: RQv1-001
+  - request_id: RQv1-002
     business_justification: >
-        Creating rules to allow internal hosts to connect to thirdparty splunk to enable splunk saas logging required for enterprise visibility operations. 
+        Forgot to add rules for additional url splunk2.com which enables augmented api connectivity required for business functionality. 
     source:
       account_id: 6666666
       vpc_id: vpc-05ebefacb081c3018
@@ -23,5 +23,5 @@ rules:
     protocol: tcp
     port: 6969
     appid: ssl
-    url: https://api.splunk.com
+    url: https://api.splunk2.com
     enable_palo_inspection: true
