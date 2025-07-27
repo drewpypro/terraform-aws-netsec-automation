@@ -61,7 +61,7 @@ jobs:
           echo "request_existing_mapping=$MAPPING" >> $GITHUB_OUTPUT
 
           echo "DEBUG: Mapping string: $MAPPING"
-          
+
           echo "DEBUG: FILES list: $FILES"
           for f in $FILES; do
             echo "----- $f -----"
@@ -125,7 +125,7 @@ jobs:
           )
 
       - name: Duplicate Validation
-        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1.0.6
+        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1.0.7
         id: duplicate_validation
         with:
           created_yaml: ${{ steps.issue_yaml.outputs.split_files }}
