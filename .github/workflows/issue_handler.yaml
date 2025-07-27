@@ -125,7 +125,7 @@ jobs:
           )
 
       - name: Duplicate Validation
-        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1.0.7
+        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1.0.8
         id: duplicate_validation
         with:
           created_yaml: ${{ steps.issue_yaml.outputs.split_files }}
