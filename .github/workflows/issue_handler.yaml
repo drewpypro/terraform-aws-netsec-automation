@@ -193,8 +193,10 @@ jobs:
             IFS=',' read -r src dest <<< "$map"
             if [ -f "$dest" ]; then
               echo "Appending rules from $src to $dest"
-              # This will add all rules from src to dest's rules array
-              yq -i '.rules += (load("'"$src"'").rules)' "$dest"
+              # Load the *new* rules into a temp file as array
+              yq '.rules' "$src" > /tmp/new_rules.yaml
+              # For each rule in new_rules.yaml, append to the dest's rules list
+              yq -i '.rules += load("/tmp/new_rules.yaml")' "$dest"
             else
               echo "No existing $dest, copying $src"
               cp "$src" "$dest"
