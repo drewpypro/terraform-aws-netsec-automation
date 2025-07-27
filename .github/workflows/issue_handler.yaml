@@ -29,7 +29,8 @@ jobs:
         id: issue_yaml
         run: |
           # Extract YAML between codefence blocks
-          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/issue.yaml
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | sed '/^```yaml/,/^```/d' > /tmp/issue.yaml
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/thirdparty_validator.yaml
           csplit -z /tmp/issue.yaml '/---/' '{*}'
           FILES=$(ls xx* | tr '\n' ' ')
           echo "split_files=$FILES" >> $GITHUB_OUTPUT
@@ -42,7 +43,7 @@ jobs:
             if [ "$SERVICE_TYPE" = "privatelink-consumer" ]; then
               THIRD_NAME=$(yq '.security_group.thirdpartyName' "$FILE" | tr '[:upper:]' '[:lower:]')
               THIRD_ID=$(yq '.security_group.thirdPartyID' "$FILE")
-              SERVICE=$(yq '.security_group.serviceName' "$FILE" | sed 's/com\.amazonaws\.vpce\.//' | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]-')
+              SERVICE=$(yq '.security_group.serviceName' "$FILE" | sed 's/.*vpce-svc/vpce-svc/' | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]-')
               FILENAME="${THIRD_NAME}-${THIRD_ID}-${SERVICE}-${REGION}-policy.yaml"
             else
               APPID=$(yq '.security_group.internalAppID' "$FILE" | tr '[:upper:]' '[:lower:]')
@@ -107,31 +108,13 @@ jobs:
           chmod +x ./scripts/validate_thirdparty.py
 
           echo "🔍 Validating third-party contract and risk..."
-
-          echo "---- xx00 contents ----"
-          cat xx00
-          echo "----------------------"
-          
-          FILES=$(ls xx*)
-          status=0
-
-          for FILE in $FILES; do
-            if ! python3 ./scripts/validate_thirdparty.py "$FILE" ./thirdpartyDB.json > /tmp/thirdparty_validation.txt 2>&1; then
-              echo "Third-party validation failed for $FILE. Posting result to GitHub Issue."
-              echo '### ❌ Third-party validation failed' > /tmp/comment.txt
-              echo "**File:** $FILE" >> /tmp/comment.txt
-              cat /tmp/thirdparty_validation.txt >> /tmp/comment.txt
-              ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
-              gh issue comment "$ISSUE_NUMBER" --body-file /tmp/comment.txt
-              status=1
-            fi
-          done
-
-          if [ $status -ne 0 ]; then
+          python3 ./scripts/validate_thirdparty.py /tmp/thirdparty_validator.yaml ./thirdpartyDB.json > /tmp/thirdparty_validation.txt 2>&1 || (
+            echo '### ❌ Third-party validation failed' > /tmp/comment.txt
+            cat /tmp/thirdparty_validation.txt >> /tmp/comment.txt
+            ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
+            gh issue comment "$ISSUE_NUMBER" --body-file /tmp/comment.txt
             exit 1
-          else
-            echo "✅ Third-party validation passed for all files."
-          fi
+          )
 
       - name: Duplicate Validation
         uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1.0.6
