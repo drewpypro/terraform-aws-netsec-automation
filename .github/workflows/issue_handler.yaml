@@ -126,7 +126,7 @@ jobs:
           )
 
       - name: Duplicate Validation
-        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1.0.8
+        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1
         id: duplicate_validation
         with:
           created_yaml: ${{ steps.issue_yaml.outputs.split_files }}
@@ -137,9 +137,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ls -lt 
-          cat dupe_output.txt
-          gh issue comment ${{ github.event.issue.number }} --body-file dupe_output.txt
+          echo "${{ steps.duplicate_validation.outputs.pretty_message }}" > dupe_comment.md
+          gh issue comment ${{ github.event.issue.number }} --body-file dupe_comment.md
 
       - name: AI Review
         env:
