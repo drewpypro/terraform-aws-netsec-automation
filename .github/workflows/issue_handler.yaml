@@ -192,7 +192,7 @@ jobs:
           for map in "${mappings[@]}"; do
             IFS=',' read -r src dest <<< "$map"
             if [ -f "$dest" ]; then
-              yq -i '.security_group.rules += (load("'"$src"'").security_group.rules)' "$dest"
+              yq -i '.rules += (load("'"$src"'").rules)' "$dest"
             else
               cp "$src" "$dest"
             fi
