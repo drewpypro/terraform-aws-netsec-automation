@@ -43,7 +43,7 @@ jobs:
             if [ "$SERVICE_TYPE" = "privatelink-consumer" ]; then
               THIRD_NAME=$(yq '.security_group.thirdpartyName' "$FILE" | tr '[:upper:]' '[:lower:]')
               THIRD_ID=$(yq '.security_group.thirdPartyID' "$FILE")
-              SERVICE=$(yq '.security_group.serviceName' "$FILE" | sed 's/.*vpce-svc/vpce-svc/' | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]-')
+              SERVICE=$(yq '.security_group.serviceName' "$FILE" | sed -E 's/.*vpce-svc/vpce-svc/' | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]-')
               FILENAME="${THIRD_NAME}-${THIRD_ID}-${SERVICE}-${REGION}-policy.yaml"
             else
               APPID=$(yq '.security_group.internalAppID' "$FILE" | tr '[:upper:]' '[:lower:]')
@@ -59,7 +59,15 @@ jobs:
 
           MAPPING="${MAPPING%|}"
           echo "request_existing_mapping=$MAPPING" >> $GITHUB_OUTPUT
-          
+
+          echo "DEBUG: Mapping string: $MAPPING"
+
+          echo "DEBUG: FILES list: $FILES"
+          for f in $FILES; do
+            echo "----- $f -----"
+            cat $f
+          done
+                    
       - name: Set Issue YAML Outputs
         id: yaml_outputs
         if: "contains(github.event.issue.labels.*.name, 'skip-form-processing')"
@@ -117,7 +125,7 @@ jobs:
           )
 
       - name: Duplicate Validation
-        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1.0.6
+        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1.0.7
         id: duplicate_validation
         with:
           created_yaml: ${{ steps.issue_yaml.outputs.split_files }}
