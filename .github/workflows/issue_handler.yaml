@@ -192,13 +192,26 @@ jobs:
           for map in "${mappings[@]}"; do
             IFS=',' read -r src dest <<< "$map"
             if [ -f "$dest" ]; then
-              echo "Appending rules from $src to $dest"
-              # Load the *new* rules into a temp file as array
+              # 1. Extract rules from both files
+              yq '.rules' "$dest" > /tmp/existing_rules.yaml
               yq '.rules' "$src" > /tmp/new_rules.yaml
-              # For each rule in new_rules.yaml, append to the dest's rules list
-              yq -i '.rules += load("/tmp/new_rules.yaml")' "$dest"
+
+              # 2. Extract header (everything except .rules) from $dest
+              yq 'del(.rules)' "$dest" > /tmp/header.yaml
+
+              # 3. Merge rules (existing + new)
+              yq '.[0] + .[1]' -o=yaml <(yq '.' /tmp/existing_rules.yaml) <(yq '.' /tmp/new_rules.yaml) > /tmp/merged_rules.yaml
+
+              # 4. Compose final file
+              cat /tmp/header.yaml > "$dest"
+              echo "rules:" >> "$dest"
+              yq '.[]' /tmp/merged_rules.yaml | sed 's/^/  /' >> "$dest"
+
+              # Optionally: re-style justifications as block
+              yq -i '
+                .rules[].business_justification style="literal"
+              ' "$dest"
             else
-              echo "No existing $dest, copying $src"
               cp "$src" "$dest"
             fi
             git add "$dest"
