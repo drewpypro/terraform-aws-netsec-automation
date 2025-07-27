@@ -108,6 +108,10 @@ jobs:
 
           echo "🔍 Validating third-party contract and risk..."
 
+          echo "---- xx00 contents ----"
+          cat xx00
+          echo "----------------------"
+          
           FILES=$(ls xx*)
           status=0
 
