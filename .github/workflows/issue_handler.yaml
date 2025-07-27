@@ -28,8 +28,8 @@ jobs:
       - name: Parse and validate request yaml
         id: issue_yaml
         run: |
-          # 1. Split Yaml if multi-line separator exists
-          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | sed '/^```yaml/,/^```/d' > /tmp/issue.yaml
+          # Extract YAML between codefence blocks
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/issue.yaml
           csplit -z /tmp/issue.yaml '/---/' '{*}'
           FILES=$(ls xx* | tr '\n' ' ')
           echo "split_files=$FILES" >> $GITHUB_OUTPUT
