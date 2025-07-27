@@ -3,7 +3,7 @@ name: terraform plan workflow
 on:
   push:
     branches:
-      - 'issue*'
+      - 'issue-*'
       - 'dev*'
 
 env:
