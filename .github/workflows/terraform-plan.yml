@@ -3,7 +3,7 @@ name: terraform plan workflow
 on:
   pull_request:
     branches:
-      - 'Issue*'
+      - 'issue*'
       - 'Dev*'
 
 env:
