@@ -23,5 +23,5 @@ rules:
     protocol: tcp
     port: 6969
     appid: ssl
-    url: https://api.splunk.com
+    url: https://api.splunk2.com
     enable_palo_inspection: true
