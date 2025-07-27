@@ -186,12 +186,19 @@ jobs:
           # Create and switch to the branch
           git checkout -b "$BRANCH"
 
-          # Copy validated files to infra/policies and add
+          # MAPPING is src,dest|src2,dest2|... (from earlier pipeline step)
           MAPPING="${{ steps.issue_yaml.outputs.request_existing_mapping }}"
           IFS='|' read -ra mappings <<< "$MAPPING"
           for map in "${mappings[@]}"; do
             IFS=',' read -r src dest <<< "$map"
-            cp "$src" "$dest"
+            if [ -f "$dest" ]; then
+              echo "Appending rules from $src to $dest"
+              # This will add all rules from src to dest's rules array
+              yq -i '.rules += (load("'"$src"'").rules)' "$dest"
+            else
+              echo "No existing $dest, copying $src"
+              cp "$src" "$dest"
+            fi
             git add "$dest"
           done
 
