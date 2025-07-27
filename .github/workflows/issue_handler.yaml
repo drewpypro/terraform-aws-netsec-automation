@@ -29,7 +29,8 @@ jobs:
         id: issue_yaml
         run: |
           # Extract YAML between codefence blocks
-          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | sed '/^```yaml/,/^```/d' > /tmp/issue.yaml
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/issue.yaml
+
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/thirdparty_validator.yaml
           csplit -z /tmp/issue.yaml '/---/' '{*}'
           FILES=$(ls xx* | tr '\n' ' ')
