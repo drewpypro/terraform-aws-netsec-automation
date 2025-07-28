@@ -102,30 +102,67 @@ jobs:
           echo "issue_title=${{ github.event.issue.title }}" >> $GITHUB_OUTPUT
             
 
-      - name: YAML Validation
+      - name: Lint and Schema Validate YAML
+        id: validate_yaml
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pip install --quiet yamllint
-          raw_output=$(yamllint --format standard -c .yamllint /tmp/issue.yaml 2>&1 || true)
-          yamllint_output=$(echo "$raw_output" | sed 's|/tmp/issue.yaml:|line |')
-          
-          if [ -n "$yamllint_output" ]; then
-            {
-              echo "### ⚠️ yamllint found issues in your submitted YAML"
-              echo '```yaml'
-              echo "$yamllint_output"
-              echo '```'
-            } > /tmp/yamllint_output.txt
-            
-            echo "yamllint_error=true" >> $GITHUB_OUTPUT
-            cat /tmp/yamllint_output.txt
+
+          # Get serviceType and set schema
+          SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
+          if [ "$SERVICE_TYPE" = "privatelink-consumer" ] || [ "$SERVICE_TYPE" = "privatelink-provider" ]; then
+            SCHEMA_PATH=".github/schema/${SERVICE_TYPE}-schema.json"
           else
-            echo "yamllint_error=false" >> $GITHUB_OUTPUT
+            echo "❌ Error: serviceType is missing or invalid: '$SERVICE_TYPE'"
+            exit 1
+          fi
+
+          # -------- Yamllint --------
+          yamllint --format standard -c .yamllint /tmp/issue.yaml > /tmp/yamllint_output.txt 2>&1
+          YAMLLINT_OK=$?
+
+          # -------- Schema Validation --------
+          python3 ./scripts/validate_schema.py /tmp/issue.yaml "$SCHEMA_PATH" > /tmp/schema_output.txt 2>&1
+          SCHEMA_OK=$?
+
+          # -------- Compose Comment if needed --------
+          if [ $YAMLLINT_OK -ne 0 ] || [ $SCHEMA_OK -ne 0 ]; then
+            {
+              echo "### ⚠️ Validation Results"
+              echo ""
+              if [ $YAMLLINT_OK -ne 0 ]; then
+                echo "#### YAML Formatting Issues:"
+                echo '```yaml'
+                cat /tmp/yamllint_output.txt
+                echo '```'
+                echo ""
+              else
+                echo "#### ✅ YAML Format Validation: Passed"
+                echo ""
+              fi
+              if [ $SCHEMA_OK -ne 0 ]; then
+                echo "#### Schema Validation Issues:"
+                echo '```'
+                cat /tmp/schema_output.txt
+                echo '```'
+              else
+                echo "#### ✅ Schema Validation: Passed"
+              fi
+            } > /tmp/validation_comment.txt
+
+            gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/validation_comment.txt
+
+            echo "Validation errors found. Exiting workflow."
+            exit 1
+          else
+            echo "YAML linting and schema validation both passed."
           fi
 
       - name: Log request YAML file
         run: |
           echo "=== REQUEST (issue.yaml) ==="
-          cat /tmp/issue.yaml
+          cat /tmp/issue.yaml xx*
 
       - name: Log target (existing) file(s) if they exist
         run: |
