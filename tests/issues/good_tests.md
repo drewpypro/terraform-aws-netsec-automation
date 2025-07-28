@@ -11,6 +11,7 @@ security_group:
     thirdPartyID: TP-0010
 rules:
   - request_id: RQ-001
+    business_justification: Creating rules for thirdparty splunk to enable splunk saas logging required for enterprise visibility operations. 
     source:
       ips:
         - 10.11.1.2/32
