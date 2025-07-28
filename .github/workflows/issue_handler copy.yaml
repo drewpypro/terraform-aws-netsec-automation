@@ -28,13 +28,11 @@ jobs:
       - name: Parse and validate request yaml
         id: issue_yaml
         run: |
-          # Start Fraiche
           rm -f /tmp/issue.yaml /tmp/thirdparty_validator.yaml xx*
-
           # Extract YAML between codefence blocks
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/issue.yaml
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/thirdparty_validator.yaml
-          
+
           csplit -z /tmp/issue.yaml '/---/' '{*}'
           FILES=$(ls xx* | tr '\n' ' ')
           echo "split_files=$FILES" >> $GITHUB_OUTPUT
@@ -54,7 +52,7 @@ jobs:
               SERVICENAME=$(yq '.security_group.serviceName' "$FILE" | tr '[:upper:]' '[:lower:]')
               FILENAME="${APPID}-${SERVICENAME}-${REGION}-policy.yaml"
             fi
-            POLICY_PATH="infrastructure/policies/$FILENAME"   # <--- ADD THIS LINE!
+            POLICY_PATH="infrastructure/policies/$FILENAME"
             MAPPING="${MAPPING}${FILE},${POLICY_PATH}|"
             echo "[$FILE] → [$FILENAME] → exists? $( [ -f "$POLICY_PATH" ] && echo yes || echo no )"
           done
@@ -67,45 +65,6 @@ jobs:
             echo "----- $f -----"
             cat $f
           done
-                    
-      - name: Set Issue YAML Outputs
-        id: yaml_outputs
-        if: "contains(github.event.issue.labels.*.name, 'skip-form-processing')"
-        run: |
-          # Determine request type from labels
-          if [ "$(grep -c 'privatelink-consumer' <<< "${{ join(github.event.issue.labels.*.name, '\n') }}")" -gt 0 ]; then
-            echo "request_type=consumer" >> $GITHUB_OUTPUT
-            echo "schema_file=privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
-          elif [ "$(grep -c 'privatelink-provider' <<< "${{ join(github.event.issue.labels.*.name, '\n') }}")" -gt 0 ]; then
-            echo "request_type=provider" >> $GITHUB_OUTPUT
-            echo "schema_file=privatelink-provider-schema.json" >> $GITHUB_OUTPUT
-          fi
-          
-          # Set other issue details
-          echo "issue_number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
-          echo "issue_author=${{ github.event.issue.user.login }}" >> $GITHUB_OUTPUT
-          echo "issue_title=${{ github.event.issue.title }}" >> $GITHUB_OUTPUT
-            
-
-      - name: YAML Validation
-        run: |
-          pip install --quiet yamllint
-          raw_output=$(yamllint --format standard -c .yamllint /tmp/issue.yaml 2>&1 || true)
-          yamllint_output=$(echo "$raw_output" | sed 's|/tmp/issue.yaml:|line |')
-          
-          if [ -n "$yamllint_output" ]; then
-            {
-              echo "### ⚠️ yamllint found issues in your submitted YAML"
-              echo '```yaml'
-              echo "$yamllint_output"
-              echo '```'
-            } > /tmp/yamllint_output.txt
-            
-            echo "yamllint_error=true" >> $GITHUB_OUTPUT
-            cat /tmp/yamllint_output.txt
-          else
-            echo "yamllint_error=false" >> $GITHUB_OUTPUT
-          fi
 
       - name: Log request YAML file
         run: |
@@ -125,6 +84,24 @@ jobs:
               echo "=== EXISTING ($dest) DOES NOT EXIST ==="
             fi
           done
+
+      - name: YAML Validation
+        run: |
+          pip install --quiet yamllint
+          raw_output=$(yamllint --format standard -c .yamllint /tmp/issue.yaml 2>&1 || true)
+          yamllint_output=$(echo "$raw_output" | sed 's|/tmp/issue.yaml:|line |')
+          if [ -n "$yamllint_output" ]; then
+            {
+              echo "### ⚠️ yamllint found issues in your submitted YAML"
+              echo '```yaml'
+              echo "$yamllint_output"
+              echo '```'
+            } > /tmp/yamllint_output.txt
+            echo "yamllint_error=true" >> $GITHUB_OUTPUT
+            cat /tmp/yamllint_output.txt
+          else
+            echo "yamllint_error=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Duplicate Validation
         uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1
@@ -154,7 +131,6 @@ jobs:
         run: |
           pip install --quiet PyYAML
           chmod +x ./scripts/validate_thirdparty.py
-
           echo "🔍 Validating third-party contract and risk..."
           python3 ./scripts/validate_thirdparty.py /tmp/thirdparty_validator.yaml ./thirdpartyDB.json > /tmp/thirdparty_validation.txt 2>&1 || (
             echo '### ❌ Third-party validation failed' > /tmp/comment.txt
@@ -163,38 +139,18 @@ jobs:
             gh issue comment "$ISSUE_NUMBER" --body-file /tmp/comment.txt
             exit 1
           )
+          echo "=== THIRD-PARTY VALIDATION OUTPUT ==="
+          cat /tmp/thirdparty_validation.txt
 
-      # - name: AI Review
-      #   env:
-      #     DREWPYAI_API_KEY: ${{ secrets.DREWPYAI_API_KEY }}
-      #     DREWPY_PAT: ${{ secrets.DREWPY_PAT }}
-      #     ISSUE_BODY: ${{ github.event.issue.body }}
-      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     echo "🤖 Cloning AI reviewer..."
-      #     git clone https://x-access-token:${{ secrets.DREWPY_PAT }}@github.com/drewpypro/drewpy-ai-actions.git
-      #     pip install -r drewpy-ai-actions/aws-netsec-automation-review/requirements.txt
-
-      #     echo "📊 Running AI rule reviewer..."
-      #     python3 drewpy-ai-actions/aws-netsec-automation-review/ai-rule-review.py \
-      #       --input-file /tmp/issue.yaml \
-      #       --output-file /tmp/ai_review_output.md || true
-
-      #     echo "📝 Posting AI review result..."
-      #     ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
-      #     gh issue comment "$ISSUE_NUMBER" --body-file /tmp/ai_review_output.md
-
-      # Commit Changes and Create PR (Always Runs)
-      - name: Commit Changes and Create PR
+      - name: Commit Changes and Create/Update PR
         id: create_pr
         env:
           GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
         run: |
-
           sudo wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64"
           sudo chmod +x /usr/local/bin/yq
           yq --version
-        
+
           ISSUE_ID=${{ github.event.issue.number }}
           BRANCH="issue-${ISSUE_ID}"
           LABEL=$(jq -r '.issue.labels[0].name' "$GITHUB_EVENT_PATH")
@@ -202,17 +158,10 @@ jobs:
 
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+          
+          # Always use the same branch, overwrite it
+          git checkout -B "$BRANCH" origin/main || git checkout -b "$BRANCH"
 
-          # Check if branch already exists
-          if git ls-remote --heads origin | grep -q "refs/heads/$BRANCH"; then
-            # Branch exists, create a unique branch name
-            BRANCH="issue-${ISSUE_ID}-$(date +%s)"
-          fi
-
-          # Create and switch to the branch
-          git checkout -b "$BRANCH"
-
-          # MAPPING is src,dest|src2,dest2|... (from earlier pipeline step)
           MAPPING="${{ steps.issue_yaml.outputs.request_existing_mapping }}"
           IFS='|' read -ra mappings <<< "$MAPPING"
           for map in "${mappings[@]}"; do
@@ -223,23 +172,29 @@ jobs:
               cp "$src" "$dest"
             fi
             git add "$dest"
+            echo "=== UPDATED POLICY FILE: $dest ==="
+            cat "$dest"
           done
 
           # Commit only if there are changes
           if ! git diff --staged --quiet; then
             git commit -m "Add network access policies from issue #${ISSUE_ID}"
-            
-            # Force push or push with lease to handle potential conflicts
             git push -f origin "$BRANCH"
 
-            PR_URL=$(gh pr create \
-              --title "[Auto] Add network access policies from issue #${ISSUE_ID}" \
-              --label "$LABEL" \
-              --body "This PR adds multiple network access policies from issue #${ISSUE_ID}." \
-              --head "$BRANCH" \
-              --base main)
+            # Find existing PR or create a new one
+            PR_URL=$(gh pr list --state open --head "$BRANCH" --json url --jq '.[0].url')
+            if [ -z "$PR_URL" ]; then
+              PR_URL=$(gh pr create \
+                --title "[Auto] Add network access policies from issue #${ISSUE_ID}" \
+                --label "$LABEL" \
+                --body "This PR adds multiple network access policies from issue #${ISSUE_ID}." \
+                --head "$BRANCH" \
+                --base main)
+              echo "🔍 PR created at $PR_URL"
+            else
+              echo "🔍 Updated existing PR: $PR_URL"
+            fi
 
-            echo "🔍 PR created at $PR_URL"
             echo "author=$AUTHOR" >> "$GITHUB_OUTPUT"
             echo "🔎 Detected issue author: $AUTHOR"
             
