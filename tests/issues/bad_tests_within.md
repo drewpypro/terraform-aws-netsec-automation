@@ -13,8 +13,8 @@ rules:
   - request_id: RQ-001
     business_justification: Creating rules to allow internal hosts to connect to thirdparty splunk to enable splunk saas logging required for enterprise visibility operations. 
     source:
-      account_id: 6666666
-      vpc_id: vpc-05ebefacb081c3018
+      account_id: 111122223333
+      vpc_id: vpc-aaa
       region: us-east-1
       ips:
         - 10.11.1.2/32
@@ -39,9 +39,13 @@ security_group:
     thirdpartyName: snowflake
     thirdPartyID: TP-0008
 rules:
-    - request_id: RQ-001
+  - request_id: RQ-001
+    business_justification: Creating security-group and palo alto rules for thirdparty snowflake to enable snowflake connectivity required for enterprise database operations. 
     source:
-        ips:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-east-1
+      ips:
         - 10.11.1.2/32
         - 10.12.1.2/32
         - 10.13.1.2/32
@@ -50,9 +54,13 @@ rules:
     appid: ssl
     url: https://api.snowflake.com
     enable_palo_inspection: true
-    - request_id: RQ-002
+  - request_id: RQ-002
+    business_justification: Creating security-group and palo alto rules for thirdparty snowflake to enable snowflake connectivity required for enterprise database operations. 
     source:
-        ips:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-east-1
+      ips:
         - 10.11.1.2/32
         - 10.12.1.2/32
         - 10.13.1.2/32
@@ -75,9 +83,13 @@ security_group:
     thirdpartyName: snowflake
     thirdPartyID: TP-0008
 rules:
-    - request_id: RQ-001
+  - request_id: RQ-001
+    business_justification: Creating security-group and palo alto rules for thirdparty snowflake to enable snowflake connectivity required for enterprise database operations. 
     source:
-        ips:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-east-1
+      ips:
         - 10.12.1.1/32
         - 10.13.1.1/32
     protocol: tcp
@@ -85,9 +97,13 @@ rules:
     appid: ssl
     url: https://api.snowflake.com
     enable_palo_inspection: true
-    - request_id: RQ-002
+  - request_id: RQ-002
+    business_justification: Creating security-group and palo alto rules for thirdparty snowflake to enable snowflake connectivity required for enterprise database operations. 
     source:
-        ips:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-east-1
+      ips:
         - 10.12.1.1/32
         - 10.15.1.1/32
     protocol: tcp
@@ -110,9 +126,13 @@ security_group:
     thirdpartyName: snowflake
     thirdPartyID: TP-0008
 rules:
-    - request_id: RQ-001
+  - request_id: RQ-001
+    business_justification: Creating security-group and palo alto rules for thirdparty snowflake to enable snowflake connectivity required for enterprise database operations. 
     source:
-        ips:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-east-1
+      ips:
         - 10.1.1.1/32
         - 10.1.1.2/32
         - 10.1.1.1/32
@@ -121,9 +141,13 @@ rules:
     appid: ssl
     url: https://api.snowflake.com
     enable_palo_inspection: true
-    - request_id: RQ-002
+  - request_id: RQ-002
+    business_justification: Creating security-group and palo alto rules for thirdparty snowflake to enable snowflake connectivity required for enterprise database operations. 
     source:
-        ips:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-east-1
+      ips:
         - 10.1.1.1/32
         - 10.1.1.2/32
         - 10.1.1.1/32
