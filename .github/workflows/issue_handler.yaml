@@ -121,7 +121,7 @@ jobs:
           echo "DEBUG: Detected serviceType: '$SERVICE_TYPE'"
 
           if [ "$SERVICE_TYPE" = "privatelink-consumer" ] || [ "$SERVICE_TYPE" = "privatelink-provider" ]; then
-            SCHEMA_PATH=".github/schema/${SERVICE_TYPE}-schema.json"
+            SCHEMA_PATH=".github/schemas/${SERVICE_TYPE}-schema.json"
           else
             echo "❌ Error: serviceType is missing or invalid: '$SERVICE_TYPE'"
             exit 1
