@@ -74,11 +74,10 @@ jobs:
 
           # Ensure serviceType label exists and is applied
           SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
-          [ -z "$SERVICE_TYPE" ] && SERVICE_TYPE="unknown-service"
           
           # Make sure label exists, if not create
-          gh label create "privatelink-consumer" --color 70EC23 --description "Request for privatelink-consumer" || true
-          gh label create "privatelink-provider" --color 411DAB --description "Request for privatelink-provider" || true
+          gh label create "privatelink-consumer" --color 70EC23 --description "Request for privatelink-consumer" --force || true
+          gh label create "privatelink-provider" --color 411DAB --description "Request for privatelink-provider" --force || true
           
           # Clean issue labels and re-add if changed
           gh issue edit ${{ github.event.issue.number }} --remove-label "privatelink-consumer" --remove-label "privatelink-provider" || true
@@ -217,6 +216,7 @@ jobs:
           ISSUE_ID=${{ github.event.issue.number }}
           BRANCH="issue-${ISSUE_ID}"
           LABEL=$(jq -r '.issue.labels[0].name' "$GITHUB_EVENT_PATH")
+          SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
           AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
 
           git config user.name "github-actions"
@@ -253,7 +253,7 @@ jobs:
 
             PR_URL=$(gh pr create \
               --title "[Auto] Add network access policies from issue #${ISSUE_ID}" \
-              --label "$LABEL" \
+              --label "$SERVICE_TYPE" \
               --body "This PR adds multiple network access policies from issue #${ISSUE_ID}." \
               --head "$BRANCH" \
               --base main)
