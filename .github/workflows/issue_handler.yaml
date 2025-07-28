@@ -118,6 +118,7 @@ jobs:
             
             echo "yamllint_error=true" >> $GITHUB_OUTPUT
             cat /tmp/yamllint_output.txt
+            exit 1
           else
             echo "yamllint_error=false" >> $GITHUB_OUTPUT
           fi
