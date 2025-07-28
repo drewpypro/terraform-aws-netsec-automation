@@ -91,7 +91,7 @@ jobs:
               echo "### ⚠️ Validation Results"
               echo ""
               if [ $YAMLLINT_OK -ne 0 ]; then
-                echo "#### YAML Formatting Issues:"
+                echo "#### Fix YAML Formatting Errors:"
                 echo '```yaml'
                 cat /tmp/yamllint_output.txt
                 echo '```'
@@ -113,6 +113,8 @@ jobs:
             ISSUE_NUMBER=${{ github.event.issue.number }}
             echo "DEBUG: Commenting on issue $ISSUE_NUMBER"
             gh issue comment "$ISSUE_NUMBER" --body-file /tmp/validation_comment.txt
+            gh label create "lint-fail" --color D73A4A --description "YAML linting or schema validation failed" || true
+            gh issue edit "$ISSUE_NUMBER" --add-label "lint-fail"
 
             echo "Validation errors found. Exiting workflow."
             exit 1
