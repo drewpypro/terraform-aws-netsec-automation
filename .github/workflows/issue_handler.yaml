@@ -250,6 +250,8 @@ jobs:
             cat /tmp/thirdparty_validation.txt >> /tmp/comment.txt
             ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
             gh issue comment "$ISSUE_NUMBER" --body-file /tmp/comment.txt
+            gh label create "bad-thirdparty-info" --color FF0000 --description "Invalid third-party information" || true
+            gh issue edit "$ISSUE_NUMBER" --add-label "bad-thirdparty-info"
             exit 1
           )
 
