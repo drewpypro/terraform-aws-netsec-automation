@@ -37,3 +37,17 @@ rules:
     appid: ssl
     url: https://api.splunk2.com
     enable_palo_inspection: true
+  - request_id: RQv1-003
+    business_justification: Forgot to add ips for additional url splunk2.com which enables augmented api connectivity required for business functionality.
+    source:
+      account_id: 6666666
+      vpc_id: vpc-05ebefacb081c3018
+      region: us-east-1
+      ips:
+        - 10.69.1.1/32
+        - 10.72.1.1/32
+    protocol: tcp
+    port: 6969
+    appid: ssl
+    url: https://api.splunk2.com
+    enable_palo_inspection: true
