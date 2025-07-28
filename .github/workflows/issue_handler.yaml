@@ -107,7 +107,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -x
+          set -xe
           pip install --quiet yamllint
 
           echo "DEBUG: Printing first few lines of /tmp/issue.yaml"
@@ -133,8 +133,13 @@ jobs:
           echo "DEBUG: yamllint exit code: $YAMLLINT_OK"
 
           # -------- Schema Validation --------
-          python3 ./scripts/validate_schema.py /tmp/issue.yaml "$SCHEMA_PATH" > /tmp/schema_output.txt 2>&1
-          SCHEMA_OK=$?
+          if [ -n "$SCHEMA_PATH" ]; then
+            python3 ./scripts/validate_schema.py /tmp/issue.yaml "$SCHEMA_PATH" > /tmp/schema_output.txt 2>&1
+            SCHEMA_OK=$?
+          else
+            echo "Schema validation was skipped due to missing schema path." > /tmp/schema_output.txt
+            SCHEMA_OK=1
+          fi
           echo "DEBUG: schema validation exit code: $SCHEMA_OK"
 
           # -------- Always Show Outputs --------
@@ -179,6 +184,7 @@ jobs:
             exit 1
           else
             echo "YAML linting and schema validation both passed."
+            exit 0
           fi
 
       - name: Log request YAML file
