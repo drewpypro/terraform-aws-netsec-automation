@@ -27,6 +27,9 @@ jobs:
 
       - name: Parse and validate request yaml
         id: issue_yaml
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
         run: |
           # Start Fraiche
           rm -f /tmp/issue.yaml /tmp/thirdparty_validator.yaml xx*
