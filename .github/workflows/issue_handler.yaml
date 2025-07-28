@@ -110,7 +110,6 @@ jobs:
           set -x
           pip install --quiet yamllint
 
-          
           echo "DEBUG: Printing first few lines of /tmp/issue.yaml"
           head -20 /tmp/issue.yaml || true
           echo "DEBUG: Checking schema directory"
@@ -132,13 +131,20 @@ jobs:
           yamllint --format standard -c .yamllint /tmp/issue.yaml > /tmp/yamllint_output.txt 2>&1
           YAMLLINT_OK=$?
           echo "DEBUG: yamllint exit code: $YAMLLINT_OK"
-          cat /tmp/yamllint_output.txt
 
           # -------- Schema Validation --------
           python3 ./scripts/validate_schema.py /tmp/issue.yaml "$SCHEMA_PATH" > /tmp/schema_output.txt 2>&1
           SCHEMA_OK=$?
           echo "DEBUG: schema validation exit code: $SCHEMA_OK"
+
+          # -------- Always Show Outputs --------
+          echo "-------------------------"
+          echo "YAMLLINT OUTPUT:"
+          cat /tmp/yamllint_output.txt
+          echo "-------------------------"
+          echo "SCHEMA VALIDATION OUTPUT:"
           cat /tmp/schema_output.txt
+          echo "-------------------------"
 
           # -------- Compose Comment if needed --------
           if [ $YAMLLINT_OK -ne 0 ] || [ $SCHEMA_OK -ne 0 ]; then
