@@ -45,6 +45,11 @@ jobs:
           head -20 /tmp/issue.yaml || true
           echo "DEBUG: Checking schema directory"
           ls -lh .github/schemas || true
+          
+          # -------- Yamllint --------
+          yamllint --format standard -c .yamllint /tmp/issue.yaml > /tmp/yamllint_output.txt 2>&1
+          YAMLLINT_OK=$?
+          echo "DEBUG: yamllint exit code: $YAMLLINT_OK"
 
           # Get serviceType and set schema
           SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
@@ -64,10 +69,6 @@ jobs:
           fi
           echo "DEBUG: Using schema path: $SCHEMA_PATH"
 
-          # -------- Yamllint --------
-          yamllint --format standard -c .yamllint /tmp/issue.yaml > /tmp/yamllint_output.txt 2>&1
-          YAMLLINT_OK=$?
-          echo "DEBUG: yamllint exit code: $YAMLLINT_OK"
 
           # -------- Schema Validation --------
           if [ -n "$SCHEMA_PATH" ]; then
