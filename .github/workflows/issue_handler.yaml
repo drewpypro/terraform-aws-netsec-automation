@@ -107,7 +107,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -xe
+          set -x
+          set +e
           pip install --quiet yamllint
 
           echo "DEBUG: Printing first few lines of /tmp/issue.yaml"
