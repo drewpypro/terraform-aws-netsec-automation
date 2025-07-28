@@ -19,7 +19,7 @@
       "properties": {
         "request_id": { "type": ["string", "number"] },
         "business_justification": { "type": "string" },
-        "accountId": { "type": "string" },
+        "accountId": { "type": "number" },
         "region": {
           "type": "string",
           "enum": ["us-west-2", "us-east-1"]
