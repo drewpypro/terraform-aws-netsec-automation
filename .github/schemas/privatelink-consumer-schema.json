@@ -65,7 +65,7 @@
               "ips"
             ],
             "properties": {
-              "account_id": { "type": "string" },
+              "account_id": { "type": "number" },
               "vpc_id": { "type": "string" },
               "region": { "type": "string" },
               "ips": {

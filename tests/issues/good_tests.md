@@ -37,7 +37,7 @@ rules:
     protocol: tcp
     port: 77
     appid: ssl
-    url: https://api.workday2.com
+    url: https://api.workday.com
 ```
 
 ```yaml
