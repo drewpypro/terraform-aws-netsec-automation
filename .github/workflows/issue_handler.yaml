@@ -28,17 +28,18 @@ jobs:
       - name: Parse and validate request yaml
         id: issue_yaml
         run: |
+          # Start Fraiche
+          rm -f /tmp/issue.yaml /tmp/thirdparty_validator.yaml xx*
 
           # Extract YAML between codefence blocks
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/issue.yaml
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/thirdparty_validator.yaml
           
-          rm -f xx*
           csplit -z /tmp/issue.yaml '/---/' '{*}'
           FILES=$(ls xx* | tr '\n' ' ')
           echo "split_files=$FILES" >> $GITHUB_OUTPUT
 
-          # 2. Generate policy mappings if existing policy exists
+          # Generate policy mappings if existing policy exists
           MAPPING=""
           for FILE in $FILES; do
             SERVICE_TYPE=$(yq '.security_group.serviceType' "$FILE")
@@ -53,18 +54,14 @@ jobs:
               SERVICENAME=$(yq '.security_group.serviceName' "$FILE" | tr '[:upper:]' '[:lower:]')
               FILENAME="${APPID}-${SERVICENAME}-${REGION}-policy.yaml"
             fi
-
             POLICY_PATH="infrastructure/policies/$FILENAME"   # <--- ADD THIS LINE!
-
             MAPPING="${MAPPING}${FILE},${POLICY_PATH}|"
             echo "[$FILE] → [$FILENAME] → exists? $( [ -f "$POLICY_PATH" ] && echo yes || echo no )"
           done
-
           MAPPING="${MAPPING%|}"
           echo "request_existing_mapping=$MAPPING" >> $GITHUB_OUTPUT
 
           echo "DEBUG: Mapping string: $MAPPING"
-
           echo "DEBUG: FILES list: $FILES"
           for f in $FILES; do
             echo "----- $f -----"
@@ -110,12 +107,36 @@ jobs:
             echo "yamllint_error=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Log request YAML file
+        run: |
+          echo "=== REQUEST (issue.yaml) ==="
+          cat /tmp/issue.yaml
+
+      - name: Log target (existing) file(s) if they exist
+        run: |
+          MAPPING="${{ steps.issue_yaml.outputs.request_existing_mapping }}"
+          IFS='|' read -ra mappings <<< "$MAPPING"
+          for map in "${mappings[@]}"; do
+            IFS=',' read -r src dest <<< "$map"
+            if [ -f "$dest" ]; then
+              echo "=== EXISTING ($dest) ==="
+              cat "$dest"
+            else
+              echo "=== EXISTING ($dest) DOES NOT EXIST ==="
+            fi
+          done
+
       - name: Duplicate Validation
         uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1
         id: duplicate_validation
         with:
           created_yaml: ${{ steps.issue_yaml.outputs.split_files }}
           request_existing_mapping: ${{ steps.issue_yaml.outputs.request_existing_mapping }}
+
+      - name: Log duplicate validator output
+        run: |
+          echo "=== DUPLICATE VALIDATION OUTPUT ==="
+          cat dupe_output.txt || echo "(No dupe_output.txt produced)"
 
       - name: Comment on issue if dupes are found
         if: ${{ steps.duplicate_validation.outputs.duplicates_detected == 'true' }}
