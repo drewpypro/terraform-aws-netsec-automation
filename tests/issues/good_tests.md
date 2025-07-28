@@ -24,6 +24,7 @@ rules:
     port: 69
     appid: ssl
     url: https://api.workday.com
+    enable_palo_inspection: true
   - request_id: RQ-002
     business_justification: Creating rules for thirdparty splunk to enable splunk saas logging required for enterprise visibility operations. 
     source:
@@ -38,6 +39,7 @@ rules:
     port: 77
     appid: ssl
     url: https://api.workday.com
+    enable_palo_inspection: true
 ```
 
 ```yaml

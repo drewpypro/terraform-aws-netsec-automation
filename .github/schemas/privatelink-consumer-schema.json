@@ -46,7 +46,8 @@
           "protocol",
           "port",
           "appid",
-          "url"
+          "url",
+          "enable_palo_inspection"
         ],
         "properties": {
           "request_id": { "type": ["string", "number"] },
