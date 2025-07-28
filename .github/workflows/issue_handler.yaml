@@ -35,6 +35,7 @@ jobs:
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/issue.yaml
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/thirdparty_validator.yaml
           
+          # Splitting multi-line files for future updates (doesn't work now)
           csplit -z /tmp/issue.yaml '/---/' '{*}'
           FILES=$(ls xx* | tr '\n' ' ')
           echo "split_files=$FILES" >> $GITHUB_OUTPUT
@@ -67,7 +68,19 @@ jobs:
             echo "----- $f -----"
             cat $f
           done
-                    
+
+          # Ensure serviceType label exists and is applied
+          SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
+          [ -z "$SERVICE_TYPE" ] && SERVICE_TYPE="unknown-service"
+          
+          # Make sure label exists, if not create
+          gh label create "privatelink-consumer" --color 70EC23 --description "Request for privatelink-consumer" || true
+          gh label create "privatelink-provider" --color 411DAB --description "Request for privatelink-provider" || true
+          
+          # Clean issue labels and re-add if changed
+          gh issue edit ${{ github.event.issue.number }} --remove-label "privatelink-consumer" --remove-label "privatelink-provider" || true
+          gh issue edit ${{ github.event.issue.number }} --add-label "$SERVICE_TYPE"
+
       - name: Set Issue YAML Outputs
         id: yaml_outputs
         if: "contains(github.event.issue.labels.*.name, 'skip-form-processing')"
@@ -143,6 +156,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          gh label create "dupe-detected" --color B60205 --description "Duplicate detected by automation" || true
+          gh label create "needs-fix" --color FBCA04 --description "Issue needs correction" || true
+          gh issue edit ${{ github.event.issue.number }} --add-label "needs-fix" --add-label "dupe-detected"
           gh issue comment ${{ github.event.issue.number }} --body-file dupe_output.txt
           echo "Duplicate(s) found, failing pipeline."
           exit 1
@@ -253,3 +269,10 @@ jobs:
           else
             echo "No changes to commit"
           fi
+
+      - name: Remove needs-fix and dupe-detected labels (if present)
+        if: ${{ success() }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue edit ${{ github.event.issue.number }} --remove-label "needs-fix" --remove-label "dupe-detected"  || true
