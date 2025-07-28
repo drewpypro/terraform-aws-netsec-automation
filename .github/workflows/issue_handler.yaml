@@ -25,92 +25,21 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Parse and validate request yaml
-        id: issue_yaml
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-        run: |
-          # Start Fraiche
-          rm -f /tmp/issue.yaml /tmp/thirdparty_validator.yaml xx*
-
-          # Extract YAML between codefence blocks
-          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/issue.yaml
-          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/thirdparty_validator.yaml
-          
-          # Splitting multi-line files for future updates (doesn't work now)
-          csplit -z /tmp/issue.yaml '/---/' '{*}'
-          FILES=$(ls xx* | tr '\n' ' ')
-          echo "split_files=$FILES" >> $GITHUB_OUTPUT
-
-          # Generate policy mappings if existing policy exists
-          MAPPING=""
-          for FILE in $FILES; do
-            SERVICE_TYPE=$(yq '.security_group.serviceType' "$FILE")
-            REGION=$(yq '.security_group.region' "$FILE" | tr '[:upper:]' '[:lower:]')
-            if [ "$SERVICE_TYPE" = "privatelink-consumer" ]; then
-              THIRD_NAME=$(yq '.security_group.thirdpartyName' "$FILE" | tr '[:upper:]' '[:lower:]')
-              THIRD_ID=$(yq '.security_group.thirdPartyID' "$FILE")
-              SERVICE=$(yq '.security_group.serviceName' "$FILE" | sed -E 's/.*vpce-svc/vpce-svc/' | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]-')
-              FILENAME="${THIRD_NAME}-${THIRD_ID}-${SERVICE}-${REGION}-policy.yaml"
-            else
-              APPID=$(yq '.security_group.internalAppID' "$FILE" | tr '[:upper:]' '[:lower:]')
-              SERVICENAME=$(yq '.security_group.serviceName' "$FILE" | tr '[:upper:]' '[:lower:]')
-              FILENAME="${APPID}-${SERVICENAME}-${REGION}-policy.yaml"
-            fi
-            POLICY_PATH="infrastructure/policies/$FILENAME"   # <--- ADD THIS LINE!
-            MAPPING="${MAPPING}${FILE},${POLICY_PATH}|"
-            echo "[$FILE] → [$FILENAME] → exists? $( [ -f "$POLICY_PATH" ] && echo yes || echo no )"
-          done
-          MAPPING="${MAPPING%|}"
-          echo "request_existing_mapping=$MAPPING" >> $GITHUB_OUTPUT
-
-          echo "DEBUG: Mapping string: $MAPPING"
-          echo "DEBUG: FILES list: $FILES"
-          for f in $FILES; do
-            echo "----- $f -----"
-            cat $f
-          done
-
-          # Ensure serviceType label exists and is applied
-          SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
-          
-          # Make sure label exists, if not create
-          gh label create "privatelink-consumer" --color 70EC23 --description "Request for privatelink-consumer" --force || true
-          gh label create "privatelink-provider" --color 411DAB --description "Request for privatelink-provider" --force || true
-          
-          # Clean issue labels and re-add if changed
-          gh issue edit ${{ github.event.issue.number }} --remove-label "privatelink-consumer" --remove-label "privatelink-provider" || true
-          gh issue edit ${{ github.event.issue.number }} --add-label "$SERVICE_TYPE"
-
-      - name: Set Issue YAML Outputs
-        id: yaml_outputs
-        if: "contains(github.event.issue.labels.*.name, 'skip-form-processing')"
-        run: |
-          # Determine request type from labels
-          if [ "$(grep -c 'privatelink-consumer' <<< "${{ join(github.event.issue.labels.*.name, '\n') }}")" -gt 0 ]; then
-            echo "request_type=consumer" >> $GITHUB_OUTPUT
-            echo "schema_file=privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
-          elif [ "$(grep -c 'privatelink-provider' <<< "${{ join(github.event.issue.labels.*.name, '\n') }}")" -gt 0 ]; then
-            echo "request_type=provider" >> $GITHUB_OUTPUT
-            echo "schema_file=privatelink-provider-schema.json" >> $GITHUB_OUTPUT
-          fi
-          
-          # Set other issue details
-          echo "issue_number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
-          echo "issue_author=${{ github.event.issue.user.login }}" >> $GITHUB_OUTPUT
-          echo "issue_title=${{ github.event.issue.title }}" >> $GITHUB_OUTPUT
-            
-
-      - name: Lint and Schema Validate YAML
+      - name: Extract and Validate Issue YAML
         id: validate_yaml
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Start Fraiche
+          rm -f /tmp/issue.yaml /tmp/thirdparty_validator.yaml xx*
           set -x
           set +e
           
           pip install --quiet yamllint jsonschema PyYaml
+
+          # Extract YAML from codefence
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/issue.yaml
 
           echo "DEBUG: Printing first few lines of /tmp/issue.yaml"
           head -20 /tmp/issue.yaml || true
@@ -189,11 +118,81 @@ jobs:
             exit 0
           fi
 
-      - name: Log request YAML file
+      - name: Parse and validate request yaml
+        id: issue_yaml
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "=== REQUEST (issue.yaml) ==="
-          cat /tmp/issue.yaml xx*
+          # Start Fraiche
+          rm -f /tmp/issue.yaml /tmp/thirdparty_validator.yaml xx*
 
+          # Extract YAML between codefence blocks
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/issue.yaml
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/thirdparty_validator.yaml
+          
+          # Splitting multi-line files for future updates (doesn't work now)
+          csplit -z /tmp/issue.yaml '/---/' '{*}'
+          FILES=$(ls xx* | tr '\n' ' ')
+          echo "split_files=$FILES" >> $GITHUB_OUTPUT
+
+          # Generate policy mappings if existing policy exists
+          MAPPING=""
+          for FILE in $FILES; do
+            SERVICE_TYPE=$(yq '.security_group.serviceType' "$FILE")
+            REGION=$(yq '.security_group.region' "$FILE" | tr '[:upper:]' '[:lower:]')
+            if [ "$SERVICE_TYPE" = "privatelink-consumer" ]; then
+              THIRD_NAME=$(yq '.security_group.thirdpartyName' "$FILE" | tr '[:upper:]' '[:lower:]')
+              THIRD_ID=$(yq '.security_group.thirdPartyID' "$FILE")
+              SERVICE=$(yq '.security_group.serviceName' "$FILE" | sed -E 's/.*vpce-svc/vpce-svc/' | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]-')
+              FILENAME="${THIRD_NAME}-${THIRD_ID}-${SERVICE}-${REGION}-policy.yaml"
+            else
+              APPID=$(yq '.security_group.internalAppID' "$FILE" | tr '[:upper:]' '[:lower:]')
+              SERVICENAME=$(yq '.security_group.serviceName' "$FILE" | tr '[:upper:]' '[:lower:]')
+              FILENAME="${APPID}-${SERVICENAME}-${REGION}-policy.yaml"
+            fi
+            POLICY_PATH="infrastructure/policies/$FILENAME"   # <--- ADD THIS LINE!
+            MAPPING="${MAPPING}${FILE},${POLICY_PATH}|"
+            echo "[$FILE] → [$FILENAME] → exists? $( [ -f "$POLICY_PATH" ] && echo yes || echo no )"
+          done
+          MAPPING="${MAPPING%|}"
+          echo "request_existing_mapping=$MAPPING" >> $GITHUB_OUTPUT
+
+          echo "DEBUG: Mapping string: $MAPPING"
+          echo "DEBUG: FILES list: $FILES"
+          for f in $FILES; do
+            echo "----- $f -----"
+            cat $f
+          done
+
+          # Ensure serviceType label exists and is applied
+          SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
+          
+          # Make sure label exists, if not create
+          gh label create "privatelink-consumer" --color 70EC23 --description "Request for privatelink-consumer" --force || true
+          gh label create "privatelink-provider" --color 411DAB --description "Request for privatelink-provider" --force || true
+          
+          # Clean issue labels and re-add if changed
+          gh issue edit ${{ github.event.issue.number }} --remove-label "privatelink-consumer" --remove-label "privatelink-provider" || true
+          gh issue edit ${{ github.event.issue.number }} --add-label "$SERVICE_TYPE"
+
+      - name: Set Issue YAML Outputs
+        id: yaml_outputs
+        if: "contains(github.event.issue.labels.*.name, 'skip-form-processing')"
+        run: |
+          # Determine request type from labels
+          if [ "$(grep -c 'privatelink-consumer' <<< "${{ join(github.event.issue.labels.*.name, '\n') }}")" -gt 0 ]; then
+            echo "request_type=consumer" >> $GITHUB_OUTPUT
+            echo "schema_file=privatelink-consumer-schema.json" >> $GITHUB_OUTPUT
+          elif [ "$(grep -c 'privatelink-provider' <<< "${{ join(github.event.issue.labels.*.name, '\n') }}")" -gt 0 ]; then
+            echo "request_type=provider" >> $GITHUB_OUTPUT
+            echo "schema_file=privatelink-provider-schema.json" >> $GITHUB_OUTPUT
+          fi
+          
+          # Set other issue details
+          echo "issue_number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
+          echo "issue_author=${{ github.event.issue.user.login }}" >> $GITHUB_OUTPUT
+          echo "issue_title=${{ github.event.issue.title }}" >> $GITHUB_OUTPUT
+            
       - name: Log target (existing) file(s) if they exist
         run: |
           MAPPING="${{ steps.issue_yaml.outputs.request_existing_mapping }}"
