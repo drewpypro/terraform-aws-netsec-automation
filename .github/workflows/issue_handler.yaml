@@ -45,40 +45,36 @@ jobs:
           head -20 /tmp/issue.yaml || true
           echo "DEBUG: Checking schema directory"
           ls -lh .github/schemas || true
-          
+
           # -------- Yamllint --------
           yamllint --format standard -c .yamllint /tmp/issue.yaml > /tmp/yamllint_output.txt 2>&1
           YAMLLINT_OK=$?
           echo "DEBUG: yamllint exit code: $YAMLLINT_OK"
 
-          # Get serviceType and set schema
-          SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
-          if [[ -z "$SERVICE_TYPE" || "$SERVICE_TYPE" == "null" ]]; then
-            # Use GitHub CLI or jq to extract label from event payload
-            SERVICE_TYPE=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH" | grep -E 'privatelink-(consumer|provider)' | head -1)
-            echo "DEBUG: Falling back to label for service type: '$SERVICE_TYPE'"
-          fi
-          
-          echo "DEBUG: Detected serviceType: '$SERVICE_TYPE'"
+          SCHEMA_OK=1 # Default to error unless proven valid
 
-          if [ "$SERVICE_TYPE" = "privatelink-consumer" ] || [ "$SERVICE_TYPE" = "privatelink-provider" ]; then
-            SCHEMA_PATH=".github/schemas/${SERVICE_TYPE}-schema.json"
+          if [ $YAMLLINT_OK -eq 0 ]; then
+            # Only try schema validation if YAML is valid
+            SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
+            if [[ -z "$SERVICE_TYPE" || "$SERVICE_TYPE" == "null" ]]; then
+              SERVICE_TYPE=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH" | grep -E 'privatelink-(consumer|provider)' | head -1)
+              echo "DEBUG: Falling back to label for service type: '$SERVICE_TYPE'"
+            fi
+
+            echo "DEBUG: Detected serviceType: '$SERVICE_TYPE'"
+
+            if [ "$SERVICE_TYPE" = "privatelink-consumer" ] || [ "$SERVICE_TYPE" = "privatelink-provider" ]; then
+              SCHEMA_PATH=".github/schemas/${SERVICE_TYPE}-schema.json"
+              echo "DEBUG: Using schema path: $SCHEMA_PATH"
+              python3 ./scripts/validate_schema.py /tmp/issue.yaml "$SCHEMA_PATH" > /tmp/schema_output.txt 2>&1
+              SCHEMA_OK=$?
+            else
+              echo "❌ Error: serviceType is missing or invalid: '$SERVICE_TYPE'" | tee /tmp/schema_output.txt
+              SCHEMA_OK=1
+            fi
           else
-            echo "❌ Error: serviceType is missing or invalid: '$SERVICE_TYPE'"
-            exit 1
+            echo "Skipping schema validation due to YAML lint failure." > /tmp/schema_output.txt
           fi
-          echo "DEBUG: Using schema path: $SCHEMA_PATH"
-
-
-          # -------- Schema Validation --------
-          if [ -n "$SCHEMA_PATH" ]; then
-            python3 ./scripts/validate_schema.py /tmp/issue.yaml "$SCHEMA_PATH" > /tmp/schema_output.txt 2>&1
-            SCHEMA_OK=$?
-          else
-            echo "Schema validation was skipped due to missing schema path." > /tmp/schema_output.txt
-            SCHEMA_OK=1
-          fi
-          echo "DEBUG: schema validation exit code: $SCHEMA_OK"
 
           # -------- Always Show Outputs --------
           echo "-------------------------"
