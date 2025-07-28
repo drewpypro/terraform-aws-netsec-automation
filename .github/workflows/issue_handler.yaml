@@ -113,8 +113,9 @@ jobs:
             ISSUE_NUMBER=${{ github.event.issue.number }}
             echo "DEBUG: Commenting on issue $ISSUE_NUMBER"
             gh issue comment "$ISSUE_NUMBER" --body-file /tmp/validation_comment.txt
+            gh label create "needs-fix" --color FBCA04 --description "Issue needs correction" || true
             gh label create "lint-fail" --color D73A4A --description "YAML linting or schema validation failed" || true
-            gh issue edit "$ISSUE_NUMBER" --add-label "lint-fail"
+            gh issue edit "$ISSUE_NUMBER" --add-label "needs-fix" --add-label "lint-fail"
 
             echo "Validation errors found. Exiting workflow."
             exit 1
@@ -248,10 +249,11 @@ jobs:
           python3 ./scripts/validate_thirdparty.py /tmp/thirdparty_validator.yaml ./thirdpartyDB.json > /tmp/thirdparty_validation.txt 2>&1 || (
             echo '### ❌ Third-party validation failed' > /tmp/comment.txt
             cat /tmp/thirdparty_validation.txt >> /tmp/comment.txt
-            ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
+            ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")            
             gh issue comment "$ISSUE_NUMBER" --body-file /tmp/comment.txt
+            gh label create "needs-fix" --color FBCA04 --description "Issue needs correction" || true
             gh label create "bad-thirdparty-info" --color FF0000 --description "Invalid third-party information" || true
-            gh issue edit "$ISSUE_NUMBER" --add-label "bad-thirdparty-info"
+            gh issue edit "$ISSUE_NUMBER" --add-label "needs-fix" --add-label "bad-thirdparty-info"
             exit 1
           )
 
