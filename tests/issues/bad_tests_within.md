@@ -24,6 +24,7 @@ rules:
     port: 443
     appid: ssl
     url: https://api.snowflake.com
+    enable_palo_inspection: true
 ```
 
 ```yaml
@@ -48,6 +49,7 @@ rules:
     port: 443
     appid: ssl
     url: https://api.snowflake.com
+    enable_palo_inspection: true
     - request_id: RQ-002
     source:
         ips:
@@ -58,6 +60,7 @@ rules:
     port: 443
     appid: ssl
     url: https://api.snowflake.com
+    enable_palo_inspection: true
 ```
 
 ```yaml
@@ -81,6 +84,7 @@ rules:
     port: 69
     appid: ssl
     url: https://api.snowflake.com
+    enable_palo_inspection: true
     - request_id: RQ-002
     source:
         ips:
@@ -90,6 +94,7 @@ rules:
     port: 69
     appid: ssl
     url: https://api.snowflake.com
+    enable_palo_inspection: true
 ```
 
 
@@ -115,6 +120,7 @@ rules:
     port: 443
     appid: ssl
     url: https://api.snowflake.com
+    enable_palo_inspection: true
     - request_id: RQ-002
     source:
         ips:
@@ -125,5 +131,6 @@ rules:
     port: 443
     appid: ssl
     url: https://api.snowflake.com
+    enable_palo_inspection: true
 ```
 
