@@ -169,6 +169,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
         run: |
+
+          sudo wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64"
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+        
           ISSUE_ID=${{ github.event.issue.number }}
           BRANCH="issue-${ISSUE_ID}"
           LABEL=$(jq -r '.issue.labels[0].name' "$GITHUB_EVENT_PATH")
