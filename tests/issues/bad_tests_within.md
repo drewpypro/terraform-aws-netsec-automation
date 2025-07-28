@@ -20,16 +20,6 @@ security_group:
         port: 443
         appid: ssl
         url: https://api.snowflake.com
-      - request_id: RQ-002
-        source:
-          ips:
-            - 10.11.1.3/32
-            - 10.12.1.3/32
-            - 10.11.1.3/32
-        protocol: tcp
-        port: 443
-        appid: ssl
-        url: https://api.snowflake.com
 ```
 
 ```yaml
