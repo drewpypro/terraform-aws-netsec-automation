@@ -114,7 +114,7 @@ jobs:
           echo "DEBUG: Printing first few lines of /tmp/issue.yaml"
           head -20 /tmp/issue.yaml || true
           echo "DEBUG: Checking schema directory"
-          ls -lh .github/schema || true
+          ls -lh .github/schemas || true
 
           # Get serviceType and set schema
           SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
