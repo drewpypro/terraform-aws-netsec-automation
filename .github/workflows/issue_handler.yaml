@@ -48,6 +48,12 @@ jobs:
 
           # Get serviceType and set schema
           SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
+          if [[ -z "$SERVICE_TYPE" || "$SERVICE_TYPE" == "null" ]]; then
+            # Use GitHub CLI or jq to extract label from event payload
+            SERVICE_TYPE=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH" | grep -E 'privatelink-(consumer|provider)' | head -1)
+            echo "DEBUG: Falling back to label for service type: '$SERVICE_TYPE'"
+          fi
+          
           echo "DEBUG: Detected serviceType: '$SERVICE_TYPE'"
 
           if [ "$SERVICE_TYPE" = "privatelink-consumer" ] || [ "$SERVICE_TYPE" = "privatelink-provider" ]; then
