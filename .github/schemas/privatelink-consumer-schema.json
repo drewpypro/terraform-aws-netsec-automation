@@ -58,7 +58,12 @@
           "enable_palo_inspection": { "type": "boolean" },
           "source": {
             "type": "object",
-            "required": ["ips"],
+            "required": [
+              "account_id",
+              "vpc_id",
+              "region",
+              "ips"
+            ],
             "properties": {
               "account_id": { "type": "string" },
               "vpc_id": { "type": "string" },

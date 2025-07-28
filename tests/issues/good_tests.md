@@ -13,6 +13,9 @@ rules:
   - request_id: RQ-001
     business_justification: Creating rules for thirdparty splunk to enable splunk saas logging required for enterprise visibility operations. 
     source:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-east-1
       ips:
         - 10.11.1.2/32
         - 10.12.1.2/32
@@ -22,7 +25,11 @@ rules:
     appid: ssl
     url: https://api.workday.com
   - request_id: RQ-002
+    business_justification: Creating rules for thirdparty splunk to enable splunk saas logging required for enterprise visibility operations. 
     source:
+      account_id: 111122223333
+      vpc_id: vpc-aaa
+      region: us-east-1
       ips:
         - 10.11.1.2/32
         - 10.12.1.2/32
@@ -30,7 +37,7 @@ rules:
     protocol: tcp
     port: 77
     appid: ssl
-    url: https://api.workday.com
+    url: https://api.workday2.com
 ```
 
 ```yaml
