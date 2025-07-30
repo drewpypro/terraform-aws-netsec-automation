@@ -4,7 +4,7 @@ resource "panos_panorama_service_object" "consumer_services" {
   device_group     = "${var.region}-fw-dg"
   name             = each.value
   protocol         = split("-", each.value)[0]
-  destination_port = split("-", each.value)[1]
+  destination_port = can(regex("-", var.palo_rules[count.index].port)) ? "${split("-", var.palo_rules[count.index].port)[0]}-${split("-", var.palo_rules[count.index].port)[1]}" : var.palo_rules[count.index].port
 }
 
 resource "panos_custom_url_category" "consumer_category" {

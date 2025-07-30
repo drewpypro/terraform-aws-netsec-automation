@@ -4,7 +4,7 @@ resource "panos_panorama_service_object" "provider_services" {
   device_group = "${var.region}-fw-dg"
   name         = each.value  # e.g., "tcp-443", "tcp-69"
   protocol     = split("-", each.value)[0]  # "tcp"
-  destination_port = split("-", each.value)[1]  # "443" or "69"
+  destination_port = can(regex("-", var.palo_rules[count.index].port)) ? "${split("-", var.palo_rules[count.index].port)[0]}-${split("-", var.palo_rules[count.index].port)[1]}" : var.palo_rules[count.index].port
 }
 
 # Create URL category for the application
