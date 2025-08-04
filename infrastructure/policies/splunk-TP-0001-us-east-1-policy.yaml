@@ -1,7 +1,6 @@
 security_group:
   request_id: RQv1-001
-  business_justification: >
-    Creating security-group and palo alto rules for thirdparty splunk to enable splunk saas logging required for enterprise visibility operations. 
+  business_justification: Creating security-group and palo alto rules for thirdparty splunk to enable splunk saas logging required for enterprise visibility operations. 
   accountId: 6666666
   region: us-east-1
   vpc_id: vpc-05ebefacb081c3018
@@ -11,8 +10,7 @@ security_group:
   thirdPartyID: TP-0001
 rules:
   - request_id: RQv1-001
-    business_justification: >
-        Creating rules to allow internal hosts to connect to thirdparty splunk to enable splunk saas logging required for enterprise visibility operations. 
+    business_justification:     Creating rules to allow internal hosts to connect to thirdparty splunk to enable splunk saas logging required for enterprise visibility operations. 
     source:
       account_id: 6666666
       vpc_id: vpc-05ebefacb081c3018

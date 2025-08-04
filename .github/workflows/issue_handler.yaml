@@ -25,137 +25,161 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Process Issue YAML
-        id: issue_yaml
-        if: "contains(github.event.issue.labels.*.name, 'skip-form-processing')"
+
+      - name: Extract and Validate Issue YAML
+        id: validate_yaml
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Ensure policies directory exists
-          mkdir -p infrastructure/policies
+          # Start Fraiche
+          rm -f /tmp/issue.yaml /tmp/thirdparty_validator.yaml xx*
+          set -x
+          set +e
           
-          # Extract YAML from issue body
-          jq -r '.issue.body' "$GITHUB_EVENT_PATH" \
-            | sed '/^```yaml/,/^```/d' \
-            > /tmp/issue.yaml
-          
-          # Split YAML documents at the '---' markers
-          echo "Splitting YAML documents..."
-          csplit -z /tmp/issue.yaml '/---/' '{*}'
-          
-          # Initialize tracking variables
-          FILENAMES=()
-          REGIONS=()
-          
-          # Process each document
-          for file in xx*; do
-            # Extract key fields from document
-            REGION=$(grep -o 'region: [a-z0-9-]*' "$file" | head -1 | cut -d ' ' -f 2)
-            THIRD_PARTY_NAME=$(grep -m 1 'thirdpartyName:' "$file" | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
-            THIRD_PARTY_ID=$(grep -m 1 'thirdPartyID:' "$file" | awk '{print $2}' | tr -d '\n')
-       
-            echo "Found region: $REGION, thirdpartyName: $THIRD_PARTY_NAME, thirdPartyID: $THIRD_PARTY_ID"
-            
-            # Fallback to safe naming if extraction fails
-            if [ -z "$THIRD_PARTY_NAME" ] || [ -z "$THIRD_PARTY_ID" ]; then
-              echo "Warning: Missing required fields, using default values"
-              THIRD_PARTY_NAME="unknown"
-              THIRD_PARTY_ID="policy"
+          pip install --quiet yamllint jsonschema PyYaml
+
+          # Extract YAML from codefence
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/issue.yaml
+
+          echo "DEBUG: Printing first few lines of /tmp/issue.yaml"
+          head -20 /tmp/issue.yaml || true
+          echo "DEBUG: Checking schema directory"
+          ls -lh .github/schemas || true
+
+          # -------- Yamllint --------
+          yamllint --format standard -c .yamllint /tmp/issue.yaml > /tmp/yamllint_output.txt 2>&1
+          YAMLLINT_OK=$?
+          echo "DEBUG: yamllint exit code: $YAMLLINT_OK"
+
+          SCHEMA_OK=1 # Default to error unless proven valid
+
+          if [ $YAMLLINT_OK -eq 0 ]; then
+            # Only try schema validation if YAML is valid
+            SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
+            if [[ -z "$SERVICE_TYPE" || "$SERVICE_TYPE" == "null" ]]; then
+              SERVICE_TYPE=$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH" | grep -E 'privatelink-(consumer|provider)' | head -1)
+              echo "DEBUG: Falling back to label for service type: '$SERVICE_TYPE'"
             fi
-            
-            FILENAME="${THIRD_PARTY_NAME}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
-            FILE="infrastructure/policies/${FILENAME}"
 
-            # Copy the specific document to its file
-            # Use sed to remove any extra document separators
-            sed '/^---$/d' "$file" > "$FILE"
-                        
-            # Store filename and region
-            FILENAMES+=("$FILENAME")
-            REGIONS+=("$REGION")
-          done
-          
-          # Clean up temporary files
-          rm xx*
-          
-          # Debug: Check how many filenames we have
-          echo "Number of policy files created: ${#FILENAMES[@]}"
-          
-          # Output first filename and region for workflow compatibility (if any were created)
-          if [ ${#FILENAMES[@]} -gt 0 ]; then
-            echo "filename=${FILENAMES[0]}" >> "$GITHUB_OUTPUT"
-            echo "region=${REGIONS[0]}" >> "$GITHUB_OUTPUT"
-            
-            # Save all filenames for later steps if needed
-            printf '%s\n' "${FILENAMES[@]}" > /tmp/policy_filenames.txt
-            printf '%s\n' "${REGIONS[@]}" > /tmp/policy_regions.txt
+            echo "DEBUG: Detected serviceType: '$SERVICE_TYPE'"
+
+            if [ "$SERVICE_TYPE" = "privatelink-consumer" ] || [ "$SERVICE_TYPE" = "privatelink-provider" ]; then
+              SCHEMA_PATH=".github/schemas/${SERVICE_TYPE}-schema.json"
+              echo "DEBUG: Using schema path: $SCHEMA_PATH"
+              python3 ./scripts/validate_schema.py /tmp/issue.yaml "$SCHEMA_PATH" > /tmp/schema_output.txt 2>&1
+              SCHEMA_OK=$?
+            else
+              echo "❌ Error: serviceType is missing or invalid: '$SERVICE_TYPE'" | tee /tmp/schema_output.txt
+              SCHEMA_OK=1
+            fi
           else
-            echo "No policy files were created!"
+            echo "Skipping schema validation due to YAML lint failure." > /tmp/schema_output.txt
           fi
 
-          # Debug: Show created files
-          echo "Created policy files:"
-          ls -l infrastructure/policies/
+          # -------- Always Show Outputs --------
+          echo "-------------------------"
+          echo "YAMLLINT OUTPUT:"
+          cat /tmp/yamllint_output.txt
+          echo "-------------------------"
+          echo "SCHEMA VALIDATION OUTPUT:"
+          cat /tmp/schema_output.txt
+          echo "-------------------------"
 
-      - name: Process Issue Form
-        id: issue_data
-        if: "!contains(github.event.issue.labels.*.name, 'skip-form-processing')"
-        run: |
-          pip install --quiet yamllint PyYAML jsonschema
+          # -------- Compose Comment if needed --------
+          if [ $YAMLLINT_OK -ne 0 ] || [ $SCHEMA_OK -ne 0 ]; then
+            {
+              echo "### ⚠️ Validation Results"
+              echo ""
+              if [ $YAMLLINT_OK -ne 0 ]; then
+                echo "#### Fix YAML Formatting Errors:"
+                echo '```yaml'
+                cat /tmp/yamllint_output.txt
+                echo '```'
+                echo ""
+              else
+                echo "#### ✅ YAML Format Validation: Passed"
+                echo ""
+              fi
+              if [ $SCHEMA_OK -ne 0 ]; then
+                echo "#### Schema Validation Issues:"
+                echo '```'
+                cat /tmp/schema_output.txt
+                echo '```'
+              else
+                echo "#### ✅ Schema Validation: Passed"
+              fi
+            } > /tmp/validation_comment.txt
 
-          # Make scripts executable
-          chmod +x ./scripts/form_to_yaml.py ./scripts/validate_schema.py
+            ISSUE_NUMBER=${{ github.event.issue.number }}
+            echo "DEBUG: Commenting on issue $ISSUE_NUMBER"
+            gh issue comment "$ISSUE_NUMBER" --body-file /tmp/validation_comment.txt
+            gh label create "needs-fix" --color FBCA04 --description "Issue needs correction" || true
+            gh label create "lint-fail" --color D73A4A --description "YAML linting or schema validation failed" || true
+            gh issue edit "$ISSUE_NUMBER" --add-label "needs-fix" --add-label "lint-fail"
 
-          # Run the script to process the form data
-          set -x  # Enable verbose output
-          python3 ./scripts/form_to_yaml.py || {
-            echo "Script failed. Checking debug log..."
-            cat /tmp/form_to_yaml_debug.log
+            echo "Validation errors found. Exiting workflow."
             exit 1
-          }
-          
-          # Extract YAML from the temporary file
-          echo "Processing YAML from form submission"
-          cat /tmp/issue.yaml
-          
-          # Create policy file
-          mkdir -p infrastructure/policies
-          
-          # Extract relevant fields from the YAML to generate the filename
-          REGION=$(grep 'region:' /tmp/issue.yaml | head -1 | awk '{print $2}' | tr -d '\n')
-          
-          if grep -q 'thirdpartyName:' /tmp/issue.yaml; then
-            # Consumer policy
-            THIRD_PARTY_NAME=$(grep 'thirdpartyName:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
-            THIRD_PARTY_ID=$(grep 'thirdPartyID:' /tmp/issue.yaml | awk '{print $2}' | tr -d '\n')
-            FILENAME="${THIRD_PARTY_NAME}-${THIRD_PARTY_ID}-${REGION}-policy.yaml"
           else
-            # Provider policy
-            INTERNAL_APP_ID=$(grep 'internalAppID:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
-            SERVICE_NAME=$(grep 'serviceName:' /tmp/issue.yaml | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d '\n')
-            FILENAME="${INTERNAL_APP_ID}-${SERVICE_NAME}-${REGION}-policy.yaml"
+            echo "YAML linting and schema validation both passed."
+            exit 0
           fi
-          
-          # Use safe defaults if extraction fails
-          if [ -z "$FILENAME" ]; then
-            FILENAME="unknown-policy-${REGION}.yaml"
-          fi
-          
-          FILE="infrastructure/policies/${FILENAME}"
-          
-          # Copy the generated YAML to the policy file
-          cp /tmp/issue.yaml "$FILE"
-          
-          # Save filename and region for later steps
-          echo "$FILENAME" > /tmp/policy_filenames.txt
-          echo "$REGION" > /tmp/policy_regions.txt
-          
-          # Output variables for next steps
-          echo "filename=$FILENAME" >> "$GITHUB_OUTPUT"
-          echo "region=$REGION" >> "$GITHUB_OUTPUT"
-          
-          # Debug: Show created files
-          echo "Created policy file:"
-          ls -l infrastructure/policies/
 
+      - name: Parse and validate request yaml
+        id: issue_yaml
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Start Fraiche
+          rm -f /tmp/issue.yaml /tmp/thirdparty_validator.yaml xx*
+
+          # Extract YAML between codefence blocks
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/issue.yaml
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" | awk '/^```yaml/{flag=1; next} /^```/{flag=0} flag' > /tmp/thirdparty_validator.yaml
+          
+          # Splitting multi-line files for future updates (doesn't work now)
+          csplit -z /tmp/issue.yaml '/---/' '{*}'
+          FILES=$(ls xx* | tr '\n' ' ')
+          echo "split_files=$FILES" >> $GITHUB_OUTPUT
+
+          # Generate policy mappings if existing policy exists
+          MAPPING=""
+          for FILE in $FILES; do
+            SERVICE_TYPE=$(yq '.security_group.serviceType' "$FILE")
+            REGION=$(yq '.security_group.region' "$FILE" | tr '[:upper:]' '[:lower:]')
+            if [ "$SERVICE_TYPE" = "privatelink-consumer" ]; then
+              THIRD_NAME=$(yq '.security_group.thirdpartyName' "$FILE" | tr '[:upper:]' '[:lower:]')
+              THIRD_ID=$(yq '.security_group.thirdPartyID' "$FILE")
+              SERVICE=$(yq '.security_group.serviceName' "$FILE" | sed -E 's/.*vpce-svc/vpce-svc/' | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]-')
+              FILENAME="${THIRD_NAME}-${THIRD_ID}-${SERVICE}-${REGION}-policy.yaml"
+            else
+              APPID=$(yq '.security_group.internalAppID' "$FILE" | tr '[:upper:]' '[:lower:]')
+              SERVICENAME=$(yq '.security_group.serviceName' "$FILE" | tr '[:upper:]' '[:lower:]')
+              FILENAME="${APPID}-${SERVICENAME}-${REGION}-policy.yaml"
+            fi
+            POLICY_PATH="infrastructure/policies/$FILENAME"   # <--- ADD THIS LINE!
+            MAPPING="${MAPPING}${FILE},${POLICY_PATH}|"
+            echo "[$FILE] → [$FILENAME] → exists? $( [ -f "$POLICY_PATH" ] && echo yes || echo no )"
+          done
+          MAPPING="${MAPPING%|}"
+          echo "request_existing_mapping=$MAPPING" >> $GITHUB_OUTPUT
+
+          echo "DEBUG: Mapping string: $MAPPING"
+          echo "DEBUG: FILES list: $FILES"
+          for f in $FILES; do
+            echo "----- $f -----"
+            cat $f
+          done
+
+          # Ensure serviceType label exists and is applied
+          SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
+          
+          # Make sure label exists, if not create
+          gh label create "privatelink-consumer" --color 70EC23 --description "Request for privatelink-consumer" --force || true
+          gh label create "privatelink-provider" --color 411DAB --description "Request for privatelink-provider" --force || true
+          
+          # Clean issue labels and re-add if changed
+          gh issue edit ${{ github.event.issue.number }} --remove-label "privatelink-consumer" --remove-label "privatelink-provider" || true
+          gh issue edit ${{ github.event.issue.number }} --add-label "$SERVICE_TYPE"
 
       - name: Set Issue YAML Outputs
         id: yaml_outputs
@@ -175,26 +199,43 @@ jobs:
           echo "issue_author=${{ github.event.issue.user.login }}" >> $GITHUB_OUTPUT
           echo "issue_title=${{ github.event.issue.title }}" >> $GITHUB_OUTPUT
             
-
-      - name: YAML Validation
+      - name: Log target (existing) file(s) if they exist
         run: |
-          pip install --quiet yamllint
-          raw_output=$(yamllint --format standard -c .yamllint /tmp/issue.yaml 2>&1 || true)
-          yamllint_output=$(echo "$raw_output" | sed 's|/tmp/issue.yaml:|line |')
-          
-          if [ -n "$yamllint_output" ]; then
-            {
-              echo "### ⚠️ yamllint found issues in your submitted YAML"
-              echo '```yaml'
-              echo "$yamllint_output"
-              echo '```'
-            } > /tmp/yamllint_output.txt
-            
-            echo "yamllint_error=true" >> $GITHUB_OUTPUT
-            cat /tmp/yamllint_output.txt
-          else
-            echo "yamllint_error=false" >> $GITHUB_OUTPUT
-          fi
+          MAPPING="${{ steps.issue_yaml.outputs.request_existing_mapping }}"
+          IFS='|' read -ra mappings <<< "$MAPPING"
+          for map in "${mappings[@]}"; do
+            IFS=',' read -r src dest <<< "$map"
+            if [ -f "$dest" ]; then
+              echo "=== EXISTING ($dest) ==="
+              cat "$dest"
+            else
+              echo "=== EXISTING ($dest) DOES NOT EXIST ==="
+            fi
+          done
+
+      - name: Duplicate Validation
+        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1
+        id: duplicate_validation
+        with:
+          created_yaml: ${{ steps.issue_yaml.outputs.split_files }}
+          request_existing_mapping: ${{ steps.issue_yaml.outputs.request_existing_mapping }}
+
+      - name: Log duplicate validator output
+        run: |
+          echo "=== DUPLICATE VALIDATION OUTPUT ==="
+          cat dupe_output.txt || echo "(No dupe_output.txt produced)"
+
+      - name: Comment on issue if dupes are found
+        if: ${{ steps.duplicate_validation.outputs.duplicates_detected == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "dupe-detected" --color B60205 --description "Duplicate detected by automation" || true
+          gh label create "needs-fix" --color FBCA04 --description "Issue needs correction" || true
+          gh issue edit ${{ github.event.issue.number }} --add-label "needs-fix" --add-label "dupe-detected"
+          gh issue comment ${{ github.event.issue.number }} --body-file dupe_output.txt
+          echo "Duplicate(s) found, failing pipeline."
+          exit 1
 
       - name: Third-Party Validation
         id: thirdparty_validation
@@ -205,59 +246,36 @@ jobs:
           chmod +x ./scripts/validate_thirdparty.py
 
           echo "🔍 Validating third-party contract and risk..."
-
-          if ! python3 ./scripts/validate_thirdparty.py /tmp/issue.yaml ./thirdpartyDB.json > /tmp/thirdparty_validation.txt 2>&1; then
-            echo "Third-party validation failed. Posting result to GitHub Issue."
-
+          python3 ./scripts/validate_thirdparty.py /tmp/thirdparty_validator.yaml ./thirdpartyDB.json > /tmp/thirdparty_validation.txt 2>&1 || (
             echo '### ❌ Third-party validation failed' > /tmp/comment.txt
-            cat /tmp/thirdparty_validation.txt >> /tmp/comment.txt  # ✅ no wrapping backticks here
-
-            ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
+            cat /tmp/thirdparty_validation.txt >> /tmp/comment.txt
+            ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")            
             gh issue comment "$ISSUE_NUMBER" --body-file /tmp/comment.txt
-
+            gh label create "needs-fix" --color FBCA04 --description "Issue needs correction" || true
+            gh label create "bad-thirdparty-info" --color FF0000 --description "Invalid third-party information" || true
+            gh issue edit "$ISSUE_NUMBER" --add-label "needs-fix" --add-label "bad-thirdparty-info"
             exit 1
-          else
-            echo "✅ Third-party validation passed."
-          fi
+          )
 
-      - name: AI Review
-        env:
-          DREWPYAI_API_KEY: ${{ secrets.DREWPYAI_API_KEY }}
-          DREWPY_PAT: ${{ secrets.DREWPY_PAT }}
-          ISSUE_BODY: ${{ github.event.issue.body }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "🤖 Cloning AI reviewer..."
-          git clone https://x-access-token:${{ secrets.DREWPY_PAT }}@github.com/drewpypro/drewpy-ai-actions.git
-          pip install -r drewpy-ai-actions/aws-netsec-automation-review/requirements.txt
+      # - name: AI Review
+      #   env:
+      #     DREWPYAI_API_KEY: ${{ secrets.DREWPYAI_API_KEY }}
+      #     DREWPY_PAT: ${{ secrets.DREWPY_PAT }}
+      #     ISSUE_BODY: ${{ github.event.issue.body }}
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     echo "🤖 Cloning AI reviewer..."
+      #     git clone https://x-access-token:${{ secrets.DREWPY_PAT }}@github.com/drewpypro/drewpy-ai-actions.git
+      #     pip install -r drewpy-ai-actions/aws-netsec-automation-review/requirements.txt
 
-          echo "📊 Running AI rule reviewer..."
-          python3 drewpy-ai-actions/aws-netsec-automation-review/ai-rule-review.py \
-            --input-file /tmp/issue.yaml \
-            --output-file /tmp/ai_review_output.md || true
+      #     echo "📊 Running AI rule reviewer..."
+      #     python3 drewpy-ai-actions/aws-netsec-automation-review/ai-rule-review.py \
+      #       --input-file /tmp/issue.yaml \
+      #       --output-file /tmp/ai_review_output.md || true
 
-          echo "📝 Posting AI review result..."
-          ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
-          gh issue comment "$ISSUE_NUMBER" --body-file /tmp/ai_review_output.md
-          
-      - name: Duplicate Validation
-        uses: drewpypro/drewpy-actions/yaml-duplicate-validator@v1.0.3
-        id: duplicate_validation
-        with:
-          created_yaml: /tmp/issue.yaml
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repo: ${{ github.repository }}
-
-      - name: Comment on issue if dupes are found
-        if: ${{ steps.duplicate_validation.outputs.duplicates_detected == 'true' }}
-        run: |
-          echo "📎 **Fix Before Resubmitting**:" > comment.txt
-          echo "" >> comment.txt
-          echo "${{ steps.duplicate_validation.outputs.pretty_message }}" >> comment.txt
-
-          gh issue comment ${{ github.event.issue.number }} --body-file comment.txt
-          gh issue edit ${{ github.event.issue.number }} --add-label "fix-yaml"
-          exit 1
+      #     echo "📝 Posting AI review result..."
+      #     ISSUE_NUMBER=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
+      #     gh issue comment "$ISSUE_NUMBER" --body-file /tmp/ai_review_output.md
 
       # Commit Changes and Create PR (Always Runs)
       - name: Commit Changes and Create PR
@@ -265,9 +283,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
         run: |
+
+          sudo wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64"
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+        
           ISSUE_ID=${{ github.event.issue.number }}
           BRANCH="issue-${ISSUE_ID}"
           LABEL=$(jq -r '.issue.labels[0].name' "$GITHUB_EVENT_PATH")
+          SERVICE_TYPE=$(yq '.security_group.serviceType' /tmp/issue.yaml | tr -d '"')
           AUTHOR=$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")
 
           git config user.name "github-actions"
@@ -282,13 +306,18 @@ jobs:
           # Create and switch to the branch
           git checkout -b "$BRANCH"
 
-          # Add all policy files from the filenames file (which is always created)
-          while IFS= read -r FILENAME; do
-            if [ -n "$FILENAME" ]; then
-              FILE="infrastructure/policies/${FILENAME}"
-              git add "$FILE"
+          # MAPPING is src,dest|src2,dest2|... (from earlier pipeline step)
+          MAPPING="${{ steps.issue_yaml.outputs.request_existing_mapping }}"
+          IFS='|' read -ra mappings <<< "$MAPPING"
+          for map in "${mappings[@]}"; do
+            IFS=',' read -r src dest <<< "$map"
+            if [ -f "$dest" ]; then
+              yq -i '.rules += (load("'"$src"'").rules // [])' "$dest"
+            else
+              cp "$src" "$dest"
             fi
-          done < /tmp/policy_filenames.txt
+            git add "$dest"
+          done
 
           # Commit only if there are changes
           if ! git diff --staged --quiet; then
@@ -299,7 +328,7 @@ jobs:
 
             PR_URL=$(gh pr create \
               --title "[Auto] Add network access policies from issue #${ISSUE_ID}" \
-              --label "$LABEL" \
+              --label "$SERVICE_TYPE" \
               --body "This PR adds multiple network access policies from issue #${ISSUE_ID}." \
               --head "$BRANCH" \
               --base main)
@@ -318,3 +347,10 @@ jobs:
           else
             echo "No changes to commit"
           fi
+
+      - name: Remove needs-fix and dupe-detected labels (if present)
+        if: ${{ success() }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue edit ${{ github.event.issue.number }} --remove-label "needs-fix" --remove-label "dupe-detected"  || true

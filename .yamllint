@@ -1,10 +1,9 @@
 extends: default
 
 rules:
-  line-length: disable
-  document-start: disable
-  trailing-spaces:
-    level: off
+  line-length: false
+  document-start: false
+  trailing-spaces: false
   indentation:
     spaces: 2
     level: warning

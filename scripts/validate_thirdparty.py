@@ -46,6 +46,12 @@ def main():
     # Load inputs
     try:
         request = load_yaml_file(yaml_file)
+        if isinstance(request, list):
+            # Could be multiple docs, only check the first
+            request = request[0]
+        if not isinstance(request, dict):
+            print(f"❌ Invalid YAML format: expected a dict, got {type(request)}")
+            sys.exit(1)
         db = load_json_file(db_file)
     except Exception as e:
         print(f"❌ Failed to load files: {e}")
