@@ -107,3 +107,4 @@ resource "aws_instance" "panorama_vm_2" {
   }
 
 }
+ 
