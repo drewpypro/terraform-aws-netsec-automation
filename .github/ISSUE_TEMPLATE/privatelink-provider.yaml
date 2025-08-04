@@ -1,7 +1,6 @@
 name: Create PrivateLink Provider (YAML)
 description: Create a security group for exposing a service via AWS PrivateLink using YAML
 title: "[SG] Create PrivateLink Provider for: "
-labels: ["privatelink-provider"]
 assignees:
   - netops-team
 
@@ -14,17 +13,6 @@ body:
         
         Complete the YAML template below with your request details.
         
-  - type: dropdown
-    id: region
-    attributes:
-      label: AWS Region
-      description: Select the AWS region for this request (must match the region in your YAML)
-      options:
-        - us-east-1
-        - us-west-2
-    validations:
-      required: true
-      
   - type: textarea
     id: yaml_config
     attributes:

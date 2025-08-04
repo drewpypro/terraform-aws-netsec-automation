@@ -14,17 +14,6 @@ body:
         
         Complete the YAML template below with your request details.
         
-  - type: dropdown
-    id: region
-    attributes:
-      label: AWS Region
-      description: Select the AWS region for this request (must match the region in your YAML)
-      options:
-        - us-east-1
-        - us-west-2
-    validations:
-      required: true
-      
   - type: textarea
     id: yaml_config
     attributes:
