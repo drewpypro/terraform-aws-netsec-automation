@@ -3,11 +3,6 @@ variable "services" {
   type        = list(string)
 }
 
-variable "tags" {
-  description = "List of deduped Palo Alto tags"
-  type        = list(string)
-}
-
 variable "urls" {
   description = "List of deduped Palo Alto URL objects"
   type        = list(string)

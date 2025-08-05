@@ -32,17 +32,21 @@ module "consumer_us_east_1_v2" {
 }
 
 
+module "palo_tags_consumer" {
+  source   = "./modules/palo-tags"
+  tags     = local.palo_deduped_tags_consumer
+}
+
+module "palo_tags_provider" {
+  source   = "./modules/palo-tags"
+  tags     = local.palo_deduped_tags_provider
+}
+
 module "palo_objects" {
   source   = "./modules/palo-objects"
   services = local.palo_deduped_services
-  tags     = local.palo_deduped_tags
   urls     = local.palo_deduped_urls
 }
-
-output "final_palo_tags" {
-  value = local.palo_deduped_tags
-}
-
 
 # Create consumer security groups for us-east-1 region
 module "consumer_sg_us_east_1_v1" {
@@ -77,9 +81,9 @@ module "consumer_sg_us_east_1_v1" {
   palo_rules             = each.value.palo_rules
 
   palo_services = module.palo_objects.service_object_names
-  palo_tags     = module.palo_objects.tag_object_names
+  palo_tags     = module.palo_tags_consumer.tag_object_names
   palo_urls     = module.palo_objects.url_object_names
 
-  depends_on = [module.vpc_us_east_1, module.palo_objects]
+  depends_on = [module.vpc_us_east_1, module.palo_tags_consumer, module.palo_tags_provider, module.palo_objects]
 }
 
