@@ -41,9 +41,8 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
         ["${each.value.protocol}-${each.value.port}"] : ["any"]
     )
     categories = (
-      each.value.url != "any" && contains(var.palo_urls, each.value.url) ?
-        [replace(replace(replace(each.value.url, "https://", ""), ".", "-"), "/", "-")]
-        : ["any"]
+      each.value.palo_url_category != "any" && contains(var.palo_urls, each.value.palo_url_category) ?
+        [each.value.palo_url_category] : ["any"]
     )
     action      = "allow"
     description = "Allow ${var.name_prefix} ${each.value.protocol}/${each.value.port} ${each.value.appid} ${each.value.url}"

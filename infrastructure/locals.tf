@@ -79,6 +79,11 @@ locals {
           source_ips             = [cidr]
           enable_palo_inspection = rule.enable_palo_inspection
           policy                 = policy
+          palo_url_category = (
+            url != "any"
+            ? replace(replace(replace(url, "https://", ""), ".", "-"), "/", "-")
+            : "any"
+          )          
         }
       ]
     ]
