@@ -41,9 +41,5 @@ resource "panos_panorama_security_rule_group" "consumer_group" {
     action                = "allow"
     categories              = [panos_custom_url_category.consumer_category[each.key].name]
     source_users           = ["any"]
-    tags = [
-      "managed-by-terraform",
-      "privatelink-consumer",
-    ]
   }
 }

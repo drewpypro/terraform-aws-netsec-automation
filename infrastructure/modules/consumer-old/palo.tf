@@ -48,12 +48,6 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
     action      = "allow"
     description = "Allow ${var.name_prefix} ${each.value.protocol}/${each.value.port} ${each.value.appid} ${each.value.url}"
 
-    tags = concat(
-      [
-        "managed-by-terraform",
-        "privatelink-consumer"
-      ],
-      [for t in var.palo_tags : t]
-    )
+    tags = [for t in var.palo_tags : t]
   }
 } 
