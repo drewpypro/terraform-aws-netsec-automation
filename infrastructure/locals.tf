@@ -219,23 +219,22 @@ locals {
     ]
   ]))
 
-  palo_deduped_tags = distinct(flatten([
-    for file, policy in local.policies : (
-      policy.security_group.serviceType == "privatelink-consumer" ? [
-        "thirdpartyName:${policy.security_group.thirdpartyName}",
-        "thirdPartyID:${policy.security_group.thirdPartyID}",
-        "serviceType:${policy.security_group.serviceType}",
-        "serviceName:${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}",
-        "region:${policy.security_group.region}"
-      ] : [
-        "thirdpartyName:${policy.security_group.thirdpartyName}",
-        "thirdPartyID:${policy.security_group.thirdPartyID}",
-        "serviceType:${policy.security_group.serviceType}",
-        "internalAppID:${policy.security_group.internalAppID}",
-        "region:${policy.security_group.region}"
-      ]
-    )
-  ]))
+  palo_deduped_tags = sort(compact(distinct(flatten([
+    for file, policy in local.policies : [
+      # Consumer tags
+      policy.security_group.serviceType == "privatelink-consumer" ? "thirdpartyName:${policy.security_group.thirdpartyName}" : "",
+      policy.security_group.serviceType == "privatelink-consumer" ? "thirdPartyID:${policy.security_group.thirdPartyID}" : "",
+      # Provider tags
+      policy.security_group.serviceType == "privatelink-provider" ? (
+        lookup(policy.security_group, "internalAppID", "") != "" ? "internalAppID:${lookup(policy.security_group, "internalAppID", "")}" : ""
+      ) : "",
+      # Shared tags (always present)
+      "serviceType:${policy.security_group.serviceType}",
+      "serviceName:${policy.security_group.serviceName}",
+      "region:${policy.security_group.region}",
+    ]
+  ]))))
+
   
   # Deduped Palo Alto URL objects
   palo_deduped_urls = distinct(flatten([
