@@ -9,7 +9,7 @@ resource "panos_panorama_service_object" "service_objs" {
 }
 
 resource "panos_panorama_administrative_tag" "tag_objs" {
-  for_each     = toset(var.tags)
+  for_each = { for tag in var.tags : tag => tag }
 
   device_group = "AWS"
   name         = each.value
