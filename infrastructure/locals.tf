@@ -218,26 +218,27 @@ locals {
       )
     ]
   ]))
-
+  
   palo_deduped_tags_consumer = distinct(flatten([
     for file, policy in local.consumer_policies : [
-      "consumer:thirdpartyName:${policy.security_group.thirdpartyName}",
-      "consumer:thirdPartyID:${policy.security_group.thirdPartyID}",
-      "consumer:serviceType:${policy.security_group.serviceType}",
-      "consumer:serviceName:${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}",
-      "consumer:region:${policy.security_group.region}"
-    ]
-  ]))
-
-  palo_deduped_tags_provider = distinct(flatten([
-    for file, policy in local.provider_policies : [
-      "provider:internalAppID:${policy.security_group.internalAppID}",
-      "provider:serviceType:${policy.security_group.serviceType}",
-      "provider:serviceName:${policy.security_group.serviceName}",
-      "provider:region:${policy.security_group.region}"
+      "consumer__thirdpartyName=${policy.security_group.thirdpartyName}",
+      "consumer__thirdPartyID=${policy.security_group.thirdPartyID}",
+      "consumer__serviceType=${policy.security_group.serviceType}",
+      "consumer__serviceName=${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}",
+      "consumer__region=${policy.security_group.region}"
     ]
   ]))
     
+  palo_deduped_tags_provider = distinct(flatten([
+    for file, policy in local.provider_policies : [
+      "provider__internalAppID=${policy.security_group.internalAppID}",
+      "provider__serviceType=${policy.security_group.serviceType}",
+      "provider__serviceName=${policy.security_group.serviceName}",
+      "provider__region=${policy.security_group.region}"
+    ]
+  ]))
+
+
   # Deduped Palo Alto URL objects
   palo_deduped_urls = distinct(flatten([
     for file, policy in local.consumer_policies : [
