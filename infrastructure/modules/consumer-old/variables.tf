@@ -92,6 +92,7 @@ variable "palo_rules" {
     source_ips            = list(string)
     enable_palo_inspection = bool
     palo_tags              = list(string)
+    palo_urls              = list(string)
   }))
   default = {}
 }
