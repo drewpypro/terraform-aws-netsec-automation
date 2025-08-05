@@ -37,7 +37,6 @@ module "palo_objects" {
   services = local.palo_deduped_services
   tags     = local.palo_deduped_tags
   urls     = local.palo_deduped_urls
-  region   = each.value.region
 }
 
 
