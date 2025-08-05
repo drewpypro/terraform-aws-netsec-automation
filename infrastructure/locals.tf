@@ -219,14 +219,19 @@ locals {
     ]
   ]))
 
-  palo_deduped_tags = sort(distinct(compact(flatten([
+  palo_deduped_tags = sort(compact(distinct(flatten([
     for file, policy in local.policies : [
-      "thirdpartyName:${policy.security_group.thirdpartyName}",
-      "thirdPartyID:${policy.security_group.thirdPartyID}",
+      # Consumer tags
+      policy.security_group.serviceType == "privatelink-consumer" ? "thirdpartyName:${policy.security_group.thirdpartyName}" : "",
+      policy.security_group.serviceType == "privatelink-consumer" ? "thirdPartyID:${policy.security_group.thirdPartyID}" : "",
+      # Provider tags
+      policy.security_group.serviceType == "privatelink-provider" ? (
+        lookup(policy.security_group, "internalAppID", "") != "" ? "internalAppID:${lookup(policy.security_group, "internalAppID", "")}" : ""
+      ) : "",
+      # Shared tags (always present)
       "serviceType:${policy.security_group.serviceType}",
-      policy.security_group.serviceName != null && policy.security_group.serviceName != "" ? "serviceName:${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}" : "",
-      policy.security_group.internalAppID != null && policy.security_group.internalAppID != "" ? "internalAppID:${policy.security_group.internalAppID}" : "",
-      "region:${policy.security_group.region}"
+      "serviceName:${policy.security_group.serviceName}",
+      "region:${policy.security_group.region}",
     ]
   ]))))
 
