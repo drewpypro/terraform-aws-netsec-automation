@@ -6,3 +6,7 @@ resource "panos_panorama_administrative_tag" "tag_objs" {
   color        = "color6"
   comment      = "Auto-tag for rule ${each.key}"
 }
+
+output "tag_object_names" {
+  value = [for t in panos_panorama_administrative_tag.tag_objs : t.name]
+}
