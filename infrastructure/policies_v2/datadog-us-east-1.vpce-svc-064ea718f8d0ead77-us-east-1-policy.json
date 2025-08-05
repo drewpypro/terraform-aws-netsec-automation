@@ -1,6 +1,6 @@
 {
   "security_group_name": "datadogv2-us-east-1.vpce-svc-064ea718f8d0ead77-us-east-1-sg",
-  "vpc_id": "vpc-05ebefacb081c3018",
+  "vpc_id": "vpc-0b6a4113294197180",
   "region": "us-east-1",
   "tags": {
     "RequestID": "RQ-001",
