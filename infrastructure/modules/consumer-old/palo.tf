@@ -26,7 +26,7 @@
 resource "panos_panorama_security_rule_group" "consumer_rules" {
   for_each = var.enable_palo_inspection ? var.palo_rules : {}
 
-  device_group     = "${var.region}-fw-dg"
+  device_group = "AWS"
 
   rule {
     name = "pl-${var.name_prefix}-${regex("(vpce-svc-[a-zA-Z0-9]+)", var.service_name)[0]}-${var.region}-r${index(keys(var.palo_rules), each.key)}"

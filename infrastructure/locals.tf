@@ -219,7 +219,7 @@ locals {
     ]
   ]))
 
-  palo_deduped_tags = sort(distinct(flatten([
+  palo_deduped_tags = distinct(flatten([
     for file, policy in local.policies : (
       policy.security_group.serviceType == "privatelink-consumer" ? [
         "thirdpartyName:${policy.security_group.thirdpartyName}",
@@ -235,7 +235,7 @@ locals {
         "region:${policy.security_group.region}"
       ]
     )
-  ])))
+  ]))
   
   # Deduped Palo Alto URL objects
   palo_deduped_urls = distinct(flatten([
