@@ -13,10 +13,10 @@ module "vpc_us_west_2" {
   private_subnets = ["10.10.1.0/24", "10.10.2.0/24"]
   public_subnets  = ["10.10.11.0/24", "10.10.12.0/24"]
 
-  enable_nat_gateway     = false
-  enable_dns_hostnames   = true
-  enable_dns_support     = true
-  
+  enable_nat_gateway   = false
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
   tags = {
     Project = "netsec-automation"
   }
@@ -37,9 +37,9 @@ module "vpc_us_east_1" {
   private_subnets = ["10.20.1.0/24", "10.20.2.0/24"]
   public_subnets  = ["10.20.11.0/24", "10.20.12.0/24"]
 
-  enable_nat_gateway     = false
-  enable_dns_hostnames   = true
-  enable_dns_support     = true
+  enable_nat_gateway      = false
+  enable_dns_hostnames    = true
+  enable_dns_support      = true
   map_public_ip_on_launch = true
 
   tags = {
@@ -93,14 +93,14 @@ resource "aws_vpc_security_group_egress_rule" "allow_panorama_egress_all" {
 }
 
 resource "aws_instance" "panorama_vm_2" {
-  provider        = aws.us_east_1
+  provider = aws.us_east_1
 
-  ami             = "ami-0d016c7e722bdf4a5"
-  instance_type   = "c4.4xlarge"
-  subnet_id       = module.vpc_us_east_1.public_subnets[0]
-  vpc_security_group_ids = [aws_security_group.panorama.id]
+  ami                         = "ami-0d016c7e722bdf4a5"
+  instance_type               = "c4.4xlarge"
+  subnet_id                   = module.vpc_us_east_1.public_subnets[0]
+  vpc_security_group_ids      = [aws_security_group.panorama.id]
   associate_public_ip_address = "true"
-  key_name = "panorama_key"
+  key_name                    = "panorama_key"
 
   tags = {
     Name = "panorama_vm_2"
