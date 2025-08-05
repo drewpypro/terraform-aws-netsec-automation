@@ -56,9 +56,4 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
       [for t in var.palo_tags : t]
     )
   }
-
-  depends_on = [
-    panos_panorama_service_object.consumer_services,
-    panos_custom_url_category.consumer_category
-  ]
 } 
