@@ -3,7 +3,7 @@ security_group:
   business_justification: Creating security-group and palo alto rules for thirdparty splunk to enable splunk saas logging required for enterprise visibility operations.
   accountId: 6666666
   region: us-east-1
-  vpc_id: vpc-05ebefacb081c3018
+  vpc_id: vpc-0b6a4113294197180
   serviceType: privatelink-consumer
   serviceName: com.amazonaws.vpce.us-east-1.vpce-svc-064ea718f8d0ead77
   thirdpartyName: miro
@@ -13,7 +13,7 @@ rules:
     business_justification: Creating rules to allow internal hosts to connect to thirdparty splunk to enable splunk saas logging required for enterprise visibility operations.
     source:
       account_id: 6666666
-      vpc_id: vpc-05ebefacb081c3018
+      vpc_id: vpc-0b6a4113294197180
       region: us-east-1
       ips:
         - 10.11.1.1/32
@@ -27,7 +27,7 @@ rules:
     business_justification: Forgot to add rules for additional url splunk2.com which enables augmented api connectivity required for business functionality.
     source:
       account_id: 6666666
-      vpc_id: vpc-05ebefacb081c3018
+      vpc_id: vpc-0b6a4113294197180
       region: us-east-1
       ips:
         - 10.11.1.1/32
@@ -41,7 +41,7 @@ rules:
     business_justification: Forgot to add ips for additional url splunk2.com which enables augmented api connectivity required for business functionality.
     source:
       account_id: 6666666
-      vpc_id: vpc-05ebefacb081c3018
+      vpc_id: vpc-0b6a4113294197180
       region: us-east-1
       ips:
         - 10.69.1.1/32
