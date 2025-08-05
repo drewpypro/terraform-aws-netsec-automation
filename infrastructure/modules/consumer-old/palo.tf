@@ -38,7 +38,7 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
     applications           = [each.value.appid]
     services               = [
       contains(var.palo_services, "${each.value.protocol}-${each.value.port}") ?
-        "${each.value.protocol}-${each.value.port}" : null
+        "${each.value.protocol}-${each.value.port}" : ["any"]
     ]
     categories = (
       each.value.url != "any" && contains(var.palo_urls, each.value.url) ?
@@ -48,6 +48,6 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
     action      = "allow"
     description = "Allow ${var.name_prefix} ${each.value.protocol}/${each.value.port} ${each.value.appid} ${each.value.url}"
 
-    tags = [for t in var.palo_tags : t]
+    tags = each.value.palo_tags
   }
 } 
