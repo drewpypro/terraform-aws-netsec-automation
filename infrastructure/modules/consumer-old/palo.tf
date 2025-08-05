@@ -1,37 +1,7 @@
-resource "panos_panorama_service_object" "consumer_services" {
-  for_each = var.enable_palo_inspection ? toset(var.palo_protocols_ports) : []
-
-  device_group     = "${var.region}-fw-dg"
-  name             = each.value
-  protocol         = split("-", each.value)[0]
-  destination_port = split("-", each.value)[1]
-}
-
-resource "panos_custom_url_category" "consumer_category" {
-  for_each = {
-    for url_key in distinct([
-      for rule in var.palo_rules : replace(rule.url, "https://", "")
-      if var.enable_palo_inspection && rule.url != "any"
-    ]) : url_key => {
-      sites = ["https://${url_key}"]
-    }
-  }
-
-  device_group = "${var.region}-fw-dg"
-  name         = substr(each.key, 0, 31)
-  sites        = each.value.sites
-  type         = "URL List"
-}
-
 resource "panos_panorama_security_rule_group" "consumer_rules" {
   for_each = var.enable_palo_inspection ? var.palo_rules : {}
 
-  depends_on = [
-    panos_panorama_service_object.consumer_services,
-    panos_custom_url_category.consumer_category
-  ]
-
-  device_group     = "${var.region}-fw-dg"
+  device_group = "${var.region}-fw-dg"
 
   rule {
     name = "pl-${var.name_prefix}-${regex("(vpce-svc-[a-zA-Z0-9]+)", var.service_name)[0]}-${var.region}-r${index(keys(var.palo_rules), each.key)}"
@@ -41,20 +11,24 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
     destination_zones      = ["any"]
     destination_addresses  = ["100.64.0.0/23"]
     applications           = [each.value.appid]
-    services               = [
-      panos_panorama_service_object.consumer_services["${each.value.protocol}-${each.value.port}"].name
+
+    # Reference deduped service object (must match protocol-port pattern)
+    services = [
+      contains(var.palo_service_objects, "${each.value.protocol}-${each.value.port}")
+        ? "${each.value.protocol}-${each.value.port}"
+        : "any"
     ]
+
+    # Reference deduped URL category (must match transformed URL)
     categories = (
-      each.value.url != "any"
-      ? [substr(replace(each.value.url, "https://", ""), 0, 31)]
-      : ["any"]
+      each.value.url != "any" && each.value.url != null && each.value.url != "" && contains(var.palo_url_categories, replace(replace(each.value.url, "https://", ""), "/", "-"))
+        ? [substr(replace(replace(each.value.url, "https://", ""), "/", "-"), 0, 63)]
+        : ["any"]
     )
+
     action      = "allow"
     description = "Allow ${var.name_prefix} ${each.value.protocol}/${each.value.port} ${each.value.appid} ${each.value.url}"
 
-    tags = [
-      "managed-by-terraform",
-      "privatelink-consumer",
-    ]
+    tags = var.palo_tags
   }
-} 
+}

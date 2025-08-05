@@ -12,6 +12,15 @@ locals {
   }
 }
 
+# --- Palo Objects Module ---
+
+module "palo_objects_us_east_1" {
+  source          = "./modules/palo-objects"
+  service_objects = local.palo_service_objects
+  tags            = local.palo_tags
+  url_categories  = local.palo_url_categories_filtered
+  region          = "us-east-1"
+}
 
 module "consumer_us_east_1_v2" {
   source = "./modules/consumer"
@@ -63,6 +72,11 @@ module "consumer_sg_us_east_1_v1" {
   palo_source_ips = each.value.palo_source_ips
   palo_rules = each.value.palo_rules
 
-  depends_on = [module.vpc_us_east_1]
+  # Inject deduped Palo Alto objects (from module)
+  palo_service_objects        = module.palo_objects_us_east_1.service_names
+  palo_tags                   = module.palo_objects_us_east_1.tag_names
+  palo_url_categories         = module.palo_objects_us_east_1.url_category_names
+
+  depends_on = [module.vpc_us_east_1, module.palo_objects_us_east_1]
 }
 

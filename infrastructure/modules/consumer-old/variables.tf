@@ -27,13 +27,13 @@ variable "tags" {
 variable "aws_rules" {
   description = "Pre-processed AWS security group rules"
   type = map(object({
-    protocol = string
-    port = string
-    from_port = number
-    to_port = number
-    cidr = string
+    protocol    = string
+    port        = string
+    from_port   = number
+    to_port     = number
+    cidr        = string
     description = string
-    rule_tags = map(string)
+    rule_tags   = map(string)
   }))
 }
 
@@ -81,17 +81,34 @@ variable "service_name" {
   type        = string
 }
 
-# NEW: Grouped Palo Alto rules
 variable "palo_rules" {
   description = "Pre-processed Palo Alto rules grouped by protocol/port/appid/url"
   type = map(object({
-    protocol               = string
-    port                  = string
-    appid                 = string
-    url                   = string
-    source_ips            = list(string)
-    enable_palo_inspection = bool
+    protocol                = string
+    port                    = string
+    appid                   = string
+    url                     = string
+    source_ips              = list(string)
+    enable_palo_inspection  = bool
   }))
   default = {}
 }
 
+# NEW: Deduped object names passed from palo-objects module
+variable "palo_service_objects" {
+  description = "List of deduped Palo service object names (e.g., ['tcp-443'])"
+  type        = list(string)
+  default     = []
+}
+
+variable "palo_tags" {
+  description = "List of deduped Palo tag names"
+  type        = list(string)
+  default     = []
+}
+
+variable "palo_url_categories" {
+  description = "List of deduped Palo url category names"
+  type        = list(string)
+  default     = []
+}
