@@ -32,9 +32,9 @@ output "service_object_names" {
 }
 
 output "tag_object_names" {
-  value = [for t in panos_panorama_tag.tag_objs : t.name]
+  value = [for t in panos_panorama_administrative_tag.tag_objs : t.name]
 }
 
 output "url_object_names" {
-  value = [for u in panos_panorama_custom_url_category.url_objs : u.name]
+  value = [for u in panos_custom_url_category.url_objs : u.name]
 }
