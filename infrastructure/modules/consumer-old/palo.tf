@@ -36,10 +36,10 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
     destination_zones      = ["any"]
     destination_addresses  = ["100.64.0.0/23"]
     applications           = [each.value.appid]
-    services               = [
+    services = (
       contains(var.palo_services, "${each.value.protocol}-${each.value.port}") ?
-        "${each.value.protocol}-${each.value.port}" : null
-    ]
+        ["${each.value.protocol}-${each.value.port}"] : ["any"]
+    )
     categories = (
       each.value.url != "any" && contains(var.palo_urls, each.value.url) ?
         [replace(replace(replace(each.value.url, "https://", ""), ".", "-"), "/", "-")]
@@ -48,12 +48,6 @@ resource "panos_panorama_security_rule_group" "consumer_rules" {
     action      = "allow"
     description = "Allow ${var.name_prefix} ${each.value.protocol}/${each.value.port} ${each.value.appid} ${each.value.url}"
 
-    tags = concat(
-      [
-        "managed-by-terraform",
-        "privatelink-consumer"
-      ],
-      [for t in var.palo_tags : t]
-    )
+    tags = each.value.palo_tags
   }
 } 
