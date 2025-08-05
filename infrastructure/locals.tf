@@ -120,6 +120,7 @@ locals {
               replace(local.consumer_sg_first_combo[region][sg_key].policy.security_group.serviceName, "com.amazonaws.vpce.", ""),
               local.consumer_sg_first_combo[region][sg_key].policy.security_group.region
             ]
+            palo_url_category = [for combo in local.consumer_palo_rule_combinations : combo.palo_url_category if combo.palo_key == palo_key && combo.sg_key == sg_key && combo.region == region][0]
           }
         }
       }
