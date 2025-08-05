@@ -8,7 +8,7 @@ terraform {
       source  = "paloaltonetworks/panos"
       version = "~> 1.11.0"
     }
-    }
+  }
   backend "s3" {
     skip_credentials_validation = true
     skip_requesting_account_id  = true
