@@ -48,9 +48,6 @@ module "palo_objects" {
   urls     = local.palo_deduped_urls
 }
 
-
-
-
 # Create consumer security groups for us-east-1 region
 module "consumer_sg_us_east_1_v1" {
   source = "./modules/consumer-old/"
@@ -83,7 +80,7 @@ module "consumer_sg_us_east_1_v1" {
   palo_source_ips        = each.value.palo_source_ips
   palo_rules             = each.value.palo_rules
 
-  palo_services = module.palo_objects_.service_object_names
+  palo_services = module.palo_objects.service_object_names
   palo_tags     = module.palo_tags_consumer.tag_object_names
   palo_urls     = module.palo_objects.url_object_names
 
