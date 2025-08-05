@@ -32,10 +32,17 @@ module "consumer_us_east_1_v2" {
 }
 
 
-module "palo_objects" {
+module "palo_objects_consumer" {
   source   = "./modules/palo-objects"
   services = local.palo_deduped_services
-  tags     = local.palo_deduped_tags
+  tags     = local.consumer_deduped_tags
+  urls     = local.palo_deduped_urls
+}
+
+module "palo_objects_provider" {
+  source   = "./modules/palo-objects"
+  services = local.palo_deduped_services
+  tags     = local.provider_deduped_tags
   urls     = local.palo_deduped_urls
 }
 

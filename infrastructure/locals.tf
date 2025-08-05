@@ -219,21 +219,26 @@ locals {
     ]
   ]))
 
-  palo_deduped_tags = sort(compact(distinct(flatten([
-    for file, policy in local.policies : [
-      # Consumer tags
-      policy.security_group.serviceType == "privatelink-consumer" ? "thirdpartyName:${policy.security_group.thirdpartyName}" : "",
-      policy.security_group.serviceType == "privatelink-consumer" ? "thirdPartyID:${policy.security_group.thirdPartyID}" : "",
-      # Provider tags
-      policy.security_group.serviceType == "privatelink-provider" ? (
-        lookup(policy.security_group, "internalAppID", "") != "" ? "internalAppID:${lookup(policy.security_group, "internalAppID", "")}" : ""
-      ) : "",
-      # Shared tags (always present)
-      "serviceType:${policy.security_group.serviceType}",
-      "serviceName:${policy.security_group.serviceName}",
-      "region:${policy.security_group.region}",
+  consumer_deduped_tags = distinct(flatten([
+    [
+      "consumer:thirdpartyName:${policy.security_group.thirdpartyName}",
+      "consumer:thirdPartyID:${policy.security_group.thirdPartyID}",
+      "consumer:serviceType:${policy.security_group.serviceType}",
+      "consumer:serviceName:${policy.security_group.serviceName}",
+      "consumer:region:${policy.security_group.region}"
     ]
-  ]))))
+    for file, policy in local.policies : policy.security_group.serviceType == "privatelink-consumer"
+  ]))
+
+  provider_deduped_tags = distinct(flatten([
+    [
+      "provider:internalAppID:${policy.security_group.internalAppID}",
+      "provider:serviceType:${policy.security_group.serviceType}",
+      "provider:serviceName:${policy.security_group.serviceName}",
+      "provider:region:${policy.security_group.region}"
+    ]
+    for file, policy in local.policies : policy.security_group.serviceType == "privatelink-provider"
+  ]))
 
   
   # Deduped Palo Alto URL objects
