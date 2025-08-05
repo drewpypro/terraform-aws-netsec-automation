@@ -114,11 +114,11 @@ locals {
             ]
             enable_palo_inspection = [for combo in local.consumer_palo_rule_combinations : combo.enable_palo_inspection if combo.palo_key == palo_key && combo.sg_key == sg_key && combo.region == region][0]
             palo_tags = [
-             local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdpartyName,
-              tostring(local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdPartyID),
-              local.consumer_sg_first_combo[region][sg_key].policy.security_group.serviceType,
-              replace(local.consumer_sg_first_combo[region][sg_key].policy.security_group.serviceName, "com.amazonaws.vpce.", ""),
-              local.consumer_sg_first_combo[region][sg_key].policy.security_group.region
+              "consumer__thirdpartyName=${local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdpartyName}",
+              "consumer__thirdPartyID=${local.consumer_sg_first_combo[region][sg_key].policy.security_group.thirdPartyID}",
+              "consumer__serviceType=${local.consumer_sg_first_combo[region][sg_key].policy.security_group.serviceType}",
+              "consumer__serviceName=${replace(local.consumer_sg_first_combo[region][sg_key].policy.security_group.serviceName, "com.amazonaws.vpce.", "")}",
+              "consumer__region=${local.consumer_sg_first_combo[region][sg_key].policy.security_group.region}"
             ]
             palo_url_category = [for combo in local.consumer_palo_rule_combinations : combo.palo_url_category if combo.palo_key == palo_key && combo.sg_key == sg_key && combo.region == region][0]
           }
