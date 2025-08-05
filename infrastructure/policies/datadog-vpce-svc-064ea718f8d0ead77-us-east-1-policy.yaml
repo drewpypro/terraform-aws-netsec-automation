@@ -1,18 +1,16 @@
 security_group:
   request_id: RQ-001
-  business_justification: >
-    Create security-group for datadog API us-east-1 privatelink in us-east-1
+  business_justification: Create security-group for datadog API us-east-1 privatelink in us-east-1
   accountId: 6666666
   region: us-east-1
-  vpc_id: vpc-05ebefacb081c3018
+  vpc_id: vpc-0b6a4113294197180
   serviceType: privatelink-consumer
   serviceName: com.amazonaws.vpce.us-east-1.vpce-svc-064ea718f8d0ead77
   thirdpartyName: Datadog
   thirdPartyID: 123456
 rules:
   - request_id: RQ-001
-    business_justification: >
-        Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint. 
+    business_justification:     Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint. 
     source:
       account_id: 111122223333
       vpc_id: vpc-aaa
@@ -27,8 +25,7 @@ rules:
     url: https://api.datadoghq.com
     enable_palo_inspection: true
   - request_id: RQ-001
-    business_justification: >
-        Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint. 
+    business_justification:     Create access from acct-1 intranet nat gateway to datadog api vpc-endpoint. 
     source:
       account_id: 111122223333
       vpc_id: vpc-aaa

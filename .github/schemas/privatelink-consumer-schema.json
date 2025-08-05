@@ -19,7 +19,7 @@
       "properties": {
         "request_id": { "type": ["string", "number"] },
         "business_justification": { "type": "string" },
-        "accountId": { "type": "string" },
+        "accountId": { "type": "number" },
         "region": {
           "type": "string",
           "enum": ["us-west-2", "us-east-1"]
@@ -46,7 +46,8 @@
           "protocol",
           "port",
           "appid",
-          "url"
+          "url",
+          "enable_palo_inspection"
         ],
         "properties": {
           "request_id": { "type": ["string", "number"] },
@@ -58,9 +59,14 @@
           "enable_palo_inspection": { "type": "boolean" },
           "source": {
             "type": "object",
-            "required": ["ips"],
+            "required": [
+              "account_id",
+              "vpc_id",
+              "region",
+              "ips"
+            ],
             "properties": {
-              "account_id": { "type": "string" },
+              "account_id": { "type": "number" },
               "vpc_id": { "type": "string" },
               "region": { "type": "string" },
               "ips": {
