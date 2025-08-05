@@ -39,6 +39,10 @@ module "palo_objects" {
   urls     = local.palo_deduped_urls
 }
 
+output "final_palo_tags" {
+  value = local.palo_deduped_tags
+}
+
 
 # Create consumer security groups for us-east-1 region
 module "consumer_sg_us_east_1_v1" {
