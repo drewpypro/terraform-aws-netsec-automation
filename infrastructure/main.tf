@@ -79,9 +79,9 @@ module "consumer_sg_us_east_1_v1" {
   palo_source_ips        = each.value.palo_source_ips
   palo_rules             = each.value.palo_rules
 
-  palo_services = module.palo_objects.service_object_names
+  palo_services = module.palo_objects_consumer.service_object_names
   palo_tags     = module.palo_objects_consumer.tag_object_names
-  palo_urls     = module.palo_objects.url_object_names
+  palo_urls     = module.palo_objects_consumer.url_object_names
 
   depends_on = [module.vpc_us_east_1, module.palo_objects_consumer]
 }
