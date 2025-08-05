@@ -1,0 +1,31 @@
+resource "panos_panorama_service_object" "service_objs" {
+  for_each = toset(var.services)
+  name     = each.value
+  protocol = split("-", each.value)[0]
+  destination_port = split("-", each.value)[1]
+}
+
+resource "panos_panorama_tag" "tag_objs" {
+  for_each = toset(var.tags)
+  name     = each.value
+}
+
+resource "panos_panorama_custom_url_category" "url_objs" {
+  for_each   = toset(var.urls)
+  name       = replace(replace(replace(each.value, "https://", ""), ".", "-"), "/", "-")
+  description = each.value
+  type        = "URL List"
+  list        = [each.value]
+}
+
+output "service_object_names" {
+  value = [for s in panos_panorama_service_object.service_objs : s.name]
+}
+
+output "tag_object_names" {
+  value = [for t in panos_panorama_tag.tag_objs : t.name]
+}
+
+output "url_object_names" {
+  value = [for u in panos_panorama_custom_url_category.url_objs : u.name]
+}

@@ -95,3 +95,20 @@ variable "palo_rules" {
   default = {}
 }
 
+variable "palo_services" {
+  description = "List of deduped Palo Alto service object names"
+  type        = list(string)
+  default     = []
+}
+
+variable "palo_tags" {
+  description = "List of deduped Palo Alto tag object names"
+  type        = list(string)
+  default     = []
+}
+
+variable "palo_urls" {
+  description = "List of deduped Palo Alto URL object names"
+  type        = list(string)
+  default     = []
+}

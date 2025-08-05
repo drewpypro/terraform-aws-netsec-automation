@@ -190,4 +190,39 @@ locals {
       }
     }
   }
+
+  ######################################################################
+  # Palo Alto OBJECT DEDUPES for palo-objects module (NEW SECTION)
+  ######################################################################
+
+  # Deduped Palo Alto service objects (e.g. tcp-443, tcp-443-445)
+  palo_deduped_services = distinct(flatten([
+    for file, policy in local.consumer_policies : [
+      for rule in policy.rules : (
+        rule.protocol != null && rule.port != null
+        ? ["${rule.protocol}-${rule.port}"]
+        : []
+      )
+    ]
+  ]))
+
+  # Deduped Palo Alto tag objects
+  palo_deduped_tags = distinct(flatten([
+    for file, policy in local.consumer_policies : [
+      policy.security_group.thirdpartyName,
+      tostring(policy.security_group.thirdPartyID),
+      policy.security_group.serviceType,
+      replace(policy.security_group.serviceName, "com.amazonaws.vpce.", ""),
+      policy.security_group.region
+    ]
+  ]))
+
+  # Deduped Palo Alto URL objects
+  palo_deduped_urls = distinct(flatten([
+    for file, policy in local.consumer_policies : [
+      for rule in policy.rules : (
+        rule.url != null && rule.url != "" ? [rule.url] : []
+      )
+    ]
+  ]))
 }
