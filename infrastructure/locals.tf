@@ -125,6 +125,7 @@ locals {
         }
       }
     }
+
   }
 
   # Deduplicate AWS rules  
@@ -220,26 +221,38 @@ locals {
   ]))
   
 
-  palo_deduped_tags_consumer = distinct(flatten([
-    for file, policy in local.consumer_policies : [
-      "thirdpartyName=${policy.security_group.thirdpartyName}",
-      "thirdPartyID=${policy.security_group.thirdPartyID}",
-      "serviceName=${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}",
-    ]
-  ]))
+  palo_deduped_tags_consumer = {
+    for region in local.regions : region => distinct(flatten([
+      for file, policy in local.consumer_policies :
+        policy.security_group.region == region ?
+        [
+          "thirdpartyName=${policy.security_group.thirdpartyName}",
+          "thirdPartyID=${policy.security_group.thirdPartyID}",
+          "serviceName=${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}"
+        ] : []
+    ]))
+  }
 
-  palo_deduped_tags_provider = distinct(flatten([
-    for file, policy in local.provider_policies : [
-      "internalAppID=${policy.security_group.internalAppID}",
-    ]
-  ]))
+  palo_deduped_tags_provider = {
+    for region in local.regions : region => distinct(flatten([
+      for file, policy in local.provider_policies :
+        policy.security_group.region == region ?
+        [
+          "internalAppID=${policy.security_group.internalAppID}"
+        ] : []
+    ]))
+  }
 
-  palo_deduped_tags_shared = distinct(flatten([
-    for file, policy in local.policies : [
-      "serviceType=${policy.security_group.serviceType}",
-      "region=${policy.security_group.region}"
-    ]
-  ]))
+  palo_deduped_tags_shared = {
+    for region in local.regions : region => distinct(flatten([
+      for file, policy in local.policies :
+        policy.security_group.region == region ?
+        [
+          "serviceType=${policy.security_group.serviceType}",
+          "region=${policy.security_group.region}"
+        ] : []
+    ]))
+  }
 
   # Deduped Palo Alto URL objects
   palo_deduped_urls = distinct(flatten([

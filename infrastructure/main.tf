@@ -34,17 +34,20 @@ module "consumer_us_east_1_v2" {
 
 module "palo_tags_consumer" {
   source   = "./modules/palo-tags"
-  tags     = local.palo_deduped_tags_consumer
+  for_each = local.palo_deduped_tags_consumer
+  tags     = each.value
 }
 
 module "palo_tags_provider" {
   source   = "./modules/palo-tags"
-  tags     = local.palo_deduped_tags_provider
+  for_each = local.palo_deduped_tags_provider
+  tags     = each.value
 }
 
 module "palo_tags_shared" {
   source   = "./modules/palo-tags"
-  tags     = local.palo_deduped_tags_shared
+  for_each = local.palo_deduped_tags_shared
+  tags     = each.value
 }
 
 
@@ -88,8 +91,52 @@ module "consumer_sg_us_east_1_v1" {
 
   palo_services = module.palo_objects.service_object_names
   palo_tags = concat(
-    module.palo_tags_consumer.tag_object_names,
-    module.palo_tags_shared.tag_object_names
+    module.palo_tags_consumer[each.value.region].tag_object_names,
+    module.palo_tags_shared[each.value.region].tag_object_names
+  )
+
+  palo_urls     = module.palo_objects.url_object_names
+
+  depends_on = [module.vpc_us_east_1, module.palo_tags_consumer, module.palo_tags_provider, module.palo_objects]
+}
+
+
+# Create consumer security groups for us-east-1 region
+module "consumer_sg_us_west_2_v1" {
+  source = "./modules/consumer-old/"
+
+  for_each = try(local.consumer_sgs_by_region["us-west-2"], {})
+
+  providers = {
+    aws   = aws.us_west_2
+    panos = panos
+  }
+
+  # Security group settings
+  region                     = "us-west-2"
+  security_group_name        = each.value.sg_name
+  security_group_description = each.value.sg_description
+  vpc_id                     = each.value.vpc_id
+  tags                       = each.value.tags
+  service_name               = each.value.tags.ServiceName
+
+  # AWS security group rules (pre-processed, no loops needed in module)
+  aws_rules = each.value.aws_rules
+
+  # Palo Alto settings  
+  enable_palo_inspection = each.value.enable_palo_inspection
+  name_prefix            = each.value.name_prefix
+  request_id             = each.value.request_id
+  appid                  = each.value.appid
+  url                    = each.value.url
+  palo_protocols_ports   = each.value.palo_protocols_ports
+  palo_source_ips        = each.value.palo_source_ips
+  palo_rules             = each.value.palo_rules
+
+  palo_services = module.palo_objects.service_object_names
+  palo_tags = concat(
+    module.palo_tags_consumer[each.value.region].tag_object_names,
+    module.palo_tags_shared[each.value.region].tag_object_names
   )
   palo_urls     = module.palo_objects.url_object_names
 
