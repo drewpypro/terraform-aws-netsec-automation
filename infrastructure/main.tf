@@ -87,8 +87,8 @@ module "consumer_sg_us_east_1_v1" {
 
   palo_services = module.palo_objects.service_object_names
   palo_tags = concat(
-    module.palo_tags_consumer[each.value.region].tag_object_names,
-    module.palo_tags_shared[each.value.region].tag_object_names
+    module.palo_tags_consumer.tag_object_names,
+    module.palo_tags_shared.tag_object_names
   )
 
   palo_urls     = module.palo_objects.url_object_names
@@ -131,8 +131,8 @@ module "consumer_sg_us_west_2_v1" {
 
   palo_services = module.palo_objects.service_object_names
   palo_tags = concat(
-    module.palo_tags_consumer[each.value.region].tag_object_names,
-    module.palo_tags_shared[each.value.region].tag_object_names
+    module.palo_tags_consumer.tag_object_names,
+    module.palo_tags_shared.tag_object_names
   )
   palo_urls     = module.palo_objects.url_object_names
 
