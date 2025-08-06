@@ -34,22 +34,18 @@ module "consumer_us_east_1_v2" {
 
 module "palo_tags_consumer" {
   source   = "./modules/palo-tags"
-  for_each = local.palo_deduped_tags_consumer
-  tags     = each.value
+  tags = local.palo_deduped_tags_consumer
 }
 
 module "palo_tags_provider" {
   source   = "./modules/palo-tags"
-  for_each = local.palo_deduped_tags_provider
-  tags     = each.value
+  tags = local.palo_deduped_tags_provider
 }
 
 module "palo_tags_shared" {
   source   = "./modules/palo-tags"
-  for_each = local.palo_deduped_tags_shared
-  tags     = each.value
+  tags = local.palo_deduped_tags_shared
 }
-
 
 module "palo_objects" {
   source   = "./modules/palo-objects"
