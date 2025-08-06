@@ -230,21 +230,18 @@ locals {
   ]))
 
   palo_deduped_tags_provider = distinct(flatten([
-      for file, policy in local.provider_policies : [
-        "internalAppID=${policy.security_group.internalAppID}"
-      ]
-    ]))
+    for file, policy in local.provider_policies : [
+      "internalAppID=${policy.security_group.internalAppID}",
+      "serviceName=${policy.security_group.serviceName}"
+    ]
+  ]))
 
-  palo_deduped_tags_shared = {
-    for region in local.regions : region => distinct(flatten([
-      for file, policy in local.policies :
-        policy.security_group.region == region ?
-        [
-          "serviceType=${policy.security_group.serviceType}",
-          "region=${policy.security_group.region}"
-        ] : []
-    ]))
-  }
+  palo_deduped_tags_shared = distinct(flatten([
+    for file, policy in local.policies : [
+      "serviceType=${policy.security_group.serviceType}",
+      "region=${policy.security_group.region}"
+    ]
+  ]))
 
   # Deduped Palo Alto URL objects
   palo_deduped_urls = distinct(flatten([
