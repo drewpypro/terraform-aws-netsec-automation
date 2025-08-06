@@ -229,7 +229,7 @@ locals {
           "thirdpartyName=${policy.security_group.thirdpartyName}",
           "thirdPartyID=${policy.security_group.thirdPartyID}",
           "serviceName=${replace(policy.security_group.serviceName, "com.amazonaws.vpce.", "")}"
-        ]
+        ] : []
     ]))
   }
 
@@ -239,7 +239,7 @@ locals {
         policy.security_group.region == region ?
         [
           "internalAppID=${policy.security_group.internalAppID}"
-        ]
+        ] : []
     ]))
   }
 
@@ -250,7 +250,7 @@ locals {
         [
           "serviceType=${policy.security_group.serviceType}",
           "region=${policy.security_group.region}"
-        ]
+        ] : []
     ]))
   }
 
