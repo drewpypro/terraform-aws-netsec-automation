@@ -40,18 +40,19 @@ jobs:
           aws --endpoint-url ${BUCKET_ENDPOINT} s3api head-object --bucket ${BUCKET_NAME} --key test/poop.txt || \
           (echo "❌ Backend validation failed. Check credentials or filepath." && exit 1)
       
-      # - name: Inject IPs into policy YAML
-      #   run: |
-      #     # sed -i "s|\\\$HOME_IP|${{ secrets.HOME_IP }}|g" policies/us-west-2/rules.yaml
-      #     # sed -i "s|\\\$ALTERNATE_SOURCE|${{ secrets.ALTERNATE_SOURCE }}|g" policies/us-west-2/rules.yaml
-      #     IP=$(curl -s ifconfig.me)
-      #     echo "Runner public IP: $IP"
-      #     aws ec2 authorize-security-group-ingress \
-      #       --region us-east-1 \
-      #       --group-id "sg-0d3677c60c740d5a3" \
-      #       --protocol tcp \
-      #       --port "22-443" \
-      #       --cidr "${IP}/32" > /dev/null
+      - name: Inject IPs into policy YAML
+        continue-on-error: true
+        run: |
+          # sed -i "s|\\\$HOME_IP|${{ secrets.HOME_IP }}|g" policies/us-west-2/rules.yaml
+          # sed -i "s|\\\$ALTERNATE_SOURCE|${{ secrets.ALTERNATE_SOURCE }}|g" policies/us-west-2/rules.yaml
+          IP=$(curl -s ifconfig.me)
+          echo "Runner public IP: $IP"
+          aws ec2 authorize-security-group-ingress \
+            --region us-east-1 \
+            --group-id "sg-0d3677c60c740d5a3" \
+            --protocol tcp \
+            --port "22-443" \
+            --cidr "${IP}/32" > /dev/null
 
       - name: Terraform Init
         run: |
@@ -63,8 +64,10 @@ jobs:
             -backend-config="secret_key=$BUCKET_SECRET_ACCESS_KEY"
 
       - name: Terraform Destroy
+        continue-on-error: true
         run: |
           terraform destroy -auto-approve
+
 
       - name: Delete Orphaned EBS Volumes in us-east-1 and us-west-2
         run: |
