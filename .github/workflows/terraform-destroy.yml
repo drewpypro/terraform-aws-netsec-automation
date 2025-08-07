@@ -41,6 +41,7 @@ jobs:
           (echo "❌ Backend validation failed. Check credentials or filepath." && exit 1)
       
       - name: Inject IPs into policy YAML
+        continue-on-error: true
         run: |
           # sed -i "s|\\\$HOME_IP|${{ secrets.HOME_IP }}|g" policies/us-west-2/rules.yaml
           # sed -i "s|\\\$ALTERNATE_SOURCE|${{ secrets.ALTERNATE_SOURCE }}|g" policies/us-west-2/rules.yaml
@@ -63,8 +64,10 @@ jobs:
             -backend-config="secret_key=$BUCKET_SECRET_ACCESS_KEY"
 
       - name: Terraform Destroy
+        continue-on-error: true
         run: |
           terraform destroy -auto-approve
+
 
       - name: Delete Orphaned EBS Volumes in us-east-1 and us-west-2
         run: |
