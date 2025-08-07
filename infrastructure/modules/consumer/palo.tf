@@ -32,14 +32,14 @@ resource "panos_panorama_security_rule_group" "consumer_group" {
 
   rule {
     name                  = "rule-${each.key}"
-    applications           = [each.value.appid]
+    applications          = [each.value.appid]
     source_zones          = ["trust"]
     destination_zones     = ["untrust"]
     source_addresses      = each.value.source_ips
     destination_addresses = ["any"]
-    services               = [panos_panorama_service_object.consumer_services[each.key].name]
+    services              = [panos_panorama_service_object.consumer_services[each.key].name]
     action                = "allow"
-    categories              = [panos_custom_url_category.consumer_category[each.key].name]
-    source_users           = ["any"]
+    categories            = [panos_custom_url_category.consumer_category[each.key].name]
+    source_users          = ["any"]
   }
 }
