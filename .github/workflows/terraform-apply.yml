@@ -1,11 +1,6 @@
 name: terraform apply workflow
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'infrastructure/**'
   workflow_dispatch:
 
 env:
