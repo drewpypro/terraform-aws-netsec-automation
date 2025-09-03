@@ -1,7 +1,6 @@
 security_group:
   request_id: RQ-005
-  business_justification: >
-    Testing this github pipeline to see if Multi-Region objects, using example thirdparty github. 
+  business_justification: "Testing this github pipeline to see if Multi-Region objects, using example thirdparty github. \n"
   accountId: 6666666
   region: us-east-1
   vpc_id: vpc-0b6a4113294197180
@@ -11,8 +10,7 @@ security_group:
   thirdPartyID: TP-0016
 rules:
   - request_id: RQ-005
-    business_justification: >
-        This is a test policy to generate objects in one region. 
+    business_justification: "This is a test policy to generate objects in one region. \n"
     source:
       account_id: 12345678
       vpc_id: vpc-23423432
@@ -21,6 +19,20 @@ rules:
         - 10.0.0.1/32
         - 10.0.0.2/32
     protocol: tcp
+    port: 443
+    appid: ssl
+    url: https://github.com
+    enable_palo_inspection: true
+  - request_id: RQ-005
+    business_justification: "This is a test policy to generate objects in one region. \n"
+    source:
+      account_id: 12345678
+      vpc_id: vpc-23423432
+      region: us-east-1
+      ips:
+        - 10.0.0.1/32
+        - 10.0.0.2/32
+    protocol: udp
     port: 443
     appid: ssl
     url: https://github.com
